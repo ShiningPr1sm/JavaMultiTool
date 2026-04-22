@@ -7,6 +7,7 @@ import ui.achievements.AchievementsPanel;
 import ui.admin.AdminLogPanel;
 import ui.daytab.BDaysNotifierPanel;
 import ui.daytab.WorkflowPanel;
+import ui.photovideotab.ImageToolsPanel;
 import ui.photovideotab.MediaDownloaderPanel;
 import ui.settings.SettingsPanel;
 import ui.utils.AppLogger;
@@ -244,7 +245,7 @@ public class MainFrame extends JFrame {
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebar.add(createExpandableSection("Time", new String[]{"Workflow", "Timer", "BDays notifier"}));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        if (AuthService.isAdmin()) {
+        if (AuthService.isTester()) {
             sidebar.add(createExpandableSection("Admin Panel", new String[]{"Admin CMD"}));
             sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         }
@@ -393,6 +394,8 @@ public class MainFrame extends JFrame {
                     contentPanel.add(new AdminLogPanel(), BorderLayout.CENTER);
             case "Settings" ->
                     openSettings();
+            case "Image Tools" ->
+                    contentPanel.add(new ImageToolsPanel(), BorderLayout.CENTER);
             default ->
                     AppLogger.error("Attempted to open unknown tab: " + itemName);
         }
