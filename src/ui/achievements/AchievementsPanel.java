@@ -2,6 +2,7 @@ package ui.achievements;
 
 import db.AchievementDB;
 import ui.UIStyle;
+import ui.utils.AppLogger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -142,9 +143,15 @@ public class AchievementsPanel extends JPanel {
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
 
-        JLabel xpLabel = new JLabel("+" + xpReward + " XP");
+        JLabel xpLabel = new JLabel();
         xpLabel.setForeground(UIStyle.XP_LABEL_COLOR);
         xpLabel.setFont(xpLabel.getFont().deriveFont(12f));
+
+        if (completed) {
+            xpLabel.setText("COMPLETED");
+        } else {
+            xpLabel.setText("+" + xpReward + " XP");
+        }
 
         JLabel descLabel = new JLabel(
                 "<html><body style='width:200px'>" + description + "</body></html>");
@@ -155,12 +162,44 @@ public class AchievementsPanel extends JPanel {
             @Override
             public Dimension getPreferredSize() {
                 Dimension d = super.getPreferredSize();
-                return new Dimension(d.width, 16);
+                return new Dimension(d.width, 20);
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int width = getWidth();
+                int height = getHeight();
+                g2d.setColor(getBackground());
+                g2d.fillRect(0, 0, width, height);
+                double percent = (double) getValue() / getMaximum();
+                int progressWidth = (int) (width * percent);
+                g2d.setColor(getForeground());
+                g2d.fillRect(0, 0, progressWidth, height);
+                if (isStringPainted()) {
+                    g2d.setColor(UIStyle.TEXT_COLOR);
+                    Font font = getFont();
+                    g2d.setFont(font);
+
+                    int percentDisplay = (int) Math.round((double) getValue() / getMaximum() * 100);
+                    String text = percentDisplay + "%";
+
+                    FontMetrics fm = g2d.getFontMetrics();
+                    int textX = (width - fm.stringWidth(text)) / 2;
+                    int textY = (height - fm.getHeight()) / 2 + fm.getAscent();
+                    g2d.drawString(text, textX, textY);
+                }
+                g2d.dispose();
             }
         };
+
         progressBar.setValue(progress);
         progressBar.setStringPainted(true);
         progressBar.setForeground(UIStyle.PROGRESS_BAR);
+        progressBar.setBackground(UIStyle.BG_PROGRESS_BAR);
+        progressBar.setOpaque(false);
         progressBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         info.add(titleLabel);
