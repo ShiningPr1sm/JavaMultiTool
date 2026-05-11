@@ -10,10 +10,7 @@ import ui.daytab.WorkflowPanel;
 import ui.photovideotab.ImageToolsPanel;
 import ui.photovideotab.MediaDownloaderPanel;
 import ui.settings.SettingsPanel;
-import ui.utils.AppLogger;
-import ui.utils.AuthService;
-import ui.utils.TrayManager;
-import ui.utils.WorkflowService;
+import ui.utils.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,6 +41,7 @@ public class MainFrame extends JFrame {
 
     public MainFrame(String login) {
         this.login = login;
+        UserSession.setLogin(login);
 
         LevelManager.initializeDatabase();
         LevelManager.ensureUserEntry(login);
@@ -76,6 +74,10 @@ public class MainFrame extends JFrame {
         AchievementDB.syncUserAchievements(login);
         AchievementDB.setMainFrame(this);
         AchievementDB.completeAchievement(login, "first_login");
+
+        if (LevelManager.getLevel(login) == 10) {
+            AchievementDB.completeAchievement(login, "reach_10lvl");
+        }
 
         contentPanel.removeAll();
         WelcomePanel welcomePanel = new WelcomePanel(login);

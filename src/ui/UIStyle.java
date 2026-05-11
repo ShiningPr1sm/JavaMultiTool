@@ -23,7 +23,7 @@ public class UIStyle {
 
     public static void applyTheme(String themeName) {
         switch (themeName) {
-            case "original_dark" -> {
+            case "Original Dark" -> {
                 BG_COLOR       = new Color(25, 25, 25);
                 HEADER_COLOR   = new Color(30, 30, 30);
                 SECONDARY_BG   = new Color(35, 35, 35);
@@ -36,7 +36,7 @@ public class UIStyle {
                 PROGRESS_BAR   = new Color(180, 100, 100);
                 ACCENT_COLOR   = new Color(100, 200, 100);
             }
-            case "midnight_blue" -> {
+            case "Midnight Blue" -> {
                 BG_COLOR       = new Color(12, 14, 20);
                 HEADER_COLOR   = new Color(18, 22, 30);
                 SECONDARY_BG   = new Color(24, 28, 40);
@@ -49,7 +49,7 @@ public class UIStyle {
                 PROGRESS_BAR   = new Color(0, 180, 255);
                 ACCENT_COLOR   = new Color(0, 162, 255);
             }
-            case "deep_forest" -> {
+            case "Deep Forest" -> {
                 BG_COLOR       = new Color(15, 18, 15);
                 HEADER_COLOR   = new Color(22, 28, 22);
                 SECONDARY_BG   = new Color(28, 35, 28);
@@ -62,7 +62,7 @@ public class UIStyle {
                 PROGRESS_BAR   = new Color(76, 182, 76);
                 ACCENT_COLOR   = new Color(140, 255, 100);
             }
-            case "dracula" -> {
+            case "Dracula" -> {
                 BG_COLOR       = new Color(40, 42, 54);
                 HEADER_COLOR   = new Color(33, 34, 44);
                 SECONDARY_BG   = new Color(55, 55, 65);
@@ -75,7 +75,7 @@ public class UIStyle {
                 PROGRESS_BAR   = new Color(255, 121, 198);
                 ACCENT_COLOR   = new Color(189, 147, 249);
             }
-            case "crimson_ember" -> {
+            case "Crimson Ember" -> {
                 BG_COLOR       = new Color(20, 15, 15);
                 HEADER_COLOR   = new Color(28, 20, 20);
                 SECONDARY_BG   = new Color(35, 25, 25);

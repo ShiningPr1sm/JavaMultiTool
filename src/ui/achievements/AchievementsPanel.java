@@ -149,6 +149,7 @@ public class AchievementsPanel extends JPanel {
 
         if (completed) {
             xpLabel.setText("COMPLETED");
+            xpLabel.setForeground(UIStyle.XP_LABEL_COLOR.darker());
         } else {
             xpLabel.setText("+" + xpReward + " XP");
         }

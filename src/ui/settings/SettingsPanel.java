@@ -27,9 +27,6 @@ public class SettingsPanel extends JPanel {
     private static String cachedPublicIP = null;
     private static String cachedLocalIP = null;
     private static String cachedMac = null;
-    private static String cachedOs = null;
-    private static String cachedCpu = null;
-    private static String cachedDisplay = null;
 
     private static boolean isInfoLoaded = false;
 
@@ -44,9 +41,6 @@ public class SettingsPanel extends JPanel {
                 cachedPublicIP = fetchPublicIP();
                 cachedLocalIP = fetchLocalIp();
                 cachedMac = fetchMac();
-                cachedOs = System.getProperty("os.name") + " " + System.getProperty("os.version");
-                cachedCpu = System.getenv("PROCESSOR_IDENTIFIER");
-                cachedDisplay = Toolkit.getDefaultToolkit().getScreenSize().width + "x" + Toolkit.getDefaultToolkit().getScreenSize().height;
 
                 AppLogger.info("System info cached successfully.");
             } catch (Exception e) {
@@ -98,13 +92,14 @@ public class SettingsPanel extends JPanel {
         changePasswordBtn.addActionListener(_ -> openChangePasswordDialog(login));
         UIStyle.styleButton(changePasswordBtn);
 
-        String[] themes = {"original_dark", "midnight_blue", "deep_forest", "crimson_ember", "dracula"};
+        String[] themes = {"Original Dark", "Midnight Blue", "Deep Forest", "Crimson Ember", "Dracula"};
         JComboBox<String> themeBox = new JComboBox<>(themes);
         UIStyle.styleComboBox(themeBox);
         themeBox.setSelectedItem(DB.getTheme(login));
-        themeBox.addActionListener(e -> {
+        themeBox.addActionListener(_ -> {
             String selected = (String) themeBox.getSelectedItem();
             DB.setTheme(login, selected);
+            assert selected != null;
             UIStyle.applyTheme(selected);
             JOptionPane.showMessageDialog(this, "Theme applied! Please switch tabs to see changes.");
         });
@@ -165,18 +160,6 @@ public class SettingsPanel extends JPanel {
         lastLoginLabel.setForeground(Color.LIGHT_GRAY);
         lastLoginLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel osLabel = new JLabel(" OS: " + (cachedOs != null ? cachedOs : "Loading..."));
-        osLabel.setForeground(Color.LIGHT_GRAY);
-        osLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel cpuLabel = new JLabel(" CPU: " + (cachedCpu != null ? cachedCpu : "Loading..."));
-        cpuLabel.setForeground(Color.LIGHT_GRAY);
-        cpuLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel displayLabel = new JLabel(" Display: " + (cachedDisplay != null ? cachedDisplay : "Loading..."));
-        displayLabel.setForeground(Color.LIGHT_GRAY);
-        displayLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         JCheckBox saveLoginBox = new JCheckBox("Save data after first login");
         saveLoginBox.setBackground(UIStyle.BG_COLOR);
         saveLoginBox.setForeground(Color.WHITE);
@@ -213,12 +196,6 @@ public class SettingsPanel extends JPanel {
         infoPanel.add(regDateLabel);
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(lastLoginLabel);
-        infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(osLabel);
-        infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(cpuLabel);
-        infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(displayLabel);
         infoPanel.add(Box.createVerticalStrut(10));
         infoPanel.add(saveLoginBox);
         infoPanel.add(Box.createVerticalStrut(2));
@@ -370,22 +347,5 @@ public class SettingsPanel extends JPanel {
             return "Unavailable";
         }
         return "Unavailable";
-    }
-
-    private String getOSVersion() {
-        return System.getProperty("os.name") + " " + System.getProperty("os.version");
-    }
-
-    private String getCpuInfo() {
-        return System.getenv("PROCESSOR_IDENTIFIER") != null
-                ? System.getenv("PROCESSOR_IDENTIFIER")
-                : System.getProperty("os.arch");
-    }
-
-    private String getDisplayInfo() {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        int refreshRate = device.getDisplayMode().getRefreshRate();
-        return screenSize.width + "x" + screenSize.height + " @ " + refreshRate + "Hz";
     }
 }

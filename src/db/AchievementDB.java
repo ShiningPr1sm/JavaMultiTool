@@ -155,9 +155,9 @@ public class AchievementDB {
      */
     public static void insertDefaultAchievements() {
         /*
-        level: 0 - ачивка на 1 раз и выполнена.
-        level: 1 - ачивка на 2 раз чтобы была выполнена.
-        level: n - ачивка на n+1 раз чтобы была выполнена.
+        level: 1 - ачивка на 1 раз и выполнена.
+        level: 2 - ачивка на 2 раз чтобы была выполнена.
+        level: n - ачивка на n раз чтобы была выполнена.
          */
 
         addAchievement("first_login", "I am new here!", "Log into the application for the first time.");

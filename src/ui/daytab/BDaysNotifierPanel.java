@@ -2,17 +2,14 @@ package ui.daytab;
 
 import db.AchievementDB;
 import db.BDaysDB;
-import ui.MainFrame;
 import ui.UIStyle;
+import ui.utils.UserSession;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.text.DateFormatter;
 import java.awt.*;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
@@ -63,15 +60,13 @@ public class BDaysNotifierPanel extends JPanel {
         add(cards, BorderLayout.CENTER);
 
         // Listeners
-        overviewBtn.addActionListener(e -> switchCard(OVERVIEW_CARD));
-        editBtn.addActionListener(e -> switchCard(EDIT_CARD));
-        modeSelector.addActionListener(e -> {
+        overviewBtn.addActionListener(_ -> switchCard(OVERVIEW_CARD));
+        editBtn.addActionListener(_ -> switchCard(EDIT_CARD));
+        modeSelector.addActionListener(_ -> {
             if (OVERVIEW_CARD.equals(getCurrentCard())) {
                 refreshOverview();
             }
         });
-
-        // Default view
         switchCard(OVERVIEW_CARD);
     }
 
@@ -99,11 +94,10 @@ public class BDaysNotifierPanel extends JPanel {
         panel.setName(EDIT_CARD);
         panel.setBackground(UIStyle.BG_COLOR);
 
-        // Table setup
         model = new DefaultTableModel(new String[]{"ID", "Name", "Birthday"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column != 0; // только ID нельзя редактировать
+                return column != 0;
             }
         };
         model.addTableModelListener(e -> {
@@ -116,7 +110,7 @@ public class BDaysNotifierPanel extends JPanel {
                     String dbDate = uiToDb(dateStr);
                     BDaysDB.updateBirthday(id, name, dbDate);
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Invalid format. Use DD.MM.xxxx");
+                    JOptionPane.showMessageDialog(this, "Invalid format. Use DD.MM.YYYY or DD.MM.xxxx");
                     refreshTable();
                 }
             }
@@ -127,7 +121,6 @@ public class BDaysNotifierPanel extends JPanel {
             @Override
             public Component getTableCellRendererComponent(JTable tbl, Object value,
                                                            boolean isSelected, boolean hasFocus, int row, int column) {
-                // Вместо значения из базы (value) пишем номер строки + 1
                 JLabel label = (JLabel) super.getTableCellRendererComponent(tbl, row + 1, isSelected, hasFocus, row, column);
                 label.setHorizontalAlignment(SwingConstants.CENTER);
                 return label;
@@ -193,6 +186,7 @@ public class BDaysNotifierPanel extends JPanel {
                 String dbDate = uiToDb(inputDate);
                 BDaysDB.addBirthday(name, dbDate);
 
+                AchievementDB.completeAchievement(UserSession.getLogin(), "real_friend");
                 refreshTable();
                 dateField.setText("");
                 nameField.setText("");
@@ -283,10 +277,10 @@ public class BDaysNotifierPanel extends JPanel {
 
     private void refreshTable() {
         model.setRowCount(0);
-        int displayId = 1; // Визуальный счетчик
+        int displayId = 1;
         try (var rs = BDaysDB.getAllBirthdays()) {
             while (rs.next()) {
-                int realDbId = rs.getInt("id"); // Настоящий ID для базы
+                int realDbId = rs.getInt("id");
                 String name = rs.getString("name");
                 String dbDate = rs.getString("bday_date");
 
@@ -307,8 +301,8 @@ public class BDaysNotifierPanel extends JPanel {
         String mode = (String) modeSelector.getSelectedItem();
         boolean upcoming = "Upcoming".equals(mode);
 
-        // 1. Собираем все дни рождения в карту по МЕСЯЦАМ (Integer 1-12)
-        Map<Integer, List<Object[]>> monthMap = new TreeMap<>(); // TreeMap сразу сортирует по номеру месяца
+        // 1
+        Map<Integer, List<Object[]>> monthMap = new TreeMap<>();
 
         try (var rs = BDaysDB.getAllBirthdays()) {
             while (rs.next()) {
@@ -330,10 +324,9 @@ public class BDaysNotifierPanel extends JPanel {
             e.printStackTrace();
         }
 
-        // 2. Определяем порядок прохода по месяцам
+        // 2
         List<Integer> monthOrder = new ArrayList<>();
         if ("Upcoming".equals(mode)) {
-            // Начинаем с текущего месяца и идем по кругу 12 месяцев
             int startMonth = today.getMonthValue();
             for (int i = 0; i < 12; i++) {
                 monthOrder.add((startMonth + i - 1) % 12 + 1);
@@ -341,32 +334,28 @@ public class BDaysNotifierPanel extends JPanel {
         } else if ("Reverse List".equals(mode)) {
             for (int i = 12; i >= 1; i--) monthOrder.add(i);
         } else {
-            // Обычный список с Января по Декабрь
             for (int i = 1; i <= 12; i++) monthOrder.add(i);
         }
 
-        // 3. Отрисовка
+        // 3
         String lastSeason = "";
 
         for (int monthNum : monthOrder) {
             List<Object[]> entries = monthMap.get(monthNum);
             if (entries == null || entries.isEmpty()) continue;
 
-            // Проверяем, сменился ли сезон
             String currentSeason = getSeasonName(monthNum);
             if (!currentSeason.equals(lastSeason)) {
                 addSeasonHeader(currentSeason);
                 lastSeason = currentSeason;
             }
 
-            // Заголовок месяца
             String mn = Month.of(monthNum).getDisplayName(TextStyle.FULL, Locale.getDefault()).toUpperCase();
             JLabel ml = new JLabel("      " + mn);
             ml.setForeground(getSeasonColor(currentSeason));
             ml.setFont(ml.getFont().deriveFont(Font.BOLD, 14f));
             overviewContainer.add(ml);
 
-            // Сортируем людей внутри месяца (по дням)
             entries.sort(Comparator.comparing(o -> ((LocalDate) o[2]).getDayOfMonth()));
             if ("Reverse List".equals(mode)) Collections.reverse(entries);
 
@@ -379,7 +368,6 @@ public class BDaysNotifierPanel extends JPanel {
 
                 String ageText = "";
                 if (!yearUnknown) {
-                    // Считаем, сколько лет исполняется в году 'candidate' (т.е. в текущем году)
                     int ageThisYear = candidate.getYear() - originalBD.getYear();
 
                     if (expired) {
@@ -392,8 +380,17 @@ public class BDaysNotifierPanel extends JPanel {
                 }
                 String dateShow = candidate.format(DateTimeFormatter.ofPattern("dd.MM")) + (yearUnknown ? ".xxxx" : "." + originalBD.getYear());
                 JLabel lbl = new JLabel("     — " + name + " — " + dateShow + " " + ageText);
-                lbl.setFont(lbl.getFont().deriveFont(15f));
-                lbl.setForeground(upcoming && expired ? Color.GRAY : Color.WHITE);
+
+                boolean isToday = candidate.equals(today);
+
+                if (isToday) {
+                    lbl.setForeground(UIStyle.ACCENT_COLOR);
+                    lbl.setText(lbl.getText() + "  [🎉 TODAY!]");
+                    lbl.setFont(lbl.getFont().deriveFont(15f));
+                } else {
+                    lbl.setForeground(upcoming && expired ? Color.GRAY : Color.WHITE);
+                    lbl.setFont(lbl.getFont().deriveFont(15f));
+                }
                 overviewContainer.add(lbl);
             }
         }
@@ -402,15 +399,13 @@ public class BDaysNotifierPanel extends JPanel {
         overviewContainer.repaint();
     }
 
-    // Вспомогательный метод для заголовка сезона
     private void addSeasonHeader(String season) {
-        JLabel sl = new JLabel("   " + season);
+        JLabel sl = new JLabel("   " + season + "  ----------------------------------------------");
         sl.setForeground(getSeasonColor(season));
         sl.setFont(sl.getFont().deriveFont(Font.BOLD, 16f));
         overviewContainer.add(sl);
     }
 
-    // Определение имени сезона
     private String getSeasonName(int month) {
         if (month >= 3 && month <= 5) return "Spring";
         if (month >= 6 && month <= 8) return "Summer";
@@ -418,13 +413,12 @@ public class BDaysNotifierPanel extends JPanel {
         return "Winter";
     }
 
-    // Определение цвета сезона
     private Color getSeasonColor(String season) {
         return switch (season) {
-            case "Winter" -> new Color(64, 224, 208); // Бирюзовый
-            case "Spring" -> new Color(100, 200, 100); // Зеленый
-            case "Summer" -> new Color(255, 215, 0);   // Золотой
-            case "Autumn" -> new Color(255, 140, 0);   // Оранжевый
+            case "Winter" -> new Color(64, 224, 208);
+            case "Spring" -> new Color(100, 200, 100);
+            case "Summer" -> new Color(255, 215, 0);
+            case "Autumn" -> new Color(255, 140, 0);
             default -> Color.WHITE;
         };
     }
@@ -435,16 +429,16 @@ public class BDaysNotifierPanel extends JPanel {
             if (parts.length < 2) throw new Exception("Invalid format");
             String day = parts[0];
             String month = parts[1];
-            // Формируем ISO: 0000-MM-DD
+            // ISO: 0000-MM-DD
             return String.format("0000-%s-%s", month, day);
         }
         LocalDate date = LocalDate.parse(uiDate, DISPLAY_FORMAT);
-        return date.toString(); // Вернет YYYY-MM-DD
+        return date.toString(); // YYYY-MM-DD
     }
 
     private String dbToUi(String dbDate) {
         if (dbDate.startsWith("0000-")) {
-            // Из 0000-05-20 делаем 20.05.xxxx
+            // 0000-05-20 -> 20.05.xxxx
             String[] parts = dbDate.split("-");
             return parts[2] + "." + parts[1] + ".xxxx";
         }
