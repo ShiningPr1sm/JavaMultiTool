@@ -27,6 +27,4 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-
-### TODO LIST ###
-/res/TODO.txt
+/res/ToDoList
