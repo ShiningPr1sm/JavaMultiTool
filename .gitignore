@@ -2,6 +2,7 @@
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+target/
 
 ### Eclipse ###
 .apt_generated
@@ -27,4 +28,4 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-/res/todo.txt
+/res/ToDoList

@@ -1,7 +1,7 @@
 package ui.admin;
 
 import ui.UIStyle;
-import ui.utils.AppLogger;
+import util.AppLogger;
 import javax.swing.*;
 import java.awt.*;
 
@@ -20,13 +20,13 @@ public class AdminLogPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setBorder(null);
         UIStyle.styleScrollBar(scrollPane);
-        AppLogger.setConsoleOutput(textArea);
+        AppLogger.setConsoleOutput(msg -> SwingUtilities.invokeLater(() -> textArea.append(msg)));
 
         add(scrollPane, BorderLayout.CENTER);
 
         JButton clearBtn = new JButton("Clear Console");
         UIStyle.styleButton(clearBtn);
-        clearBtn.addActionListener(_ -> textArea.setText(""));
+        clearBtn.addActionListener(e -> textArea.setText(""));
         add(clearBtn, BorderLayout.SOUTH);
     }
 }

@@ -39,7 +39,7 @@ public class LoadingPanel extends JPanel {
         }
 
         // Таймер для анимации вращения картинки
-        rotationTimer = new Timer(15, _ -> {
+        rotationTimer = new Timer(15, e -> {
             rotationAngle += Math.toRadians(3);
             repaint();
         });
@@ -48,7 +48,7 @@ public class LoadingPanel extends JPanel {
 
     public void fadeOut(Runnable onFinished) {
         Timer fadeTimer = new Timer(15, null);
-        fadeTimer.addActionListener(_ -> {
+        fadeTimer.addActionListener(e -> {
             alpha -= 0.05f;
             if (alpha <= 0f) {
                 alpha = 0f;

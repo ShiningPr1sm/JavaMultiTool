@@ -1,47 +1,37 @@
 package ui.photovideotab;
 
+import service.MediaDownloadService;
 import ui.UIStyle;
-import ui.utils.AppLogger;
+import util.AppLogger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.io.*;
-import java.net.URL;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.Objects;
 
 public class MediaDownloaderPanel extends JPanel {
-    private static final String APPDATA = System.getenv("APPDATA");
-    private static final File YTDLP_DIR = new File(APPDATA, "yt-dlp-app");
-    private static final File YTDLP_EXE = new File(YTDLP_DIR, "yt-dlp.exe");
-    private static final File YTDLP_VERSION_FILE = new File(YTDLP_DIR, "version.txt");
-    private static final String YTDLP_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
-    private static final File FFMPEG_DIR = new File(YTDLP_DIR, "ffmpeg");
-    private static final File FFMPEG_EXE = new File(FFMPEG_DIR, "ffmpeg.exe");
-    private static final String FFMPEG_ZIP_URL = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
+    private static final String PLACEHOLDER = "Paste or Enter links to social media here...";
 
     private JTextArea textArea;
     private JProgressBar progressBar;
     private JComboBox<String> formatBox;
     private JComboBox<String> browserComboBox;
     private JButton downloadButton;
+    private JButton thumbnailButton;
     private final File downloadFolder;
+    private final MediaDownloadService downloadService;
 
     public MediaDownloaderPanel() {
         setLayout(new BorderLayout(10, 10));
         setBackground(UIStyle.BG_COLOR);
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        downloadFolder = new File(System.getProperty("user.home"), "Downloads/JavaVideoDownloader");
-        if (!downloadFolder.exists())
-            downloadFolder.mkdirs();
+        downloadFolder = new File(System.getProperty("user.home"), "Downloads");
+        downloadService = new MediaDownloadService();
         initUI();
     }
 
@@ -54,6 +44,11 @@ public class MediaDownloaderPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 50, 10, 50);
 
+        ImageIcon thumbIcon = new ImageIcon(
+                Objects.requireNonNull(MediaDownloaderPanel.class.getResource("/icons/photovideotab/thumbnail_icon.png"))
+        );
+        Image scaled = thumbIcon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
+
         textArea = new JTextArea();
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
@@ -61,55 +56,58 @@ public class MediaDownloaderPanel extends JPanel {
         textArea.setForeground(Color.GRAY);
         textArea.setCaretColor(Color.WHITE);
         textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textArea.setText("Paste or Enter links to social media here...");
-
+        textArea.setText(PLACEHOLDER);
         textArea.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
-                if (textArea.getText().equals("Paste or Enter links to social media here...")) {
+                if (textArea.getText().equals(PLACEHOLDER)) {
                     textArea.setText("");
                     textArea.setForeground(Color.WHITE);
                 }
             }
+
             public void focusLost(FocusEvent e) {
                 if (textArea.getText().isEmpty()) {
                     textArea.setForeground(Color.GRAY);
-                    textArea.setText("Paste or Enter links to social media here...");
+                    textArea.setText(PLACEHOLDER);
                 }
             }
         });
 
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(650, 350)); // Фиксированная высота ввода
+        scrollPane.setPreferredSize(new Dimension(650, 350));
         scrollPane.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
         UIStyle.styleScrollBar(scrollPane);
         centralPanel.add(scrollPane, gbc);
 
-        // прогресс-бар
         progressBar = new JProgressBar(0, 100);
         progressBar.setStringPainted(true);
-        progressBar.setPreferredSize(new Dimension(450, 25)); // Фиксированная высота бара
+        progressBar.setPreferredSize(new Dimension(450, 25));
         progressBar.setBackground(UIStyle.SECONDARY_BG);
         progressBar.setForeground(UIStyle.ACCENT_COLOR);
         progressBar.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
         centralPanel.add(progressBar, gbc);
 
-        // панель управления (кнопки и выбор формата)
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         controls.setBackground(UIStyle.BG_COLOR);
 
         formatBox = new JComboBox<>(new String[]{
-                "(dual) Video+Audio",
-                "TikTok/Inst/X",
-                "Audio/YT music",
-                "Video only"
+                "Video + Audio",
+                "Video only (muted)",
+                "Audio only (mp3)"
         });
         UIStyle.styleComboBox(formatBox);
-        formatBox.setPreferredSize(new Dimension(150, 30));
+        formatBox.setPreferredSize(new Dimension(160, 30));
 
         downloadButton = new JButton("Download");
         UIStyle.styleButton(downloadButton);
         downloadButton.setPreferredSize(new Dimension(120, 30));
-        downloadButton.addActionListener(_ -> startDownloadTask());
+        downloadButton.addActionListener(e -> startDownloadTask());
+
+        thumbnailButton = new JButton(new ImageIcon(scaled));
+        UIStyle.styleButton(thumbnailButton);
+        thumbnailButton.setPreferredSize(new Dimension(30, 30));
+        thumbnailButton.setToolTipText("Download thumbnail");
+        thumbnailButton.addActionListener(e -> startThumbnailTask());
 
         browserComboBox = new JComboBox<>(new String[]{"None", "Firefox", "Chrome", "Edge", "Opera", "Brave"});
         UIStyle.styleComboBox(browserComboBox);
@@ -117,6 +115,7 @@ public class MediaDownloaderPanel extends JPanel {
 
         controls.add(formatBox);
         controls.add(downloadButton);
+        controls.add(thumbnailButton);
         controls.add(browserComboBox);
 
         centralPanel.add(controls, gbc);
@@ -125,158 +124,129 @@ public class MediaDownloaderPanel extends JPanel {
 
     private void startDownloadTask() {
         String input = textArea.getText().trim();
-        if (input.isEmpty() || input.startsWith("Paste or Enter")) {
+        if (input.isEmpty() || input.equals(PLACEHOLDER)) {
             JOptionPane.showMessageDialog(this, "Please enter at least one video URL!");
-            AppLogger.error("No video entered.");
+            AppLogger.error("No URL entered.");
+            return;
+        }
+
+        String[] urls = input.split("\\r?\\n");
+        List<String> videoUrls = new ArrayList<>();
+        for (String url : urls) {
+            if (!url.trim().isEmpty()) videoUrls.add(url.trim());
+        }
+        if (videoUrls.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No valid URLs found!");
             return;
         }
 
         downloadButton.setEnabled(false);
+        progressBar.setValue(0);
+        progressBar.setString("Starting download...");
+
+        String format = (String) formatBox.getSelectedItem();
+        String browser = Objects.requireNonNull(browserComboBox.getSelectedItem()).toString().toLowerCase();
+
         new Thread(() -> {
             try {
-                checkAndDownloadYTDLP();
-                checkAndDownloadFFMPEG();
+                downloadService.ensureToolsAvailable();
+                AppLogger.info("Selected format: " + format + ", browser: " + browser);
 
-                String[] urls = input.split("\\r?\\n");
-                String format = (String) formatBox.getSelectedItem();
-                String browser = browserComboBox.getSelectedItem().toString().toLowerCase();
+                for (int i = 0; i < videoUrls.size(); i++) {
+                    int videoIndex = i + 1;
+                    String videoUrl = videoUrls.get(i);
+                    AppLogger.info("Processing URL " + videoIndex + "/" + videoUrls.size() + ": " + videoUrl);
 
-                for (int i = 0; i < urls.length; i++) {
-                    String url = urls[i].trim();
-                    if (url.isEmpty()) continue;
+                    int exitCode = downloadService.downloadVideo(videoUrl, format, browser, downloadFolder,
+                            (message, percent) -> SwingUtilities.invokeLater(() -> {
+                                if (percent != null) {
+                                    int totalProgress = (int) (((videoIndex - 1 + percent / 100.0) / videoUrls.size()) * 100);
+                                    progressBar.setValue(totalProgress);
+                                    progressBar.setString("Video " + videoIndex + "/" + videoUrls.size() + " - " + percent + "%");
+                                } else {
+                                    progressBar.setString("Video " + videoIndex + "/" + videoUrls.size() + " - " + message);
+                                }
+                            }));
 
-                    executeYtDlp(url, format, browser, i + 1, urls.length);
+                    if (exitCode != 0) {
+                        int finalI = i;
+                        SwingUtilities.invokeLater(() ->
+                                JOptionPane.showMessageDialog(this,
+                                        "Error downloading " + videoUrls.get(finalI) + ". Check logs for details."));
+                    }
                 }
 
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setValue(100);
                     progressBar.setString("All downloads completed!");
-                    AppLogger.info("All downloads completed.");
                     downloadButton.setEnabled(true);
+                    AppLogger.info("All downloads completed.");
                 });
             } catch (Exception ex) {
-                AppLogger.error("Video downloading error:" + ex.getMessage());
+                AppLogger.error("Download error: " + ex.getMessage());
                 SwingUtilities.invokeLater(() -> {
+                    progressBar.setString("Error: " + ex.getMessage());
                     downloadButton.setEnabled(true);
-                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage());
                 });
             }
         }).start();
     }
 
-    private void executeYtDlp(String videoUrl, String selectedFormat, String browser, int current, int total) throws IOException, InterruptedException {
-        List<String> command = new ArrayList<>();
-        command.add(YTDLP_EXE.getAbsolutePath());
-        command.add("--remote-components");
-        command.add("ejs:github");
-
-        switch (selectedFormat) {
-            case "(dual) Video+Audio" -> {
-                command.add("-f");
-                command.add("bestvideo[ext=mp4]+bestaudio[ext=m4a]");
-                command.add("--merge-output-format");
-                command.add("mp4");
-                command.add("--ffmpeg-location");
-                command.add(FFMPEG_EXE.getAbsolutePath());
-            }
-            case "Video only" -> {
-                command.add("-f");
-                command.add("bestvideo[ext=mp4]");
-            }
-            case "Audio/YT music" -> {
-                command.add("-f");
-                command.add("bestaudio");
-                command.add("--extract-audio");
-                command.add("--audio-format"); command.add("mp3");
-                command.add("--ffmpeg-location");
-                command.add(FFMPEG_EXE.getAbsolutePath());
-            }
-            case "TikTok/Inst/X" -> {
-                command.add("-f");
-                command.add("best[ext=mp4]");
-            }
+    private void startThumbnailTask() {
+        String input = textArea.getText().trim();
+        if (input.isEmpty() || input.equals(PLACEHOLDER)) {
+            JOptionPane.showMessageDialog(this, "Please enter at least one video URL!");
+            return;
         }
 
-        if (!browser.equals("none")) {
-            command.add("--cookies-from-browser");
-            command.add(browser);
+        String[] urls = input.split("\\r?\\n");
+        List<String> videoUrls = new ArrayList<>();
+        for (String url : urls) {
+            if (!url.trim().isEmpty()) videoUrls.add(url.trim());
+        }
+        if (videoUrls.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No valid URLs found!");
+            return;
         }
 
-        command.add("--impersonate");
-        command.add("chrome");
-        command.add("-o");
-        command.add(downloadFolder.getAbsolutePath() + "/%(title)s.%(ext)s");
-        command.add(videoUrl);
+        thumbnailButton.setEnabled(false);
+        progressBar.setValue(0);
+        progressBar.setString("Starting thumbnail download...");
 
-        ProcessBuilder pb = new ProcessBuilder(command);
-        pb.redirectErrorStream(true);
-        Process process = pb.start();
+        String browser = Objects.requireNonNull(browserComboBox.getSelectedItem()).toString().toLowerCase();
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line;
-        Pattern pattern = Pattern.compile("(\\d{1,3}\\.\\d)%");
+        new Thread(() -> {
+            try {
+                downloadService.ensureYTDLPAvailable();
 
-        while ((line = reader.readLine()) != null) {
-            Matcher matcher = pattern.matcher(line);
-            if (matcher.find()) {
-                int progress = (int) Float.parseFloat(matcher.group(1));
+                for (int i = 0; i < videoUrls.size(); i++) {
+                    int videoIndex = i + 1;
+                    String videoUrl = videoUrls.get(i);
+                    AppLogger.info("Downloading thumbnail " + videoIndex + "/" + videoUrls.size() + ": " + videoUrl);
+
+                    downloadService.downloadThumbnail(videoUrl, browser, downloadFolder,
+                            (message, percent) -> SwingUtilities.invokeLater(() ->
+                                    progressBar.setString("Thumbnail " + videoIndex + "/" + videoUrls.size() + " - " + message)));
+
+                    int totalProgress = (int) (((double) (i + 1) / videoUrls.size()) * 100);
+                    SwingUtilities.invokeLater(() -> progressBar.setValue(totalProgress));
+                }
+
                 SwingUtilities.invokeLater(() -> {
-                    progressBar.setValue(progress);
-                    progressBar.setString("Video " + current + "/" + total + " - " + progress + "%");
+                    progressBar.setValue(100);
+                    progressBar.setString("All thumbnails downloaded!");
+                    thumbnailButton.setEnabled(true);
+                    AppLogger.info("All thumbnails downloaded.");
+                });
+            } catch (Exception ex) {
+                AppLogger.error("Thumbnail download error: " + ex.getMessage());
+                SwingUtilities.invokeLater(() -> {
+                    progressBar.setString("Error: " + ex.getMessage());
+                    thumbnailButton.setEnabled(true);
+                    JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage());
                 });
             }
-        }
-        process.waitFor();
-    }
-
-    private void checkAndDownloadYTDLP() throws IOException, InterruptedException {
-        if (!YTDLP_DIR.exists()) YTDLP_DIR.mkdirs();
-        String latestVersion = getLatestYtDlpVersion();
-        if (!YTDLP_EXE.exists() || latestVersion != null) {
-            try (InputStream in = new URL(YTDLP_URL).openStream();
-                 FileOutputStream out = new FileOutputStream(YTDLP_EXE)) {
-                in.transferTo(out);
-            }
-            YTDLP_EXE.setExecutable(true);
-        }
-    }
-
-    private String getLatestYtDlpVersion() {
-        try (InputStream in = new URL("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest").openStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-            StringBuilder res = new StringBuilder();
-            String l; while((l = reader.readLine()) != null) res.append(l);
-            Matcher m = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^\"]+)\"").matcher(res.toString());
-            return m.find() ? m.group(1) : null;
-        } catch (Exception e) { return null; }
-    }
-
-    private void checkAndDownloadFFMPEG() throws IOException {
-        if (!FFMPEG_EXE.exists()) {
-            if (!FFMPEG_DIR.exists()) FFMPEG_DIR.mkdirs();
-            File zip = new File(FFMPEG_DIR, "ffmpeg.zip");
-            try (InputStream in = new URL(FFMPEG_ZIP_URL).openStream();
-                 FileOutputStream out = new FileOutputStream(zip)) {
-                in.transferTo(out);
-            }
-            extractFfmpegFromZip(zip, FFMPEG_EXE);
-            zip.delete();
-        }
-    }
-
-    private void extractFfmpegFromZip(File zipFile, File outFile) throws IOException {
-        try (ZipFile zf = new ZipFile(zipFile)) {
-            Enumeration<? extends ZipEntry> entries = zf.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry e = entries.nextElement();
-                if (!e.isDirectory() && e.getName().toLowerCase().endsWith("ffmpeg.exe")) {
-                    try (InputStream is = zf.getInputStream(e);
-                         FileOutputStream fos = new FileOutputStream(outFile)) {
-                        is.transferTo(fos);
-                    }
-                    return;
-                }
-            }
-        }
+        }).start();
     }
 }
