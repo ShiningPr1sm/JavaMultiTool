@@ -33,7 +33,7 @@ public class UIStyle {
                 BORDER_COLOR   = new Color(60, 60, 60);
                 BUTTON_PRESSED = new Color(65, 65, 65);
                 BG_PROGRESS_BAR= new Color(45, 45, 45);
-                PROGRESS_BAR   = new Color(180, 100, 100);
+                PROGRESS_BAR   = new Color(176, 65, 65);
                 ACCENT_COLOR   = new Color(100, 200, 100);
             }
             case "Midnight Blue" -> {
@@ -125,6 +125,45 @@ public class UIStyle {
         });
     }
 
+    public static void styleTextField(JTextField field) {
+        field.setBackground(SECONDARY_BG);
+        field.setForeground(TEXT_COLOR);
+        field.setCaretColor(TEXT_COLOR);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_COLOR, 1),
+                BorderFactory.createEmptyBorder(5, 7, 5, 5)
+        ));
+
+        field.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(ACCENT_COLOR, 1),
+                        BorderFactory.createEmptyBorder(5, 7, 5, 5)
+                ));
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(BORDER_COLOR, 1),
+                        BorderFactory.createEmptyBorder(5, 7, 5, 5)
+                ));
+            }
+        });
+    }
+
+    public static void makeFocusable(JPanel panel) {
+        panel.setFocusable(true);
+        panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                panel.requestFocusInWindow();
+            }
+        });
+    }
+
     public static void styleScrollBar(JScrollPane sp) {
         sp.getVerticalScrollBar().setUnitIncrement(20);
         sp.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
@@ -163,32 +202,67 @@ public class UIStyle {
         cb.setForeground(TEXT_COLOR);
         cb.setFocusable(false);
         cb.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
-        cb.setUI(new BasicComboBoxUI() {
+
+        // Устанавливаем кастомный UI
+        cb.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
+            @Override
+            protected javax.swing.plaf.basic.ComboPopup createPopup() {
+                return new javax.swing.plaf.basic.BasicComboPopup(comboBox) {
+                    @Override
+                    protected JScrollPane createScroller() {
+                        // Создаем стандартный скроллер
+                        JScrollPane sp = super.createScroller();
+                        // И ПРИМЕНЯЕМ К НЕМУ НАШ СТИЛЬ СКРОЛЛБАРА
+                        UIStyle.styleScrollBar(sp);
+                        sp.setBorder(null); // Убираем лишние рамки
+                        return sp;
+                    }
+                };
+            }
+
             @Override
             protected JButton createArrowButton() {
                 JButton btn = new JButton("▼");
                 btn.setBorder(BorderFactory.createEmptyBorder());
                 btn.setContentAreaFilled(false);
+                btn.setFocusPainted(false);
                 btn.setForeground(TEXT_COLOR);
                 return btn;
             }
+
             @Override
             public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
                 g.setColor(BUTTON_BG);
                 g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
             }
         });
+
+        // Стилизация самих элементов списка (выпадающей части)
         cb.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 lbl.setOpaque(true);
-                lbl.setBackground(isSelected ? BUTTON_HOVER : BUTTON_BG);
-                lbl.setForeground(TEXT_COLOR);
+
+                // Если элемент выбран в выпадающем списке
+                if (isSelected) {
+                    lbl.setBackground(BUTTON_HOVER);
+                    lbl.setForeground(ACCENT_COLOR);
+                } else {
+                    lbl.setBackground(BUTTON_BG);
+                    lbl.setForeground(TEXT_COLOR);
+                }
+
                 lbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
                 return lbl;
             }
         });
+
+        // Дополнительно: красим фон самого списка, чтобы не было белых щелей
+        Object child = cb.getAccessibleContext().getAccessibleChild(0);
+        if (child instanceof javax.swing.plaf.basic.BasicComboPopup popup) {
+            popup.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+        }
     }
 
     public static void styleTabbedPane(JTabbedPane tabs) {

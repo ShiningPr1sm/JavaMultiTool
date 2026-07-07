@@ -9,6 +9,7 @@ import ui.utils.WorkflowService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +27,7 @@ public class WorkflowPanel extends JPanel {
     private JComboBox<String> dateSelector;
     private PieChartPanel pieChart;
     private BarChartPanel hourChart, weekChart, monthChart;
+    private JComboBox<String> appFilter;
 
     public WorkflowPanel() {
         setLayout(new BorderLayout());
@@ -37,6 +39,20 @@ public class WorkflowPanel extends JPanel {
         tabs.addTab(" Tracker ", createTrackerUI());
         tabs.addTab(" Overview ", createOverviewUI());
         tabs.addTab(" Edit ", createEditUI());
+
+        tabs.addChangeListener(_ -> {
+            if (tabs.getSelectedIndex() == 1) {
+                refreshDateSelector();
+                refreshAppFilter();
+
+                String selectedDate = (String) dateSelector.getSelectedItem();
+                String selectedApp = (String) appFilter.getSelectedItem();
+
+                if (selectedDate != null) {
+                    updateCharts(selectedDate, selectedApp != null ? selectedApp : "ALL");
+                }
+            }
+        });
 
         add(tabs, BorderLayout.CENTER);
 
@@ -80,19 +96,22 @@ public class WorkflowPanel extends JPanel {
         refreshDateSelector();
         dateSelector.setPreferredSize(new Dimension(120, 30));
 
-        JComboBox<String> appFilter = new JComboBox<>();
-        appFilter.addItem("ALL");
+        appFilter = new JComboBox<>();
         UIStyle.styleComboBox(appFilter);
+        appFilter.setPreferredSize(new Dimension(150, 30));
+        refreshAppFilter();
 
-        JButton loadBtn = new JButton("Show Stats");
-        UIStyle.styleButton(loadBtn);
-        loadBtn.addActionListener(_ -> {
+        ActionListener autoUpdateListener = _ -> {
             String selectedDate = (String) dateSelector.getSelectedItem();
             String selectedApp = (String) appFilter.getSelectedItem();
-            if (selectedDate != null) {
+
+            if (selectedDate != null && selectedApp != null) {
                 updateCharts(selectedDate, selectedApp);
             }
-        });
+        };
+
+        dateSelector.addActionListener(autoUpdateListener);
+        appFilter.addActionListener(autoUpdateListener);
 
         List<Object[]> apps = WorkflowDB.getTrackedAppsFull();
         for (Object[] app : apps)
@@ -101,7 +120,6 @@ public class WorkflowPanel extends JPanel {
         top.add(dateSelector);
         top.add(new JLabel("<html><b style='color:white'>App:</b></html>"));
         top.add(appFilter);
-        top.add(loadBtn);
 
         JPanel chartsPanel = new JPanel(new GridLayout(2, 2, 15, 15));
         chartsPanel.setBackground(UIStyle.BG_COLOR);
@@ -339,14 +357,14 @@ public class WorkflowPanel extends JPanel {
     }
 
     private void loadDataFromDB() {
-        if (appList == null) return;
+        if (appList == null)
+            return;
         int lastSelected = appList.getSelectedIndex();
         appListModel.clear();
         List<Object[]> apps = WorkflowDB.getTrackedAppsFull();
         for (Object[] app : apps) {
             int id = (int) app[0];
             String prettyName = (String) app[1];
-            // Берем время, которое записал WorkflowService
             int sec = WorkflowDB.getSecondsToday(id, 0);
             appListModel.addElement(prettyName + "  [" + formatSeconds(sec) + "]");
         }
@@ -357,7 +375,8 @@ public class WorkflowPanel extends JPanel {
 
     private void refreshDateSelector() {
         dateSelector.removeAllItems();
-        for (String d : WorkflowDB.getAvailableDates()) dateSelector.addItem(d);
+        for (String d : WorkflowDB.getAvailableDates())
+            dateSelector.addItem(d);
     }
 
     private void updateCharts(String date, String filter) {
@@ -367,10 +386,18 @@ public class WorkflowPanel extends JPanel {
             for(int i=0; i<24; i++)
                 hLab[i] = "Time: " + i + ":00";
             WorkflowDB.StatResult wData = WorkflowDB.getPeriodStats(date, filter, 7);
+            String[] dayNames = new String[7];
+
+            for (int i = 0; i < 7; i++) {
+                LocalDate d = LocalDate.parse(wData.labels[i]);
+                dayNames[i] = d.getDayOfWeek()
+                        .getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH)
+                        .toUpperCase();
+            }
             WorkflowDB.StatResult mData = WorkflowDB.getCalendarMonthStats(date, filter);
             SwingUtilities.invokeLater(() -> {
                 hourChart.setData("Hourly Distribution (" + date + ")", hVal, hLab);
-                weekChart.setData("Last 7 Days", wData.values, wData.labels);
+                weekChart.setData("Weekly Activity", wData.values, dayNames);
                 monthChart.setData("Monthly Activity", mData.values, mData.labels);
                 pieChart.setData(WorkflowDB.getDaySummary(date));
             });
@@ -427,9 +454,17 @@ public class WorkflowPanel extends JPanel {
         return String.format("%02d:%02d:%02d", totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60);
     }
 
-    // ===================
-    // КАРТОЧКА ЗАДАЧИ
-    // ===================
+    private void refreshAppFilter() {
+        appFilter.removeAllItems();
+        appFilter.addItem("ALL");
+
+        List<Object[]> apps = WorkflowDB.getTrackedAppsFull();
+        for (Object[] app : apps) {
+            appFilter.addItem((String) app[1]);
+        }
+
+        appFilter.setSelectedItem("ALL");
+    }
 
     private class TaskCard extends JPanel {
         private final int taskId;

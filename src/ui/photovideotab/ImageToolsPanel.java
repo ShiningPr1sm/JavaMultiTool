@@ -22,7 +22,7 @@ import java.util.List;
 public class ImageToolsPanel extends JPanel {
     private final JLabel imagePreview;
     private final JTextArea infoArea;
-    private JButton openMapBtn;
+    private final JButton openMapBtn;
 
     public ImageToolsPanel() {
         setLayout(new BorderLayout(15, 10));
@@ -154,7 +154,9 @@ public class ImageToolsPanel extends JPanel {
                     sb.append("[ GEOLOCATION ]\n");
                     sb.append("Coordinates: ").append(String.format("%.6f, %.6f", lat, lon)).append("\n");
                     sb.append("Altitude: ").append(gpsDir.getDescription(GpsDirectory.TAG_ALTITUDE)).append("\n\n");
-                } else { mapUrl = null; }
+                } else {
+                    mapUrl = null;
+                }
 
                 IccDirectory iccDir = metadata.getFirstDirectoryOfType(IccDirectory.class);
                 if (iccDir != null) {
@@ -233,7 +235,9 @@ public class ImageToolsPanel extends JPanel {
         for (int x = 0; x < img.getWidth(); x += 20) {
             for (int y = 0; y < img.getHeight(); y += 20) {
                 Color c = new Color(img.getRGB(x, y));
-                r += c.getRed(); g += c.getGreen(); b += c.getBlue();
+                r += c.getRed();
+                g += c.getGreen();
+                b += c.getBlue();
                 count++;
             }
         }

@@ -1,5 +1,7 @@
 package ui.daytab;
 
+import ui.utils.AppLogger;
+
 import db.AchievementDB;
 import db.BDaysDB;
 import ui.UIStyle;
@@ -26,24 +28,21 @@ public class BDaysNotifierPanel extends JPanel {
 
     private DefaultTableModel model;
     private JTable table;
-    private JPanel cards;
-    private JComboBox<String> modeSelector;
+    private final JPanel cards;
+    private final JComboBox<String> modeSelector;
     private JPanel overviewContainer;
 
     public BDaysNotifierPanel() {
         setLayout(new BorderLayout());
         setBackground(UIStyle.BG_COLOR);
 
-        // Top panel
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         top.setBackground(UIStyle.BG_COLOR);
 
-        // Mode selector
         modeSelector = new JComboBox<>(new String[]{"Upcoming", "List", "Reverse List"});
         UIStyle.styleComboBox(modeSelector);
         top.add(modeSelector);
 
-        // Overview/Edit buttons
         JButton overviewBtn = new JButton("Overview");
         JButton editBtn     = new JButton("Edit");
         UIStyle.styleButton(overviewBtn);
@@ -52,14 +51,12 @@ public class BDaysNotifierPanel extends JPanel {
         top.add(editBtn);
         add(top, BorderLayout.NORTH);
 
-        // Cards
         cards = new JPanel(new CardLayout());
         cards.setBackground(UIStyle.BG_COLOR);
         cards.add(createEditPanel(), EDIT_CARD);
         cards.add(createOverviewPanel(), OVERVIEW_CARD);
         add(cards, BorderLayout.CENTER);
 
-        // Listeners
         overviewBtn.addActionListener(_ -> switchCard(OVERVIEW_CARD));
         editBtn.addActionListener(_ -> switchCard(EDIT_CARD));
         modeSelector.addActionListener(_ -> {
@@ -83,7 +80,7 @@ public class BDaysNotifierPanel extends JPanel {
     private String getCurrentCard() {
         for (Component comp : cards.getComponents()) {
             if (comp.isVisible()) {
-                return ((JComponent) comp).getName();
+                return comp.getName();
             }
         }
         return EDIT_CARD;
@@ -158,7 +155,6 @@ public class BDaysNotifierPanel extends JPanel {
         scroll.getViewport().setBackground(UIStyle.BG_COLOR);
         panel.add(scroll, BorderLayout.CENTER);
 
-        // Form panel
         JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         form.setBackground(UIStyle.HEADER_COLOR);
         JTextField nameField = new JTextField(10);
@@ -174,7 +170,7 @@ public class BDaysNotifierPanel extends JPanel {
         addBtn.setForeground(new Color(150, 255, 150));
         removeBtn.setForeground(new Color(255, 150, 150));
 
-        addBtn.addActionListener(e -> {
+        addBtn.addActionListener(_ -> {
             try {
                 String inputDate = dateField.getText().trim();
                 String name = nameField.getText().trim();
@@ -194,7 +190,7 @@ public class BDaysNotifierPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Invalid format. Use dd.MM.yyyy or dd.MM.xxxx", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-        removeBtn.addActionListener(e -> {
+        removeBtn.addActionListener(_ -> {
             int sel = table.getSelectedRow();
             if (sel >= 0) {
                 int id = (int) model.getValueAt(sel, 0);
@@ -277,7 +273,6 @@ public class BDaysNotifierPanel extends JPanel {
 
     private void refreshTable() {
         model.setRowCount(0);
-        int displayId = 1;
         try (var rs = BDaysDB.getAllBirthdays()) {
             while (rs.next()) {
                 int realDbId = rs.getInt("id");
@@ -291,7 +286,7 @@ public class BDaysNotifierPanel extends JPanel {
                 });
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            AppLogger.error("Error: " + e.getMessage());
         }
     }
 
@@ -301,7 +296,6 @@ public class BDaysNotifierPanel extends JPanel {
         String mode = (String) modeSelector.getSelectedItem();
         boolean upcoming = "Upcoming".equals(mode);
 
-        // 1
         Map<Integer, List<Object[]>> monthMap = new TreeMap<>();
 
         try (var rs = BDaysDB.getAllBirthdays()) {
@@ -317,14 +311,13 @@ public class BDaysNotifierPanel extends JPanel {
                 LocalDate candidate = LocalDate.of(today.getYear(), month, day);
                 boolean expired = upcoming && candidate.isBefore(today);
 
-                monthMap.computeIfAbsent(month, k -> new ArrayList<>())
+                monthMap.computeIfAbsent(month, _ -> new ArrayList<>())
                         .add(new Object[]{name, yearUnknown ? null : LocalDate.of(year, month, day), candidate, expired, yearUnknown});
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            AppLogger.error("Error" + e.getMessage());
         }
 
-        // 2
         List<Integer> monthOrder = new ArrayList<>();
         if ("Upcoming".equals(mode)) {
             int startMonth = today.getMonthValue();
@@ -337,7 +330,6 @@ public class BDaysNotifierPanel extends JPanel {
             for (int i = 1; i <= 12; i++) monthOrder.add(i);
         }
 
-        // 3
         String lastSeason = "";
 
         for (int monthNum : monthOrder) {
@@ -366,7 +358,7 @@ public class BDaysNotifierPanel extends JPanel {
                 boolean expired = (boolean) entry[3];
                 boolean yearUnknown = (boolean) entry[4];
 
-                String ageText = "";
+                String ageText;
                 if (!yearUnknown) {
                     int ageThisYear = candidate.getYear() - originalBD.getYear();
 

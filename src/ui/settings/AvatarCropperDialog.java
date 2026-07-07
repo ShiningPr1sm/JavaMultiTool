@@ -8,10 +8,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RasterFormatException;
 
 public class AvatarCropperDialog extends JDialog {
-    private BufferedImage originalImage;
+    private final BufferedImage originalImage;
     private BufferedImage croppedImage;
-    private Rectangle selection;
-    private Point dragOffset = new Point();
+    private final Rectangle selection;
+    private final Point dragOffset = new Point();
     private boolean dragging = false;
     private double scale = 1.0;
     private final int displayWidth;
@@ -38,6 +38,34 @@ public class AvatarCropperDialog extends JDialog {
         int squareSize = Math.min(displayWidth, displayHeight) / 2;
         this.selection = new Rectangle((displayWidth - squareSize) / 2, (displayHeight - squareSize) / 2, squareSize, squareSize);
 
+        JLabel imageLabel = getJLabel();
+
+        JButton cropButton = new JButton("Crop and Save");
+        cropButton.addActionListener(_ -> {
+            try {
+                int sx = (int) (selection.x / scale);
+                int sy = (int) (selection.y / scale);
+                int sw = (int) (selection.width / scale);
+                int sh = (int) (selection.height / scale);
+
+                croppedImage = originalImage.getSubimage(sx, sy, sw, sh);
+                dispose();
+            } catch (RasterFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid crop area.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(imageLabel);
+        scrollPane.getViewport().setBackground(Color.DARK_GRAY);
+
+        setLayout(new BorderLayout());
+        add(scrollPane, BorderLayout.CENTER);
+        add(cropButton, BorderLayout.SOUTH);
+        pack();
+        setLocationRelativeTo(owner);
+    }
+
+    private JLabel getJLabel() {
         JLabel imageLabel = new JLabel() {
             @Override
             public Dimension getPreferredSize() {
@@ -93,30 +121,7 @@ public class AvatarCropperDialog extends JDialog {
                 }
             }
         });
-
-        JButton cropButton = new JButton("Crop and Save");
-        cropButton.addActionListener(_ -> {
-            try {
-                int sx = (int) (selection.x / scale);
-                int sy = (int) (selection.y / scale);
-                int sw = (int) (selection.width / scale);
-                int sh = (int) (selection.height / scale);
-
-                croppedImage = originalImage.getSubimage(sx, sy, sw, sh);
-                dispose();
-            } catch (RasterFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Invalid crop area.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        JScrollPane scrollPane = new JScrollPane(imageLabel);
-        scrollPane.getViewport().setBackground(Color.DARK_GRAY);
-
-        setLayout(new BorderLayout());
-        add(scrollPane, BorderLayout.CENTER);
-        add(cropButton, BorderLayout.SOUTH);
-        pack();
-        setLocationRelativeTo(owner);
+        return imageLabel;
     }
 
     public static BufferedImage showCropDialog(Component parent, BufferedImage img) {

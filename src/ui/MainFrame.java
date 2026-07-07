@@ -18,7 +18,6 @@ import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,7 +45,7 @@ public class MainFrame extends JFrame {
         LevelManager.initializeDatabase();
         LevelManager.ensureUserEntry(login);
 
-        setTitle("MultiTool - Welcome, " + DB.getNickname(login) + "!");
+        setTitle("MultiTool");
         setAppIcon();
         setResizable(false);
 
@@ -219,7 +218,12 @@ public class MainFrame extends JFrame {
     }
 
     public int getPercentOfAchievements(String login) {
-        return (100/AchievementDB.getTotalAchievementsLevels()*AchievementDB.getTotalUserAchievementsLevels(login));
+        int total = AchievementDB.getTotalAchievementsLevels();
+        int user = AchievementDB.getTotalUserAchievementsLevels(login);
+
+        if (total == 0) return 0;
+
+        return (user * 100) / total;
     }
 
     private JPanel createMainContent() {
@@ -241,11 +245,11 @@ public class MainFrame extends JFrame {
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebar.add(createExpandableSection("Photo & Video", new String[]{"Media Downloader", "File Organizer", "Image Tools"}));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(createExpandableSection("Math", new String[]{"Calculator", "Unit Converter"}));
+        sidebar.add(createExpandableSection("Math", new String[]{"Unit Converter"}));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebar.add(createExpandableSection("Text", new String[]{"Find & Replace"}));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(createExpandableSection("Time", new String[]{"Workflow", "Timer", "BDays notifier"}));
+        sidebar.add(createExpandableSection("Time", new String[]{"Workflow", "BDays notifier"}));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         if (AuthService.isTester()) {
             sidebar.add(createExpandableSection("Admin Panel", new String[]{"Admin CMD"}));
@@ -259,7 +263,7 @@ public class MainFrame extends JFrame {
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         container.setBackground(UIStyle.SIDE_BOX);
 
-        JButton mainButton = new JButton(title + " | ▼");
+        JButton mainButton = new JButton(title + "  ▼");
         UIStyle.styleSidebarMainButton(mainButton, SIDEBAR_WIDTH);
 
         mainButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -287,7 +291,7 @@ public class MainFrame extends JFrame {
         mainButton.addActionListener(_ -> {
             boolean isExpanding = !expanded.get();
             expanded.set(isExpanding);
-            mainButton.setText(title + (isExpanding ? " | ▲" : " | ▼"));
+            mainButton.setText(title + (isExpanding ? "  ▲" : "  ▼"));
 
             subPanel.setVisible(true);
             int targetHeight = isExpanding ? (items.length * 35) : 0;

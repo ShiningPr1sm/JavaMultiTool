@@ -54,6 +54,9 @@ public class SettingsPanel extends JPanel {
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(UIStyle.BG_COLOR);
+
+        UIStyle.makeFocusable(this);
+
         setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
         JPanel userInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 30, 0));
@@ -82,7 +85,7 @@ public class SettingsPanel extends JPanel {
         nicknameLabel.setForeground(Color.WHITE);
 
         JTextField nicknameField = new JTextField(DB.getNickname(login));
-        nicknameField.setMaximumSize(new Dimension(300, 30));
+        UIStyle.styleTextField(nicknameField);
 
         JButton saveNicknameBtn = new JButton("Save Changes");
         saveNicknameBtn.addActionListener(_ -> updateNickname(mainFrame, login, nicknameField.getText()));
@@ -95,16 +98,19 @@ public class SettingsPanel extends JPanel {
         String[] themes = {"Original Dark", "Midnight Blue", "Deep Forest", "Crimson Ember", "Dracula"};
         JComboBox<String> themeBox = new JComboBox<>(themes);
         UIStyle.styleComboBox(themeBox);
+        themeBox.setFont(new Font("Segoe UI", Font.BOLD, 13));
         themeBox.setSelectedItem(DB.getTheme(login));
         themeBox.addActionListener(_ -> {
             String selected = (String) themeBox.getSelectedItem();
             DB.setTheme(login, selected);
             assert selected != null;
             UIStyle.applyTheme(selected);
-            JOptionPane.showMessageDialog(this, "Theme applied! Please switch tabs to see changes.");
+            JOptionPane.showMessageDialog(this, "Theme applied! Program would restart to apply changes!");
+            System.exit(0);
         });
 
         nicknameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        nicknameLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         nicknameField.setAlignmentX(Component.LEFT_ALIGNMENT);
         saveNicknameBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         changePasswordBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -114,13 +120,13 @@ public class SettingsPanel extends JPanel {
         nicknameBox.setLayout(new BoxLayout(nicknameBox, BoxLayout.Y_AXIS));
         nicknameBox.setBackground(UIStyle.BG_COLOR);
         nicknameBox.add(nicknameLabel);
-        nicknameBox.add(Box.createVerticalStrut(10));
+        nicknameBox.add(Box.createVerticalStrut(6));
         nicknameBox.add(nicknameField);
-        nicknameBox.add(Box.createVerticalStrut(10));
+        nicknameBox.add(Box.createVerticalStrut(6));
         nicknameBox.add(saveNicknameBtn);
-        nicknameBox.add(Box.createVerticalStrut(10));
+        nicknameBox.add(Box.createVerticalStrut(6));
         nicknameBox.add(changePasswordBtn);
-        nicknameBox.add(Box.createVerticalStrut(15));
+        nicknameBox.add(Box.createVerticalStrut(7));
         nicknameBox.add(themeBox);
 
         userInfoPanel.add(avatarBox);
