@@ -1,58 +1,37 @@
-# 🛠️ MultiTool 🛠️
-Your digital Swiss Army knife for everyday tasks!
+<div align="center">
+  
+# 📂 / JVM - JavaMultiTool
 
-MultiTool is a versatile Java program designed to handle a wide range of routine operations. Much like a Swiss Army knife, it combines a multitude of useful functions into one convenient application, helping you efficiently tackle various tasks—from working with files and media to simple calculations and planning.
+[![GitHub stars](https://img.shields.io/github/stars/ShiningPr1sm/JavaMultiTool?style=flat-square)](https://github.com/ShiningPr1sm/JavaMultiTool/stargazers)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ShiningPr1sm/JavaMultiTool?label=last%20update&style=flat-square)](https://github.com/ShiningPr1sm/JavaMultiTool/commits)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ShiningPr1sm/JavaMultiTool?label=version&style=flat-square)](https://github.com/ShiningPr1sm/JavaMultiTool/releases)
 
-## 🚀 Features
 
-Our program is a powerful toolkit that includes:
 
-### 📁 File Operations
-- Format Conversion: Easily convert files from one format to another.
-- Metadata Editing: Edit information like author, creation date, and other file properties.
-- Batch Processing: Perform the same action on multiple files at once.
+</div>
 
-### 🖼️ Media Management
-- Sorting: Quickly organize photos and videos by date, size, or other parameters.
-- Upscaling: Improve image quality by increasing their resolution without significant detail loss.
-- Background Removal: Automatically remove the background from images.
-- Thumbnail Generation: Create previews for your media files.
 
-### 📅 Other Useful Functions
-- Calendar: Manage events, reminders, and schedules. Also you can add your friends BDays to not forget them)
-- Calculator: Perform standard and scientific calculations.
-- Unit Converter: Instantly convert different units of measurement (e.g., meters to feet, kilograms to pounds).
+> A versatile desktop application that combines everyday digital tools like media downloading, file operations, and system tracking into a single interface, featuring an interactive achievement system.
 
-### 🏆 Achievement System
+---
 
-For an extra layer of fun and motivation, a small achievement system is integrated into the program. Complete various tasks to unlock achievements and mark your progress!
+## Overview
+JavaMultiTool is a comprehensive desktop utility suite engineered to streamline routine digital operations and eliminate the need for multiple standalone apps. It solves the problem of scattered workflows by consolidating media management, productivity tracking, and system utilities into a centralized hub. The project is built using Java 21, utilizing a robust Service/Repository architecture, a local SQLite database for persistent storage, and Maven for dependency management.
 
-### 🛠️ Technologies
-- Language: Java 23
-- Build Tool: The project does not use Maven or any other dependency management system. All necessary libraries must be added manually.
+## Key Features
+* **Media & File Management**: Built-in tools for handling downloads, batch operations, image processing, etc.;
+* **Productivity & Tracking**: Centralized modules for workflow tracking, task management, and birthday reminders with automated notifications;
+* **Gamified Experience**: An interactive, data-driven achievement system that tracks user statistics;
+* **Modular Architecture**: Built with a clean separation of concerns using Dao/Repository layers, rendering custom UI themes and Swing components.
 
-### 💡 Getting Started
+## Getting Started
 
-## Prerequisites
+### Prerequisites
+* Java Development Kit (JDK) 21+
+* Maven (for building from source)
 
-For the program to run correctly, you will need to have Java Development Kit (JDK) version 23 or higher installed.
+### Download
+* You can download a .jar file or .exe from Releases;
 
-## Compiling and Running
-
-Clone the repository:
-```
-git clone https://github.com/ShiningPr1sm/MultiTool.git
-```
-
-## 🤝 Contributing
-
-We always welcome new ideas and help! If you'd like to improve MultiTool, follow these steps:
-1. Fork the repository.
-2. Create a new branch for your feature (git checkout -b feature/awesome-feature).
-3. Make your changes and commit them (git commit -m 'feat: Add an awesome feature').
-4. Push to your fork (git push origin feature/awesome-feature).
-5. Create a Pull Request.
-
-📄 License
-
-This project is licensed under the [MIT License](https://github.com/ShiningPr1sm/java-multi-tool/blob/master/LICENSE).
+### Acknowledgments
+If you find a bug, error, or typo, please submit a report in the Issues section. Thank you very much for using this program!
