@@ -1,6 +1,7 @@
 package ui;
 
-import db.DB;
+import db.DatabaseProvider;
+import service.Services;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,10 +9,13 @@ import java.awt.*;
 public class AuthFrame extends JFrame {
     private static final int FRAME_SIZE_WIDTH = 700;
     private static final int FRAME_SIZE_HEIGHT = 450;
-    private boolean isLoginMode = true;
 
-    public AuthFrame() {
+    private final Services services;
+
+    public AuthFrame(Services services) {
+        this.services = services;
         setTitle("MultiTool - Authentication");
+        UIStyle.setAppIcon(this);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(
@@ -24,76 +28,96 @@ public class AuthFrame extends JFrame {
         JPanel outerPanel = new JPanel(new GridBagLayout());
         outerPanel.setBackground(UIStyle.HEADER_COLOR);
 
+        JLabel titleLabel = new JLabel("MultiTool");
+        titleLabel.setForeground(UIStyle.ACCENT_COLOR);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+
+        JLabel subtitleLabel = new JLabel("Sign in or create an account");
+        subtitleLabel.setForeground(UIStyle.TEXT_COLOR);
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
         JPanel formPanel = new JPanel();
         formPanel.setBackground(UIStyle.SIDE_BOX);
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setPreferredSize(new Dimension(300, 200));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        formPanel.setPreferredSize(new Dimension(320, 340));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
         JLabel loginLabel = new JLabel("Login:");
-        loginLabel.setForeground(Color.WHITE);
+        loginLabel.setForeground(UIStyle.TEXT_COLOR);
+        loginLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        loginLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         JTextField loginField = new JTextField(20);
-        loginField.setMaximumSize(new Dimension(300, 30));
-
-
+        loginField.setMaximumSize(new Dimension(300, 35));
+        UIStyle.styleTextField(loginField);
 
         JLabel passwordLabel = new JLabel("Password:");
-        passwordLabel.setForeground(Color.WHITE);
+        passwordLabel.setForeground(UIStyle.TEXT_COLOR);
+        passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         JPasswordField passwordField = new JPasswordField(20);
-        passwordField.setMaximumSize(new Dimension(300, 30));
+        passwordField.setMaximumSize(new Dimension(300, 35));
+        UIStyle.styleTextField(passwordField);
 
-        JButton authButton = new JButton("Login");
-        JButton switchModeButton = new JButton("Switch to Registration");
+        JButton loginButton = new JButton("Login");
+        loginButton.setMaximumSize(new Dimension(300, 38));
+        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        UIStyle.styleButton(loginButton);
 
-        for (JComponent comp : new JComponent[]{loginLabel, loginField, passwordLabel, passwordField, authButton, switchModeButton}) {
+        JButton registerButton = new JButton("Register");
+        registerButton.setMaximumSize(new Dimension(300, 38));
+        registerButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        UIStyle.styleButton(registerButton);
+        registerButton.setBackground(UIStyle.SECONDARY_BG);
+
+        for (JComponent comp : new JComponent[]{loginField, passwordField, loginButton, registerButton}) {
             comp.setAlignmentX(Component.CENTER_ALIGNMENT);
         }
 
-        authButton.setFocusPainted(false);
-        authButton.setBackground(UIStyle.BUTTON_BG);
-        authButton.setForeground(Color.WHITE);
-
-        switchModeButton.setFocusPainted(false);
-        switchModeButton.setBackground(UIStyle.BORDER_COLOR);
-        switchModeButton.setForeground(Color.LIGHT_GRAY);
-
-        authButton.addActionListener(_ -> {
+        Runnable doLogin = () -> {
             String login = loginField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
             if (login.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Fields cannot be empty");
+                StyledDialog.show(this, "Fields cannot be empty");
                 return;
             }
-            boolean success;
-            if (isLoginMode) {
-                success = DB.checkLogin(login, password);
-                if (success) {
-                    String theme = DB.getTheme(login);
-                    UIStyle.applyTheme(theme);
-                    new MainFrame(login);
-                    this.dispose();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Invalid login or password");
-                }
+            var userRepo = DatabaseProvider.getUserRepository();
+            if (userRepo.checkLogin(login, password)) {
+                String theme = userRepo.getTheme(login);
+                UIStyle.applyTheme(theme);
+                new MainFrame(login, services);
+                this.dispose();
             } else {
-                success = DB.register(login, password);
-                if (success) {
-                    JOptionPane.showMessageDialog(this, "Registration successful! Now log in.");
-                    isLoginMode = true;
-                    authButton.setText("Login");
-                    switchModeButton.setText("Switch to Registration");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Login already taken");
-                }
+                StyledDialog.show(this, "Invalid login or password");
+            }
+        };
+
+        loginButton.addActionListener(e -> doLogin.run());
+
+        passwordField.addActionListener(e -> doLogin.run());
+
+        registerButton.addActionListener(e -> {
+            String login = loginField.getText().trim();
+            String password = new String(passwordField.getPassword()).trim();
+            if (login.isEmpty() || password.isEmpty()) {
+                StyledDialog.show(this, "Fields cannot be empty");
+                return;
+            }
+            if (DatabaseProvider.getUserRepository().register(login, password)) {
+                StyledDialog.show(this, "Registration successful! You can now log in.");
+            } else {
+                StyledDialog.show(this, "Login already taken");
             }
         });
 
-        switchModeButton.addActionListener(_ -> {
-            isLoginMode = !isLoginMode;
-            authButton.setText(isLoginMode ? "Login" : "Register");
-            switchModeButton.setText(isLoginMode ? "Switch to Registration" : "Switch to Login");
-        });
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        formPanel.add(titleLabel);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        formPanel.add(subtitleLabel);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         formPanel.add(loginLabel);
         formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         formPanel.add(loginField);
@@ -101,10 +125,10 @@ public class AuthFrame extends JFrame {
         formPanel.add(passwordLabel);
         formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         formPanel.add(passwordField);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        formPanel.add(authButton);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        formPanel.add(switchModeButton);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        formPanel.add(loginButton);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+        formPanel.add(registerButton);
 
         outerPanel.add(formPanel);
         setContentPane(outerPanel);

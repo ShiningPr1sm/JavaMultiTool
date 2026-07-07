@@ -1,56 +1,39 @@
 package ui.settings;
 
-import db.AchievementDB;
-import db.DB;
+import service.AchievementService;
+import service.Services;
+import service.SystemInfoService;
+import db.DatabaseProvider;
 import ui.AuthFrame;
 import ui.MainFrame;
+import ui.StyledDialog;
 import ui.UIStyle;
-import ui.utils.AppLogger;
+import util.AppLogger;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.Scanner;
 
 public class SettingsPanel extends JPanel {
 
-    private static String cachedPublicIP = null;
-    private static String cachedLocalIP = null;
-    private static String cachedMac = null;
+    private static final String AVATAR_DIR = util.AppPaths.AVATAR_DIR;
+    private final db.UserRepository userRepo = DatabaseProvider.getUserRepository();
+    private final String login;
+    private final AchievementService achievementService;
+    private final SystemInfoService systemInfoService;
+    private final Services services;
 
-    private static boolean isInfoLoaded = false;
-
-    private static final File AVATAR_FILE = new File(System.getProperty("user.home") + "/Documents/MultiTool-Java-data/avatar.png");
-
-    public static void prepareSystemInfo() {
-        if (isInfoLoaded) return;
-        isInfoLoaded = true;
-
-        new Thread(() -> {
-            try {
-                cachedPublicIP = fetchPublicIP();
-                cachedLocalIP = fetchLocalIp();
-                cachedMac = fetchMac();
-
-                AppLogger.info("System info cached successfully.");
-            } catch (Exception e) {
-                AppLogger.error("Failed to cache system info: " + e.getMessage());
-            }
-        }).start();
-    }
-
-    public SettingsPanel(MainFrame mainFrame, String login) {
-        prepareSystemInfo();
+    public SettingsPanel(MainFrame mainFrame, String login, AchievementService achievementService, SystemInfoService systemInfoService, Services services) {
+        this.login = login;
+        this.achievementService = achievementService;
+        this.systemInfoService = systemInfoService;
+        this.services = services;
+        systemInfoService.prepare();
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(UIStyle.BG_COLOR);
@@ -71,7 +54,7 @@ public class SettingsPanel extends JPanel {
         updateAvatarImage(avatarLabel);
 
         JButton changeAvatarBtn = new JButton("Change Avatar");
-        changeAvatarBtn.addActionListener(_ -> chooseAvatar(mainFrame, avatarLabel));
+        changeAvatarBtn.addActionListener(e -> chooseAvatar(mainFrame, avatarLabel));
         UIStyle.styleButton(changeAvatarBtn);
 
         JPanel avatarBox = new JPanel();
@@ -84,25 +67,25 @@ public class SettingsPanel extends JPanel {
         JLabel nicknameLabel = new JLabel("Nickname:");
         nicknameLabel.setForeground(Color.WHITE);
 
-        JTextField nicknameField = new JTextField(DB.getNickname(login));
+        JTextField nicknameField = new JTextField(userRepo.getNickname(login));
         UIStyle.styleTextField(nicknameField);
 
         JButton saveNicknameBtn = new JButton("Save Changes");
-        saveNicknameBtn.addActionListener(_ -> updateNickname(mainFrame, login, nicknameField.getText()));
+        saveNicknameBtn.addActionListener(e -> updateNickname(mainFrame, login, nicknameField.getText()));
         UIStyle.styleButton(saveNicknameBtn);
 
         JButton changePasswordBtn = new JButton("Change Password");
-        changePasswordBtn.addActionListener(_ -> openChangePasswordDialog(login));
+        changePasswordBtn.addActionListener(e -> openChangePasswordDialog(login));
         UIStyle.styleButton(changePasswordBtn);
 
         String[] themes = {"Original Dark", "Midnight Blue", "Deep Forest", "Crimson Ember", "Dracula"};
         JComboBox<String> themeBox = new JComboBox<>(themes);
         UIStyle.styleComboBox(themeBox);
         themeBox.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        themeBox.setSelectedItem(DB.getTheme(login));
-        themeBox.addActionListener(_ -> {
+        themeBox.setSelectedItem(userRepo.getTheme(login));
+        themeBox.addActionListener(e -> {
             String selected = (String) themeBox.getSelectedItem();
-            DB.setTheme(login, selected);
+            userRepo.setTheme(login, selected);
             assert selected != null;
             UIStyle.applyTheme(selected);
             JOptionPane.showMessageDialog(this, "Theme applied! Program would restart to apply changes!");
@@ -141,10 +124,10 @@ public class SettingsPanel extends JPanel {
         publicIpBtn.setOpaque(false);
         publicIpBtn.setMargin(new Insets(0, 0, 0, 0));
         publicIpBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        publicIpBtn.addActionListener(_ -> {
+        publicIpBtn.addActionListener(e -> {
             if (publicIpBtn.getText().contains("***")) {
-                String ip = (cachedPublicIP != null) ? cachedPublicIP : "Loading...";
-                publicIpBtn.setText("Public IP: " + ip);
+                String ip = systemInfoService.getCachedPublicIP();
+                publicIpBtn.setText("Public IP: " + (ip != null ? ip : "Loading..."));
             } else {
                 publicIpBtn.setText("Public IP: ***.***.***.***");
             }
@@ -154,38 +137,38 @@ public class SettingsPanel extends JPanel {
         localIpLabel.setForeground(Color.WHITE);
         localIpLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel macLabel = new JLabel(" MAC Address: " + (cachedMac != null ? cachedMac : "Loading..."));
+        JLabel macLabel = new JLabel(" MAC Address: " + (systemInfoService.getCachedMac() != null ? systemInfoService.getCachedMac() : "Loading..."));
         macLabel.setForeground(Color.LIGHT_GRAY);
         macLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel regDateLabel = new JLabel(" Registered: " + DB.getRegistrationDate(login));
+        JLabel regDateLabel = new JLabel(" Registered: " + userRepo.getRegistrationDate(login));
         regDateLabel.setForeground(Color.LIGHT_GRAY);
         regDateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lastLoginLabel = new JLabel(" Last Login: " + DB.getLastLoginDate(login));
+        JLabel lastLoginLabel = new JLabel(" Last Login: " + userRepo.getLastLoginDate(login));
         lastLoginLabel.setForeground(Color.LIGHT_GRAY);
         lastLoginLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JCheckBox saveLoginBox = new JCheckBox("Save data after first login");
         saveLoginBox.setBackground(UIStyle.BG_COLOR);
         saveLoginBox.setForeground(Color.WHITE);
-        saveLoginBox.setSelected(DB.isSaveLoginEnabled(login));
-        saveLoginBox.addActionListener(_ -> DB.setSaveLogin(login, saveLoginBox.isSelected()));
+        saveLoginBox.setSelected(userRepo.isSaveLoginEnabled(login));
+        saveLoginBox.addActionListener(e -> userRepo.setSaveLogin(login, saveLoginBox.isSelected()));
         saveLoginBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JCheckBox trayBox = new JCheckBox("Minimize to tray on close");
         trayBox.setBackground(UIStyle.BG_COLOR);
         trayBox.setForeground(Color.WHITE);
-        trayBox.setSelected(db.DB.isCloseToTrayEnabled(login));
+        trayBox.setSelected(userRepo.isCloseToTrayEnabled(login));
         trayBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-        trayBox.addActionListener(_ -> {
-            db.DB.setCloseToTray(login, trayBox.isSelected());
+        trayBox.addActionListener(e -> {
+            userRepo.setCloseToTray(login, trayBox.isSelected());
             AppLogger.info("Settings: Close to tray set to " + trayBox.isSelected());
         });
 
         JButton logoutBtn = new JButton("Logout");
         logoutBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        logoutBtn.addActionListener(_ -> logout());
+        logoutBtn.addActionListener(e -> logout());
         UIStyle.styleButton(logoutBtn);
 
         JPanel infoPanel = new JPanel();
@@ -213,48 +196,57 @@ public class SettingsPanel extends JPanel {
     }
 
     private void chooseAvatar(MainFrame mainFrame, JLabel avatarLabel) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Choose an image");
-        fileChooser.setAcceptAllFileFilterUsed(false);
-        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Image files", "jpg", "jpeg", "png", "bmp", "gif"));
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File selected = fileChooser.getSelectedFile();
-            try {
-                BufferedImage img = ImageIO.read(selected);
-                if (img != null) {
-                    BufferedImage cropped = AvatarCropperDialog.showCropDialog(this, img);
-                    if (cropped != null) {
-                        BufferedImage resized = new BufferedImage(121, 121, BufferedImage.TYPE_INT_ARGB);
-                        Graphics2D g2d = resized.createGraphics();
-                        g2d.drawImage(cropped.getScaledInstance(121, 121, Image.SCALE_SMOOTH), 0, 0, null);
-                        g2d.dispose();
-                        ImageIO.write(resized, "png", AVATAR_FILE);
-                        updateAvatarImage(avatarLabel);
+        FileDialog fd = new FileDialog((Frame) SwingUtilities.getWindowAncestor(this),
+                "Choose an image", FileDialog.LOAD);
+        fd.setFilenameFilter((dir, name) -> {
+            String lower = name.toLowerCase();
+            return lower.endsWith(".jpg") || lower.endsWith(".jpeg")
+                    || lower.endsWith(".png") || lower.endsWith(".bmp")
+                    || lower.endsWith(".gif");
+        });
+        fd.setVisible(true);
 
-                        if (AVATAR_FILE.exists()) {
-                            ImageIcon icon = new ImageIcon(AVATAR_FILE.getAbsolutePath());
-                            Image scaledImageAvatar = icon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
-                            ImageIcon scaledIcon = new ImageIcon(scaledImageAvatar);
-                            mainFrame.updateAvatarImage(scaledIcon);
-                        }
+        if (fd.getFile() == null) return;
+        File selected = new File(fd.getDirectory(), fd.getFile());
+
+        try {
+            BufferedImage img = ImageIO.read(selected);
+            if (img != null) {
+                BufferedImage cropped = AvatarCropperDialog.showCropDialog(this, img);
+                if (cropped != null) {
+                    BufferedImage resized = new BufferedImage(121, 121, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g2d = resized.createGraphics();
+                    g2d.drawImage(cropped.getScaledInstance(121, 121, Image.SCALE_SMOOTH), 0, 0, null);
+                    g2d.dispose();
+                    File avatarDir = new File(AVATAR_DIR);
+                    if (!avatarDir.exists()) avatarDir.mkdirs();
+                    File avatarFile = new File(avatarDir, login + ".png");
+                    ImageIO.write(resized, "png", avatarFile);
+                    updateAvatarImage(avatarLabel);
+
+                    if (avatarFile.exists()) {
+                        ImageIcon icon = new ImageIcon(avatarFile.getAbsolutePath());
+                        Image scaledImageAvatar = icon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
+                        ImageIcon scaledIcon = new ImageIcon(scaledImageAvatar);
+                        mainFrame.updateAvatarImage(scaledIcon);
                     }
                 }
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Failed to load image.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        } catch (IOException ex) {
+            StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Failed to load image.");
         }
     }
 
     private void updateNickname(MainFrame mainFrame, String login, String nickname) {
         if (!nickname.isEmpty()) {
-            try (Connection conn = DB.getConnection();
+            try (Connection conn = userRepo.getConnection();
                 PreparedStatement stmt = conn.prepareStatement("UPDATE users SET nickname = ? WHERE login = ?")) {
                 stmt.setString(1, nickname);
                 stmt.setString(2, login);
                 stmt.executeUpdate();
                 JOptionPane.showMessageDialog(this, "Nickname updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                AchievementDB.completeAchievement(login, "change_nickname");
-                mainFrame.updateNickName(DB.getNickname(login));
+                achievementService.complete(login, "change_nickname");
+                mainFrame.updateNickName(userRepo.getNickname(login));
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Failed to update nickname.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -285,29 +277,29 @@ public class SettingsPanel extends JPanel {
                 return;
             }
 
-            if (!DB.checkPassword(login, current)) {
+            if (!userRepo.checkPassword(login, current)) {
                 JOptionPane.showMessageDialog(this, "Current password is incorrect.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            DB.updatePassword(login, newPass);
+            userRepo.updatePassword(login, newPass);
             JOptionPane.showMessageDialog(this, "Password changed successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
     private void logout() {
-        logoutUser();
         SwingUtilities.invokeLater(() -> {
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
             frame.dispose();
-            new AuthFrame();
+            new AuthFrame(services);
         });
     }
 
     private void updateAvatarImage(JLabel label) {
-        if (AVATAR_FILE.exists()) {
+        File avatarFile = new File(AVATAR_DIR, login + ".png");
+        if (avatarFile.exists()) {
             try {
-                BufferedImage img = ImageIO.read(AVATAR_FILE);
+                BufferedImage img = ImageIO.read(avatarFile);
                 ImageIcon icon = new ImageIcon(img.getScaledInstance(121, 121, Image.SCALE_SMOOTH));
                 label.setIcon(icon);
                 label.setText("");
@@ -315,43 +307,4 @@ public class SettingsPanel extends JPanel {
         }
     }
 
-    private static String fetchLocalIp() {
-        try {
-            return InetAddress.getLocalHost().getHostAddress();
-        } catch (Exception e) {
-            return "Unavailable";
-        }
-    }
-
-    public static String fetchPublicIP() {
-        try (Scanner s = new Scanner(new URL("https://api.ipify.org").openStream(), StandardCharsets.UTF_8)) {
-            return s.useDelimiter("\\A").next();
-        } catch (Exception e) {
-            return "Unavailable";
-        }
-    }
-
-    public static void logoutUser() {
-        System.out.println("User logged out (placeholder).");
-    }
-
-    private static String fetchMac() {
-        try {
-            InetAddress ip = InetAddress.getLocalHost();
-            NetworkInterface ni = NetworkInterface.getByInetAddress(ip);
-            if (ni != null) {
-                byte[] mac = ni.getHardwareAddress();
-                if (mac != null) {
-                    StringBuilder sb = new StringBuilder();
-                    for (byte b : mac) {
-                        sb.append(String.format("%02X:", b));
-                    }
-                    return sb.substring(0, sb.length() - 1);
-                }
-            }
-        } catch (Exception e) {
-            return "Unavailable";
-        }
-        return "Unavailable";
-    }
 }

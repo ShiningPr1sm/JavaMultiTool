@@ -1,19 +1,17 @@
-import db.DB;
-
+import db.DatabaseProvider;
 import ui.MainFrame;
 import ui.AuthFrame;
-
-import db.AchievementDB;
-import db.WorkflowDB;
-
+import service.AchievementService;
+import service.SystemInfoService;
+import service.Services;
 import ui.UIStyle;
-import ui.settings.SettingsPanel;
-import ui.utils.AppLogger;
-import ui.utils.AuthService;
+import util.AppLogger;
+import util.AppPaths;
+import service.AuthService;
 import javax.swing.*;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void start(Services services, String[] args) {
         AppLogger.info("=== Application Starting ===");
 
         try {
@@ -23,37 +21,36 @@ public class Main {
         }
 
         try {
-            DB.initializeDatabase();
-            AuthService.initializeRights();
-            WorkflowDB.initializeDatabase();
+            DatabaseProvider.getUserRepository().initializeDatabase();
+            services.authService().initializeRights();
+            DatabaseProvider.getWorkflowRepository().initializeDatabase();
             AppLogger.info("Core databases and rights initialized.");
         } catch (Exception e) {
             AppLogger.error("Core initialization failed: " + e.getMessage());
         }
 
         try {
-            AchievementDB.initializeDatabase();
-            AchievementDB.insertDefaultAchievements();
+            services.achievementService().initialize();
             AppLogger.info("Achievements system ready.");
         } catch (Exception e) {
             AppLogger.error("Achievements system failed: " + e.getMessage());
         }
 
-        String savedLogin = DB.getAutoLoginUser();
+        var userRepo = DatabaseProvider.getUserRepository();
+        String savedLogin = userRepo.getAutoLoginUser();
         SwingUtilities.invokeLater(() -> {
             if (savedLogin != null && !savedLogin.isBlank()) {
-                String userTheme = DB.getTheme(savedLogin);
+                String userTheme = userRepo.getTheme(savedLogin);
                 UIStyle.applyTheme(userTheme);
 
-                MainFrame mf = new MainFrame(savedLogin);
-                AchievementDB.setMainFrame(mf);
-                AchievementDB.syncUserAchievements(savedLogin);
+                new MainFrame(savedLogin, services);
                 AppLogger.info("Auto-login: User '" + savedLogin + "' entered the system.");
             } else {
-                new AuthFrame();
+                new AuthFrame(services);
                 AppLogger.info("Waiting for manual login...");
             }
         });
-        new Thread(SettingsPanel::prepareSystemInfo).start();
+        SystemInfoService unused = services.systemInfoService();
+        unused.prepare();
     }
 }

@@ -1,15 +1,11 @@
 package ui;
 
-import db.DB;
-import ui.utils.AppLogger;
+import db.DatabaseProvider;
+import service.GreetingService;
+import ui.components.ParticleField;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.InputStream;
-import java.awt.GraphicsEnvironment;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class WelcomePanel extends JPanel {
     private String greeting;
@@ -22,146 +18,65 @@ public class WelcomePanel extends JPanel {
     private int lastHeight = -1;
 
     private final int circleRadius = 140;
-    private int circleCenterX = 0;
-    private int circleCenterY = 0;
+    private int circleCenterX;
+    private int circleCenterY;
 
     private Font[] fonts;
     private Font greetingFont;
     private final Font suffixFont = new Font("SansSerif", Font.PLAIN, 24);
 
-    private static final int DOT_COUNT = 35;
-    private static final int DOT_RADIUS = 4;
-    private static final int CONNECT_DISTANCE = 100;
-    private final List<Point> dotPositions = new ArrayList<>();
-    private final List<Point> dotVelocities = new ArrayList<>();
-    private final double[] dotPulsePhase = new double[DOT_COUNT];
+    private int typingDelay;
 
-    private int typingDelay = 0;
-
-    private double caretAlpha = 0.0;
+    private double caretAlpha;
     private double caretDir = 1.0;
     private final double fadeSpeed;
 
     private final Timer timer;
-    private final Random rnd = new Random();
-    private boolean dotsInitialized = false;
+    private final ParticleField particles;
+    private final GreetingService greetingService;
 
-    public WelcomePanel(String login) {
-        this(login, 0.5);
+    public WelcomePanel(String login, GreetingService greetingService) {
+        this(login, greetingService, 0.5);
     }
 
-    public WelcomePanel(String login, double initialFadeSpeed) {
-        suffix = ", " + DB.getNickname(login) + "!";
+    public WelcomePanel(String login, GreetingService greetingService, double initialFadeSpeed) {
+        this.greetingService = greetingService;
+        suffix = ", " + DatabaseProvider.getUserRepository().getNickname(login) + "!";
         setBackground(UIStyle.BG_COLOR);
-        this.fadeSpeed = Math.max(0.0, Math.min(1.0, initialFadeSpeed));
+        fadeSpeed = Math.max(0.0, Math.min(1.0, initialFadeSpeed));
 
-        loadFonts();
+        fonts = greetingService.loadGreetingFonts();
+        particles = new ParticleField();
         resetAnimation();
 
-        timer = new Timer(40, _ -> {
+        timer = new Timer(40, e -> {
             stepAnimation();
             updateCaretAlpha();
-            updateDots();
+            particles.update();
             repaint();
         });
 
         SwingUtilities.invokeLater(() -> {
-            if (!dotsInitialized && getWidth() > 0 && getHeight() > 0) {
-                initDots();
+            if (!particles.isInitialized() && getWidth() > 0 && getHeight() > 0) {
+                circleCenterX = getWidth() / 2;
+                circleCenterY = getHeight() - 200;
+                particles.setCircle(circleCenterX, circleCenterY, circleRadius);
+                particles.init();
             }
         });
 
         timer.start();
     }
 
-    private void updateDots() {
-        if (dotPositions.size() != DOT_COUNT) return;
-
-        for (int i = 0; i < DOT_COUNT; i++) {
-            Point p = dotPositions.get(i);
-            Point v = dotVelocities.get(i);
-
-            p.translate(v.x, v.y);
-
-            double dx = p.x - circleCenterX;
-            double dy = p.y - circleCenterY;
-            double distSq = dx * dx + dy * dy;
-            double radiusSq = circleRadius * circleRadius;
-
-            if (distSq > radiusSq) {
-                double dist = Math.sqrt(distSq);
-                double nx = dx / dist;
-                double ny = dy / dist;
-
-                p.x = (int) (circleCenterX + nx * (circleRadius - 1));
-                p.y = (int) (circleCenterY + ny * (circleRadius - 1));
-
-                int dxNew, dyNew;
-                do {
-                    dxNew = rnd.nextInt(3) - 1;
-                    dyNew = rnd.nextInt(3) - 1;
-                } while (dxNew == 0 && dyNew == 0);
-
-                dotVelocities.get(i).setLocation(dxNew, dyNew);
-            }
-        }
-        for (int i = 0; i < DOT_COUNT; i++) {
-            dotPulsePhase[i] += 0.15;
-            if (dotPulsePhase[i] > Math.PI * 2) {
-                dotPulsePhase[i] -= Math.PI * 2;
-            }
-        }
-    }
-
-
-    private void loadFonts() {
-        fonts = new Font[]{
-                new Font("SansSerif", Font.BOLD, 24),
-                new Font("Serif", Font.ITALIC, 24),
-                new Font("Monospaced", Font.PLAIN, 24),
-                new Font("Dialog", Font.PLAIN, 24)
-        };
-        try {
-            InputStream is = getClass().getResourceAsStream("/fonts/minecraft.ttf");
-            if (is != null) {
-                Font custom = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(24f);
-                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(custom);
-                Font[] tmp = new Font[fonts.length + 1];
-                System.arraycopy(fonts, 0, tmp, 0, fonts.length);
-                tmp[fonts.length] = custom;
-                fonts = tmp;
-            }
-            AppLogger.info("Successful loaded Minecraft font!");
-        } catch (Exception e) {
-            AppLogger.error("Minecraft FONT error:" + e.getMessage());
-        }
-    }
-
-    private Font selectBestFontForGreeting(String currentGreeting) {
-        List<Font> candidates = new ArrayList<>();
-        for (Font font : fonts) {
-            if (font.canDisplayUpTo(currentGreeting) == -1) {
-                candidates.add(font.deriveFont(24f));
-            }
-        }
-        return candidates.isEmpty() ? new Font("Dialog", Font.PLAIN, 24) : candidates.get(rnd.nextInt(candidates.size()));
-    }
-
     private void resetAnimation() {
-        greeting = randomGreeting();
-        greetingFont = selectBestFontForGreeting(greeting);
+        greeting = greetingService.randomGreeting();
+        greetingFont = greetingService.selectBestFontForGreeting(fonts, greeting);
         pos = 0;
         phase = 0;
         delayCounter = 0;
+        typingDelay = 0;
         caretAlpha = 0.0;
         caretDir = 1.0;
-    }
-
-    private String randomGreeting() {
-        String[] opts = {"Hello", "Привет", "Hola", "Bonjour", "こんにちは",
-                "Hallo", "Olá", "Hei", "Salut", "Ahoj", "Sveiki",
-                "안녕하세요", "Kamusta", "Aloha", "Jambo"};
-        return opts[rnd.nextInt(opts.length)];
     }
 
     private void stepAnimation() {
@@ -193,7 +108,7 @@ public class WelcomePanel extends JPanel {
     }
 
     private void updateCaretAlpha() {
-        double currentAlphaStep = (this.fadeSpeed * 0.05) + 0.02;
+        double currentAlphaStep = (fadeSpeed * 0.05) + 0.02;
         caretAlpha += caretDir * currentAlphaStep;
         if (caretAlpha >= 1.0) {
             caretAlpha = 1.0;
@@ -219,11 +134,11 @@ public class WelcomePanel extends JPanel {
             lastHeight = currentHeight;
             circleCenterX = currentWidth / 2;
             circleCenterY = currentHeight - 200;
-            dotsInitialized = false;
+            particles.setCircle(circleCenterX, circleCenterY, circleRadius);
         }
 
-        if (!dotsInitialized && currentWidth > 0 && currentHeight > 0) {
-            initDots();
+        if (!particles.isInitialized() && currentWidth > 0 && currentHeight > 0) {
+            particles.init();
         }
 
         String shown = greeting.substring(0, pos);
@@ -249,51 +164,7 @@ public class WelcomePanel extends JPanel {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
         g2.drawString(suffix, x, y);
 
-        for (int i = 0; i < DOT_COUNT; i++) {
-            Point pi = dotPositions.get(i);
-
-            double pulse = 1.5 + Math.sin(dotPulsePhase[i]) * 1.5;
-            int size = (int) (DOT_RADIUS + pulse);
-            int drawX = pi.x - size / 2;
-            int drawY = pi.y - size / 2;
-
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
-            g2.setColor(Color.WHITE);
-            g2.fillOval(drawX, drawY, size, size);
-
-            for (int j = i + 1; j < DOT_COUNT; j++) {
-                Point pj = dotPositions.get(j);
-                double dist = pi.distance(pj);
-                if (dist < CONNECT_DISTANCE) {
-                    float alpha = (float) (1.0 - dist / CONNECT_DISTANCE);
-                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-                    g2.setColor(Color.GRAY);
-                    g2.drawLine(pi.x, pi.y, pj.x, pj.y);
-                }
-            }
-        }
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+        particles.paint(g2);
         g2.dispose();
-    }
-
-    private void initDots() {
-        dotPositions.clear();
-        dotVelocities.clear();
-        for (int i = 0; i < DOT_COUNT; i++) {
-            double angle = rnd.nextDouble() * 2 * Math.PI;
-            double dist = rnd.nextDouble() * circleRadius;
-            int x = (int) (circleCenterX + dist * Math.cos(angle));
-            int y = (int) (circleCenterY + dist * Math.sin(angle));
-            dotPositions.add(new Point(x, y));
-
-            int dx, dy;
-            do {
-                dx = rnd.nextInt(3) - 1;
-                dy = rnd.nextInt(3) - 1;
-            } while (dx == 0 && dy == 0);
-            dotVelocities.add(new Point(dx, dy));
-            dotPulsePhase[i] = rnd.nextDouble() * Math.PI * 2;
-        }
-        dotsInitialized = true;
     }
 }

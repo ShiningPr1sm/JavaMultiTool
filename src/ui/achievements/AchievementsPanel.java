@@ -1,18 +1,18 @@
 package ui.achievements;
 
-import db.AchievementDB;
+import service.AchievementService;
 import ui.UIStyle;
-import ui.utils.AppLogger;
+import util.AppLogger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class AchievementsPanel extends JPanel {
-    public AchievementsPanel(String login) {
+
+    private final AchievementService achievementService;
+
+    public AchievementsPanel(String login, AchievementService achievementService) {
+        this.achievementService = achievementService;
         setLayout(new BorderLayout());
         setBackground(UIStyle.BG_COLOR);
 
@@ -20,63 +20,16 @@ public class AchievementsPanel extends JPanel {
         grid.setBackground(UIStyle.BG_COLOR);
         grid.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-        String sql = """
-            SELECT a.code,
-                   a.title,
-                   a.description,
-                   al.xp_reward AS xp_reward,
-                   ua.level,
-                   ua.progress,
-                   al.required_progress
-              FROM achievements a
-              JOIN user_achievements ua
-                ON a.code = ua.achievement_code
-              LEFT JOIN achievement_levels al
-                ON a.code = al.achievement_code
-               AND ua.level = al.level
-             WHERE ua.user_login = ?
-        """;
-
-        try (Connection conn = AchievementDB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, login);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    String code = rs.getString("code");
-                    String title = rs.getString("title");
-                    String description = rs.getString("description");
-                    int xpReward = rs.getInt("xp_reward");
-                    int level = rs.getInt("level");
-                    Integer reqObj = (Integer) rs.getObject("required_progress");
-
-                    int required;
-                    int progressVal;
-                    if (reqObj == null) {
-                        required    = 1;
-                        progressVal = 1;
-                    } else {
-                        required    = reqObj;
-                        progressVal = rs.getInt("progress");
-                    }
-
-                    String iconPath = "/icons/achievements/" + code + ".jpg";
-                    String displayTitle = title;
-                    if (AchievementDB.getMaxAchievementLevel(code) > 1) {
-                        displayTitle += " (Level " + level + ")";
-                    }
-
-                    grid.add(createAchievementCard(
-                            displayTitle,
-                            description,
-                            progressVal,
-                            required,
-                            iconPath,
-                            xpReward
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-            AppLogger.error("Error:" + e.getMessage());
+        for (AchievementService.AchievementData data : achievementService.loadUserAchievements(login)) {
+            String iconPath = "/icons/achievements/" + data.code + ".jpg";
+            grid.add(createAchievementCard(
+                    data.getDisplayTitle(),
+                    data.description,
+                    data.progress,
+                    data.required,
+                    iconPath,
+                    data.xpReward
+            ));
         }
 
         JPanel container = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));

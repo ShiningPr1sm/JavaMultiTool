@@ -41,7 +41,7 @@ public class AvatarCropperDialog extends JDialog {
         JLabel imageLabel = getJLabel();
 
         JButton cropButton = new JButton("Crop and Save");
-        cropButton.addActionListener(_ -> {
+        cropButton.addActionListener(e -> {
             try {
                 int sx = (int) (selection.x / scale);
                 int sy = (int) (selection.y / scale);

@@ -41,13 +41,13 @@ public class TrayManager {
             }
         });
 
-        addMenuItem("Open MultiTool", "/icons/menu/home_icon.png", _ -> showFrame());
+        addMenuItem("Open MultiTool", "/icons/menu/home_icon.png", e -> showFrame());
         swingMenu.add(createSeparator());
-        addMenuItem("Media Downloader", "/icons/menu/download_icon.png", _ -> { showFrame(); frame.openTab("Media Downloader"); });
-        addMenuItem("BDays Notifier", "/icons/menu/bdays_icon.png", _ -> { showFrame(); frame.openTab("BDays notifier"); });
-        addMenuItem("Settings", "/icons/menu/settings_icon.png", _ -> { showFrame(); frame.openSettings(); });
+        addMenuItem("Media Downloader", "/icons/menu/download_icon.png", e -> { showFrame(); frame.openTab("Media Downloader"); });
+        addMenuItem("BDays Notifier", "/icons/menu/bdays_icon.png", e -> { showFrame(); frame.openTab("BDays notifier"); });
+        addMenuItem("Settings", "/icons/menu/settings_icon.png", e -> { showFrame(); frame.openSettings(); });
         swingMenu.add(createSeparator());
-        addMenuItem("Exit", "/icons/menu/exit_icon.png", _ -> System.exit(0));
+        addMenuItem("Exit", "/icons/menu/exit_icon.png", e -> System.exit(0));
     }
 
     private void addMenuItem(String text, String iconPath, ActionListener action) {
@@ -63,7 +63,7 @@ public class TrayManager {
                 ImageIcon icon = new ImageIcon(new ImageIcon(imgUrl).getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH));
                 item.setIcon(icon);
             }
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
 
         item.setIconTextGap(12);
