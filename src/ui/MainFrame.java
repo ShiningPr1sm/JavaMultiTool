@@ -13,6 +13,7 @@ import ui.components.ExpandableSection;
 import ui.utils.*;
 import util.AchievementCallback;
 import util.AppLogger;
+import util.VersionInfo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,7 +37,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
 
         services.levelService().initialize(login);
 
-        setTitle("MultiTool");
+        setTitle("MultiTool  |  v:" + VersionInfo.getVersion());
         setAppIcon();
         setResizable(false);
 
@@ -56,7 +57,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
                 FRAME_SIZE_HEIGHT
         );
 
-        headerPanel = new HeaderPanel(login, services.levelService(), services.achievementService(), services.authService(), this::openAchievements, this::openSettings);
+        headerPanel = new HeaderPanel(login, services.levelService(), services.achievementService(), services.authService(), this::openAchievements, this::openNotifications, this::openSettings);
         add(headerPanel, BorderLayout.NORTH);
         add(createMainContent(), BorderLayout.CENTER);
 
@@ -78,6 +79,17 @@ public class MainFrame extends JFrame implements AchievementCallback {
         services.workflowService().startTracking();
 
         this.trayManager = new TrayManager(this);
+
+        int notifCount = services.notificationService().checkBirthdayReminders();
+        if (notifCount > 0) {
+            headerPanel.setNotificationBadge(notifCount + services.notificationService().countActive());
+        } else {
+            int active = services.notificationService().countActive();
+            if (active > 0) {
+                headerPanel.setNotificationBadge(active);
+            }
+        }
+
         setVisible(true);
     }
 
@@ -163,6 +175,11 @@ public class MainFrame extends JFrame implements AchievementCallback {
         }.execute();
     }
 
+    private void openNotifications() {
+        openTab("Notifications");
+        headerPanel.setNotificationBadge(0);
+    }
+
     public void openTab(String itemName) {
         contentPanel.removeAll();
 
@@ -179,6 +196,8 @@ public class MainFrame extends JFrame implements AchievementCallback {
                     openSettings();
             case "Image Tools" ->
                     contentPanel.add(new ImageToolsPanel(), BorderLayout.CENTER);
+            case "Notifications" ->
+                    contentPanel.add(new ui.notifications.NotificationsPanel(services.notificationService(), headerPanel), BorderLayout.CENTER);
             default ->
                     AppLogger.error("Attempted to open unknown tab: " + itemName);
         }

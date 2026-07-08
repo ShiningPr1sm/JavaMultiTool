@@ -8,6 +8,7 @@ public class DatabaseProvider {
     private static WorkflowRepository workflowRepo;
     private static BDaysRepository bdaysRepo;
     private static LevelRepository levelRepo;
+    private static NotificationRepository notificationRepo;
 
     public static UserRepository getUserRepository() {
         if (userRepo == null) {
@@ -47,5 +48,13 @@ public class DatabaseProvider {
             levelRepo.initializeDatabase();
         }
         return levelRepo;
+    }
+
+    public static NotificationRepository getNotificationRepository() {
+        if (notificationRepo == null) {
+            notificationRepo = new NotificationRepositoryImpl();
+            notificationRepo.initializeDatabase();
+        }
+        return notificationRepo;
     }
 }

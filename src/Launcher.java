@@ -27,11 +27,12 @@ public class Launcher {
         GreetingService greetingService = new GreetingService();
         RunningProcessService runningProcessService = new RunningProcessService();
         UserSession userSession = new UserSession();
+        NotificationService notificationService = new NotificationService();
 
         Services services = new Services(
             authService, achievementService, levelService, workflowService,
             systemInfoService, bdaysService, greetingService, runningProcessService,
-            userSession
+            userSession, notificationService
         );
 
         String currentVersion = readVersionFromManifest();
