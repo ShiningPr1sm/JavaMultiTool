@@ -15,6 +15,11 @@
 
 ---
 
+> [!CAUTION]
+> The program is currently under development. It may contain bugs, crashes, and other issues. The program’s structure and appearance are subject to change. What you see is NOT THE FINAL PRODUCT.
+
+---
+
 ## Overview
 JavaMultiTool is a comprehensive desktop utility suite engineered to streamline routine digital operations and eliminate the need for multiple standalone apps. It solves the problem of scattered workflows by consolidating media management, productivity tracking, and system utilities into a centralized hub. The project is built using Java 21, utilizing a robust Service/Repository architecture, a local SQLite database for persistent storage, and Maven for dependency management.
 
