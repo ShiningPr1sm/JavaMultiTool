@@ -24,8 +24,9 @@ public class HeaderPanel extends JPanel {
     private final LevelService levelService;
     private final AchievementService achievementService;
     private final AuthService authService;
+    private NotificationPanel notificationPanel;
 
-    public HeaderPanel(String login, LevelService levelService, AchievementService achievementService, AuthService authService, Runnable onOpenAchievements, Runnable onOpenSettings) {
+    public HeaderPanel(String login, LevelService levelService, AchievementService achievementService, AuthService authService, Runnable onOpenAchievements, Runnable onOpenNotifications, Runnable onOpenSettings) {
         this.login = login;
         this.levelService = levelService;
         this.achievementService = achievementService;
@@ -106,9 +107,12 @@ public class HeaderPanel extends JPanel {
         settingsBtn.setBackground(UIStyle.HEADER_COLOR);
         settingsBtn.addActionListener(e -> onOpenSettings.run());
 
+        notificationPanel = new NotificationPanel(onOpenNotifications);
+
         JPanel rightBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
         rightBox.setBackground(UIStyle.HEADER_COLOR);
         rightBox.add(achievementsBtn);
+        rightBox.add(notificationPanel);
         rightBox.add(settingsBtn);
 
         add(profileBox, BorderLayout.WEST);
@@ -121,6 +125,10 @@ public class HeaderPanel extends JPanel {
 
     public void updateNickName(String nickname) {
         updateLoginLabel(nickname);
+    }
+
+    public void setNotificationBadge(int count) {
+        notificationPanel.setBadgeCount(count);
     }
 
     public void showXpGain(int amount) {

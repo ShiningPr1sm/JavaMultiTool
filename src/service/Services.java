@@ -9,5 +9,6 @@ public record Services(
     BDaysService bdaysService,
     GreetingService greetingService,
     RunningProcessService runningProcessService,
-    UserSession userSession
+    UserSession userSession,
+    NotificationService notificationService
 ) {}
