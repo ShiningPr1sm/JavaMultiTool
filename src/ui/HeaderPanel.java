@@ -4,6 +4,7 @@ import db.DatabaseProvider;
 import service.AchievementService;
 import service.AuthService;
 import service.LevelService;
+import util.AppLogger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -85,12 +86,13 @@ public class HeaderPanel extends JPanel {
             Image scaled = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
             achievementsBtn.setIcon(new ImageIcon(scaled));
         } catch (Exception e) {
+            AppLogger.error("HeaderPanel: failed to load achievements icon: " + e.getMessage());
             achievementsBtn.setText("\u2699");
         }
         achievementsBtn.setPreferredSize(new Dimension(40, 40));
         achievementsBtn.setFocusPainted(false);
         achievementsBtn.setBorderPainted(false);
-        achievementsBtn.setBackground(UIStyle.HEADER_COLOR);
+        achievementsBtn.setContentAreaFilled(false);
         achievementsBtn.addActionListener(e -> onOpenAchievements.run());
 
         JButton settingsBtn = new JButton();
@@ -99,24 +101,43 @@ public class HeaderPanel extends JPanel {
             Image scaled = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
             settingsBtn.setIcon(new ImageIcon(scaled));
         } catch (Exception e) {
+            AppLogger.error("HeaderPanel: failed to load settings icon: " + e.getMessage());
             settingsBtn.setText("\u2699");
         }
         settingsBtn.setPreferredSize(new Dimension(40, 40));
         settingsBtn.setFocusPainted(false);
         settingsBtn.setBorderPainted(false);
-        settingsBtn.setBackground(UIStyle.HEADER_COLOR);
+        settingsBtn.setContentAreaFilled(false);
         settingsBtn.addActionListener(e -> onOpenSettings.run());
 
         notificationPanel = new NotificationPanel(onOpenNotifications);
 
-        JPanel rightBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
+        JPanel rightBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 12));
         rightBox.setBackground(UIStyle.HEADER_COLOR);
-        rightBox.add(achievementsBtn);
-        rightBox.add(notificationPanel);
-        rightBox.add(settingsBtn);
+        rightBox.add(createPlate(achievementsBtn));
+        rightBox.add(createPlate(notificationPanel));
+        rightBox.add(createPlate(settingsBtn));
 
         add(profileBox, BorderLayout.WEST);
         add(rightBox, BorderLayout.EAST);
+    }
+
+    private JPanel createPlate(JComponent comp) {
+        JPanel plate = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(UIStyle.BUTTON_BG);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+            }
+        };
+        plate.setLayout(new GridBagLayout());
+        plate.setPreferredSize(new Dimension(44, 44));
+        plate.setOpaque(false);
+        plate.add(comp);
+        return plate;
     }
 
     public void updateAvatarImage(ImageIcon newIcon) {
