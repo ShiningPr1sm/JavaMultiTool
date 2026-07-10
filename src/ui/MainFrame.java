@@ -17,6 +17,8 @@ import util.VersionInfo;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.URI;
+import java.util.Objects;
 
 public class MainFrame extends JFrame implements AchievementCallback {
     private static final int SIDEBAR_WIDTH = 230;
@@ -30,6 +32,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
     private TrayManager trayManager;
     private final Services services;
     private AchievementsPanel achievementsPanel;
+    private JLabel actualVerLabel;
 
     public MainFrame(String login, Services services) {
         this.login = login;
@@ -38,7 +41,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
 
         services.levelService().initialize(login);
 
-        setTitle("MultiTool  |  v:" + VersionInfo.getVersion());
+        updateTitle("Welcome");
         setAppIcon();
         setResizable(false);
 
@@ -61,6 +64,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         headerPanel = new HeaderPanel(login, services.levelService(), services.achievementService(), services.authService(), this::openAchievements, this::openNotifications, this::openSettings);
         add(headerPanel, BorderLayout.NORTH);
         add(createMainContent(), BorderLayout.CENTER);
+        add(createFooter(), BorderLayout.SOUTH);
 
         services.achievementService().initialize();
         services.achievementService().syncUser(login);
@@ -155,6 +159,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         }
         contentPanel.revalidate();
         contentPanel.repaint();
+        updateTitle("Achievements");
     }
 
     public void openSettings() {
@@ -162,6 +167,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         contentPanel.add(new SettingsPanel(this, login, services.achievementService(), services.systemInfoService(), services), BorderLayout.CENTER);
         contentPanel.revalidate();
         contentPanel.repaint();
+        updateTitle("Settings");
     }
 
     private void openNotifications() {
@@ -192,6 +198,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
 
         contentPanel.revalidate();
         contentPanel.repaint();
+        updateTitle(itemName);
 
         AppLogger.info("Tab switched to: " + itemName);
     }
@@ -230,5 +237,76 @@ public class MainFrame extends JFrame implements AchievementCallback {
 
     private void setAppIcon() {
         UIStyle.setAppIcon(this);
+    }
+
+    private void updateTitle(String location) {
+        setTitle("JMT / JavaMultiTool/" + location);
+    }
+
+    private JPanel createFooter() {
+        JPanel footer = new JPanel();
+        footer.setLayout(new BoxLayout(footer, BoxLayout.LINE_AXIS));
+        footer.setBackground(UIStyle.SIDE_BOX);
+        footer.setPreferredSize(new Dimension(getWidth(), 28));
+        footer.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
+
+        JLabel currentVerLabel = new JLabel("Current version: " + VersionInfo.getVersion());
+        currentVerLabel.setForeground(Color.LIGHT_GRAY);
+        currentVerLabel.setFont(currentVerLabel.getFont().deriveFont(11f));
+
+        JButton githubBtn = new JButton();
+        try {
+            ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/icons/menu/github_icon.png")));
+            githubBtn.setIcon(icon);
+            githubBtn.setPreferredSize(new Dimension(16, 16));
+            githubBtn.setMaximumSize(new Dimension(16, 16));
+        } catch (Exception e) {
+            githubBtn.setText("GitHub");
+        }
+        githubBtn.setBorderPainted(false);
+        githubBtn.setContentAreaFilled(false);
+        githubBtn.setFocusPainted(false);
+        githubBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        githubBtn.addActionListener(e -> {
+            try {
+                Desktop.getDesktop().browse(new URI("https://github.com/ShiningPr1sm/JavaMultiTool"));
+            } catch (Exception ex) {
+                AppLogger.error("Failed to open GitHub: " + ex.getMessage());
+            }
+        });
+
+        actualVerLabel = new JLabel("Actual version: checking...");
+        actualVerLabel.setForeground(Color.LIGHT_GRAY);
+        actualVerLabel.setFont(actualVerLabel.getFont().deriveFont(11f));
+
+        footer.add(Box.createHorizontalGlue());
+        footer.add(currentVerLabel);
+        footer.add(Box.createHorizontalStrut(10));
+        footer.add(actualVerLabel);
+        footer.add(Box.createHorizontalStrut(10));
+        footer.add(githubBtn);
+
+        fetchActualVersion();
+        return footer;
+    }
+
+    private void fetchActualVersion() {
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() {
+                UpdateManager.ReleaseInfo release = new UpdateManager().fetchLatestRelease();
+                return release != null ? release.version() : null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    String ver = get();
+                    actualVerLabel.setText("Actual version: " + (ver != null ? ver : "unavailable"));
+                } catch (Exception e) {
+                    actualVerLabel.setText("Actual version: unavailable");
+                }
+            }
+        }.execute();
     }
 }
