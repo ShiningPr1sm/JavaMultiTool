@@ -88,7 +88,7 @@ public class AchievementDefDao {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("AchievementDefDao SQL error: " + e.getMessage());
         }
         return 0;
     }
@@ -102,7 +102,7 @@ public class AchievementDefDao {
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("AchievementDefDao SQL error: " + e.getMessage());
         }
         return 0;
     }

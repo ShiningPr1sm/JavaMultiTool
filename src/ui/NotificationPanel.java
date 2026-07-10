@@ -1,5 +1,6 @@
 package ui;
 
+import util.AppLogger;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
@@ -22,6 +23,7 @@ public class NotificationPanel extends JPanel {
             Image scaled = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
             bellButton.setIcon(new ImageIcon(scaled));
         } catch (Exception e) {
+            AppLogger.error("NotificationPanel: failed to load bell icon: " + e.getMessage());
             bellButton.setText("\uD83D\uDD14");
         }
         bellButton.setBounds(0, 0, 40, 40);

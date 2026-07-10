@@ -194,6 +194,7 @@ public class MediaDownloadService {
                     versionToWrite = new BufferedReader(new InputStreamReader(p.getInputStream())).readLine();
                     p.waitFor();
                 } catch (Exception e) {
+                    AppLogger.error("MediaDownloadService: failed to get yt-dlp version: " + e.getMessage());
                     versionToWrite = "unknown";
                 }
             }
@@ -318,7 +319,8 @@ public class MediaDownloadService {
         }
         try {
             f.delete();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            AppLogger.error("MediaDownloadService: failed to delete " + f + ": " + e.getMessage());
         }
     }
 }

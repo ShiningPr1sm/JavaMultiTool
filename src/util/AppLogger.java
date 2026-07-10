@@ -36,7 +36,7 @@ public class AppLogger {
              PrintWriter pw = new PrintWriter(fw)) {
             pw.println(entry);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("[AppLogger] Failed to write log file: " + e.getMessage());
         }
     }
 

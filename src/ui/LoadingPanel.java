@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Objects;
 import javax.imageio.ImageIO;
+import util.AppLogger;
 
 public class LoadingPanel extends JPanel {
     private float alpha = 1f;
@@ -31,11 +32,11 @@ public class LoadingPanel extends JPanel {
                 g2d.drawImage(scaledImage, 0, 0, null);
                 g2d.dispose();
             } catch (Exception e) {
-                e.printStackTrace();
+                AppLogger.error("LoadingPanel: failed to load loading image: " + e.getMessage());
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            AppLogger.error("LoadingPanel: error: " + e.getMessage());
         }
 
         // Таймер для анимации вращения картинки

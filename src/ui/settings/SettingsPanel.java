@@ -303,7 +303,9 @@ public class SettingsPanel extends JPanel {
                 ImageIcon icon = new ImageIcon(img.getScaledInstance(121, 121, Image.SCALE_SMOOTH));
                 label.setIcon(icon);
                 label.setText("");
-            } catch (IOException ignored) {}
+            } catch (IOException e) {
+                AppLogger.error("SettingsPanel: failed to update avatar image: " + e.getMessage());
+            }
         }
     }
 

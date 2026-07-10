@@ -117,7 +117,7 @@ public class AchievementRepositoryImpl implements AchievementRepository {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("AchievementRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 }

@@ -6,6 +6,7 @@ import db.DatabaseProvider;
 import service.NotificationService;
 import ui.HeaderPanel;
 import ui.UIStyle;
+import util.AppLogger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -124,6 +125,7 @@ public class NotificationsPanel extends JPanel {
                     .findFirst()
                     .orElse("Unknown");
         } catch (Exception e) {
+            AppLogger.error("NotificationsPanel: failed to resolve name: " + e.getMessage());
             return "Unknown";
         }
     }

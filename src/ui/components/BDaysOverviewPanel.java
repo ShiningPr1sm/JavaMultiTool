@@ -3,6 +3,7 @@ package ui.components;
 import db.BDaysRepository;
 import service.BDaysService;
 import ui.UIStyle;
+import util.AppLogger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,6 +48,7 @@ public class BDaysOverviewPanel extends JPanel {
         try {
             entries = bdaysService.loadEntries(repo.getAllBirthdays(), mode, today);
         } catch (Exception e) {
+            AppLogger.error("BDaysOverviewPanel: failed to load entries: " + e.getMessage());
             overviewContainer.revalidate();
             overviewContainer.repaint();
             return;

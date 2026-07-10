@@ -3,6 +3,7 @@ package db.impl;
 import db.BDaysRepository;
 import db.BirthdayRecord;
 
+import util.AppLogger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ public class BDaysRepositoryImpl implements BDaysRepository {
              Statement  st  = conn.createStatement()) {
             st.execute(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("BDaysRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -59,7 +60,7 @@ public class BDaysRepositoryImpl implements BDaysRepository {
             st.setString(2, dateStr);
             st.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("BDaysRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -71,7 +72,7 @@ public class BDaysRepositoryImpl implements BDaysRepository {
             st.setInt(1, id);
             st.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("BDaysRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 

@@ -2,6 +2,7 @@ package db.impl;
 
 import db.NotificationRecord;
 import db.NotificationRepository;
+import util.AppLogger;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -32,7 +33,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
              Statement st = conn.createStatement()) {
             st.execute(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("NotificationRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -57,7 +58,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
                 return rs.next() && rs.getInt(1) > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("NotificationRepositoryImpl SQL error: " + e.getMessage());
             return true;
         }
     }
@@ -74,7 +75,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
             st.setString(4, today);
             st.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("NotificationRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -101,7 +102,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("NotificationRepositoryImpl SQL error: " + e.getMessage());
         }
         return result;
     }
@@ -114,7 +115,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
             st.setInt(1, id);
             st.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("NotificationRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -126,7 +127,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
              ResultSet rs = st.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("NotificationRepositoryImpl SQL error: " + e.getMessage());
             return 0;
         }
     }
