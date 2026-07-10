@@ -13,7 +13,7 @@ import java.util.Properties;
 
 public class Launcher {
 
-    private static final String DEFAULT_VERSION = "0.1.0";
+    private static final String DEV_VERSION = "dev";
 
     public static void main(String[] args) {
         AppPaths.init();
@@ -38,45 +38,47 @@ public class Launcher {
         String currentVersion = readVersionFromManifest();
         AppLogger.info("Current version: " + currentVersion);
 
-        String skippedVersion = ConfigManager.loadSkippedVersion();
+        if (!DEV_VERSION.equals(currentVersion)) {
+            String skippedVersion = ConfigManager.loadSkippedVersion();
 
-        UpdateManager updateManager = new UpdateManager();
-        ReleaseInfo release = null;
-        try {
-            release = updateManager.fetchLatestRelease();
-        } catch (Exception e) {
-            AppLogger.error("Launcher: failed to check for updates: " + e.getMessage());
-        }
+            UpdateManager updateManager = new UpdateManager();
+            ReleaseInfo release = null;
+            try {
+                release = updateManager.fetchLatestRelease();
+            } catch (Exception e) {
+                AppLogger.error("Launcher: failed to check for updates: " + e.getMessage());
+            }
 
-        if (release != null) {
-            boolean isNewer = updateManager.compareVersions(release.version(), currentVersion) > 0;
-            boolean isSkipped = release.version().equals(skippedVersion);
+            if (release != null) {
+                boolean isNewer = updateManager.compareVersions(release.version(), currentVersion) > 0;
+                boolean isSkipped = release.version().equals(skippedVersion);
 
-            if (isNewer && !isSkipped) {
-                AppLogger.info("Update available: " + release.version());
+                if (isNewer && !isSkipped) {
+                    AppLogger.info("Update available: " + release.version());
 
-                SwingUpdatePrompt.Choice choice = SwingUpdatePrompt.show(
-                        currentVersion, release.version(), release.notesMarkdown()
-                );
+                    SwingUpdatePrompt.Choice choice = SwingUpdatePrompt.show(
+                            currentVersion, release.version(), release.notesMarkdown()
+                    );
 
-                if (choice == SwingUpdatePrompt.Choice.UPDATE) {
-                    try {
-                        Path tempJar = Files.createTempFile("javamultitool-", ".jar");
-                        updateManager.downloadRelease(release, tempJar);
+                    if (choice == SwingUpdatePrompt.Choice.UPDATE) {
+                        try {
+                            Path tempJar = Files.createTempFile("javamultitool-", ".jar");
+                            updateManager.downloadRelease(release, tempJar);
 
-                        String downloadedVersion = updateManager.readJarVersion(tempJar);
-                        if (downloadedVersion == null) {
-                            AppLogger.info("Could not verify downloaded JAR version, applying anyway");
+                            String downloadedVersion = updateManager.readJarVersion(tempJar);
+                            if (downloadedVersion == null) {
+                                AppLogger.info("Could not verify downloaded JAR version, applying anyway");
+                            }
+
+                            UpdateApplier updateApplier = new UpdateApplier();
+                            updateApplier.restartWithNewJar(tempJar);
+                            return;
+                        } catch (IOException | InterruptedException e) {
+                            AppLogger.error("Launcher: update failed: " + e.getMessage());
                         }
-
-                        UpdateApplier updateApplier = new UpdateApplier();
-                        updateApplier.restartWithNewJar(tempJar);
-                        return;
-                    } catch (IOException | InterruptedException e) {
-                        AppLogger.error("Launcher: update failed: " + e.getMessage());
+                    } else {
+                        ConfigManager.saveSkippedVersion(release.version());
                     }
-                } else {
-                    ConfigManager.saveSkippedVersion(release.version());
                 }
             }
         }
@@ -86,13 +88,13 @@ public class Launcher {
 
     private static String readVersionFromManifest() {
         try (InputStream in = Launcher.class.getResourceAsStream("/META-INF/MANIFEST.MF")) {
-            if (in == null) return DEFAULT_VERSION;
+            if (in == null) return DEV_VERSION;
             Properties props = new Properties();
             props.load(in);
             String v = props.getProperty("Implementation-Version");
-            return (v != null && !v.isBlank()) ? v.trim() : DEFAULT_VERSION;
+            return (v != null && !v.isBlank()) ? v.trim() : DEV_VERSION;
         } catch (Exception e) {
-            return DEFAULT_VERSION;
+            return DEV_VERSION;
         }
     }
 }

@@ -29,6 +29,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
     private JPanel contentPanel;
     private TrayManager trayManager;
     private final Services services;
+    private AchievementsPanel achievementsPanel;
 
     public MainFrame(String login, Services services) {
         this.login = login;
@@ -80,17 +81,29 @@ public class MainFrame extends JFrame implements AchievementCallback {
 
         this.trayManager = new TrayManager(this);
 
-        int notifCount = services.notificationService().checkBirthdayReminders();
-        if (notifCount > 0) {
-            headerPanel.setNotificationBadge(notifCount + services.notificationService().countActive());
-        } else {
-            int active = services.notificationService().countActive();
-            if (active > 0) {
-                headerPanel.setNotificationBadge(active);
-            }
+        services.notificationService().checkBirthdayReminders();
+        int active = services.notificationService().countActive();
+        if (active > 0) {
+            headerPanel.setNotificationBadge(active);
         }
 
         setVisible(true);
+
+        new SwingWorker<AchievementsPanel, Void>() {
+            @Override
+            protected AchievementsPanel doInBackground() {
+                return new AchievementsPanel(login, services.achievementService());
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    achievementsPanel = get();
+                } catch (Exception e) {
+                    AppLogger.error("Failed to pre-load AchievementsPanel: " + e.getMessage());
+                }
+            }
+        }.execute();
     }
 
 
@@ -133,51 +146,26 @@ public class MainFrame extends JFrame implements AchievementCallback {
         return sidebar;
     }
 
-    private LoadingPanel createLoadingPanel() {
-        return new LoadingPanel();
-    }
-
     private void openAchievements() {
         contentPanel.removeAll();
-        contentPanel.add(new AchievementsPanel(login, services.achievementService()), BorderLayout.CENTER);
+        if (achievementsPanel != null) {
+            contentPanel.add(achievementsPanel, BorderLayout.CENTER);
+        } else {
+            contentPanel.add(new AchievementsPanel(login, services.achievementService()), BorderLayout.CENTER);
+        }
         contentPanel.revalidate();
         contentPanel.repaint();
     }
 
     public void openSettings() {
         contentPanel.removeAll();
-
-        LoadingPanel loadingPanel = createLoadingPanel();
-        contentPanel.add(loadingPanel, BorderLayout.CENTER);
+        contentPanel.add(new SettingsPanel(this, login, services.achievementService(), services.systemInfoService(), services), BorderLayout.CENTER);
         contentPanel.revalidate();
         contentPanel.repaint();
-
-        new SwingWorker<SettingsPanel, Void>() {
-            @Override
-            protected SettingsPanel doInBackground() {
-                return new SettingsPanel(MainFrame.this, login, services.achievementService(), services.systemInfoService(), services);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    SettingsPanel settingsPanel = get();
-                    loadingPanel.fadeOut(() -> {
-                        contentPanel.removeAll();
-                        contentPanel.add(settingsPanel, BorderLayout.CENTER);
-                        contentPanel.revalidate();
-                        contentPanel.repaint();
-                    });
-                } catch (Exception ex) {
-                    AppLogger.error("Failed to load Settings: " + ex.getMessage());
-                }
-            }
-        }.execute();
     }
 
     private void openNotifications() {
         openTab("Notifications");
-        headerPanel.setNotificationBadge(0);
     }
 
     public void openTab(String itemName) {
