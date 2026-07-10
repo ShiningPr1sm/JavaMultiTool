@@ -106,10 +106,22 @@ public class SettingsPanel extends JPanel {
         nicknameBox.add(Box.createVerticalStrut(6));
         nicknameBox.add(nicknameField);
         nicknameBox.add(Box.createVerticalStrut(6));
-        nicknameBox.add(saveNicknameBtn);
-        nicknameBox.add(Box.createVerticalStrut(6));
-        nicknameBox.add(changePasswordBtn);
+        JPanel btnRow = new JPanel(new GridLayout(2, 1, 0, 6));
+        btnRow.setBackground(UIStyle.BG_COLOR);
+        int commonWidth = Math.max(nicknameField.getPreferredSize().width,
+                Math.max(saveNicknameBtn.getPreferredSize().width, changePasswordBtn.getPreferredSize().width));
+        nicknameField.setPreferredSize(new Dimension(commonWidth, nicknameField.getPreferredSize().height));
+        nicknameField.setMaximumSize(new Dimension(commonWidth, nicknameField.getPreferredSize().height));
+        btnRow.setMaximumSize(new Dimension(commonWidth, 80));
+        btnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        saveNicknameBtn.setPreferredSize(new Dimension(commonWidth, saveNicknameBtn.getPreferredSize().height));
+        changePasswordBtn.setPreferredSize(new Dimension(commonWidth, changePasswordBtn.getPreferredSize().height));
+        btnRow.add(saveNicknameBtn);
+        btnRow.add(changePasswordBtn);
+        nicknameBox.add(btnRow);
         nicknameBox.add(Box.createVerticalStrut(7));
+        themeBox.setPreferredSize(new Dimension(commonWidth, themeBox.getPreferredSize().height));
+        themeBox.setMaximumSize(new Dimension(commonWidth, themeBox.getPreferredSize().height));
         nicknameBox.add(themeBox);
 
         userInfoPanel.add(avatarBox);
@@ -133,7 +145,7 @@ public class SettingsPanel extends JPanel {
             }
         });
 
-        JLabel localIpLabel = new JLabel(" Local IP: " );
+        JLabel localIpLabel = new JLabel(" Local IP: " + (systemInfoService.getCachedLocalIP() != null ? systemInfoService.getCachedLocalIP() : "Loading..."));
         localIpLabel.setForeground(Color.WHITE);
         localIpLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -303,7 +315,9 @@ public class SettingsPanel extends JPanel {
                 ImageIcon icon = new ImageIcon(img.getScaledInstance(121, 121, Image.SCALE_SMOOTH));
                 label.setIcon(icon);
                 label.setText("");
-            } catch (IOException ignored) {}
+            } catch (IOException e) {
+                AppLogger.error("SettingsPanel: failed to update avatar image: " + e.getMessage());
+            }
         }
     }
 

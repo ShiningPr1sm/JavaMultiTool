@@ -43,6 +43,7 @@ public class BDaysEditPanel extends JPanel {
                 try {
                     repo.updateBirthday(id, name, bdaysService.uiToDb(dateStr));
                 } catch (Exception ex) {
+                    AppLogger.error("BDaysEditPanel: invalid birthday format: " + ex.getMessage());
                     JOptionPane.showMessageDialog(this, "Invalid format. Use DD.MM.YYYY or DD.MM.xxxx");
                     refreshTable();
                 }

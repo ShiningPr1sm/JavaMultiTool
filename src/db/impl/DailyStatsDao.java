@@ -28,7 +28,7 @@ public class DailyStatsDao {
             pstmt.setInt(5, seconds);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("DailyStatsDao SQL error: " + e.getMessage());
         }
     }
 
@@ -63,7 +63,7 @@ public class DailyStatsDao {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) data.put(rs.getString("name"), rs.getInt("total"));
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("DailyStatsDao SQL error: " + e.getMessage());
         }
         return data;
     }
@@ -81,7 +81,7 @@ public class DailyStatsDao {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) hours[rs.getInt(1)] = rs.getInt(2);
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("DailyStatsDao SQL error: " + e.getMessage());
         }
         return hours;
     }
@@ -95,7 +95,7 @@ public class DailyStatsDao {
             while (rs.next()) {
                 dates.add(rs.getString("date"));
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { AppLogger.error("DailyStatsDao SQL error: " + e.getMessage()); }
 
         if (dates.isEmpty()) {
             dates.add(LocalDate.now().toString());
@@ -124,7 +124,7 @@ public class DailyStatsDao {
                 if (rs.next())
                     result.values[i] = rs.getInt(1);
             } catch (SQLException e) {
-                e.printStackTrace();
+                AppLogger.error("DailyStatsDao SQL error: " + e.getMessage());
             }
         }
         return result;
@@ -152,7 +152,7 @@ public class DailyStatsDao {
                 if (rs.next())
                     result.values[i] = rs.getInt(1);
             } catch (SQLException e) {
-                e.printStackTrace();
+                AppLogger.error("DailyStatsDao SQL error: " + e.getMessage());
             }
         }
         return result;

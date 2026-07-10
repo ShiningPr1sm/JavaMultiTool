@@ -1,6 +1,7 @@
 package db.impl;
 
 import db.UserRepository;
+import util.AppLogger;
 
 import java.sql.*;
 
@@ -29,7 +30,7 @@ public class UserRepositoryImpl implements UserRepository {
                 );
             """);
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -56,7 +57,7 @@ public class UserRepositoryImpl implements UserRepository {
             ResultSet rs = stmt.executeQuery();
             return rs.next();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
             return false;
         }
     }
@@ -71,7 +72,7 @@ public class UserRepositoryImpl implements UserRepository {
                 return rs.getString("nickname");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
         return login;
     }
@@ -84,7 +85,7 @@ public class UserRepositoryImpl implements UserRepository {
             stmt.setString(2, login);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -98,7 +99,7 @@ public class UserRepositoryImpl implements UserRepository {
                 return rs.getInt("save_login") == 1;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
         return false;
     }
@@ -114,7 +115,7 @@ public class UserRepositoryImpl implements UserRepository {
                 return currentPassword.equals(password);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
         return false;
     }
@@ -127,7 +128,7 @@ public class UserRepositoryImpl implements UserRepository {
             stmt.setString(2, login);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -141,7 +142,7 @@ public class UserRepositoryImpl implements UserRepository {
                 return rs.getString("reg_time");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
         return "Unknown";
     }
@@ -162,7 +163,7 @@ public class UserRepositoryImpl implements UserRepository {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
 
         return lastLogin;
@@ -179,7 +180,7 @@ public class UserRepositoryImpl implements UserRepository {
             stmt.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -192,7 +193,7 @@ public class UserRepositoryImpl implements UserRepository {
                 return rs.getString("login");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
         }
         return null;
     }
@@ -204,7 +205,7 @@ public class UserRepositoryImpl implements UserRepository {
             ps.setString(1, themeName);
             ps.setString(2, login);
             ps.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage()); }
     }
 
     @Override
@@ -215,7 +216,7 @@ public class UserRepositoryImpl implements UserRepository {
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 return rs.getString("theme");
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage()); }
         return "original_dark";
     }
 
@@ -226,7 +227,7 @@ public class UserRepositoryImpl implements UserRepository {
             ps.setInt(1, enabled ? 1 : 0);
             ps.setString(2, login);
             ps.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage()); }
     }
 
     @Override
@@ -236,7 +237,7 @@ public class UserRepositoryImpl implements UserRepository {
             ps.setString(1, login);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return rs.getInt(1) == 1;
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage()); }
         return false;
     }
 }

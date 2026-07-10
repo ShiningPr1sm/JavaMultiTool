@@ -116,7 +116,9 @@ public class ImageToolsPanel extends JPanel {
                         for (var al : openMapBtn.getActionListeners()) openMapBtn.removeActionListener(al);
                         String mapUrl = result.getMapUrl();
                         openMapBtn.addActionListener(e -> {
-                            try { Desktop.getDesktop().browse(new java.net.URI(mapUrl)); } catch (Exception ignored) {}
+                            try { Desktop.getDesktop().browse(new java.net.URI(mapUrl)); }
+                            catch (Exception exception) {
+                                AppLogger.error("ImageToolsPanel: failed to open map: " + exception.getMessage()); }
                         });
                     }
 

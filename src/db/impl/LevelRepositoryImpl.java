@@ -2,6 +2,7 @@ package db.impl;
 
 import db.LevelRepository;
 
+import util.AppLogger;
 import java.sql.*;
 
 public class LevelRepositoryImpl implements LevelRepository {
@@ -22,7 +23,7 @@ public class LevelRepositoryImpl implements LevelRepository {
                 );
             """);
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("LevelRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -33,7 +34,7 @@ public class LevelRepositoryImpl implements LevelRepository {
             stmt.setString(1, login);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("LevelRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 
@@ -47,7 +48,7 @@ public class LevelRepositoryImpl implements LevelRepository {
                 return rs.getInt("xp");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("LevelRepositoryImpl SQL error: " + e.getMessage());
         }
         return 0;
     }
@@ -65,7 +66,7 @@ public class LevelRepositoryImpl implements LevelRepository {
             stmt.setString(2, login);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("LevelRepositoryImpl SQL error: " + e.getMessage());
         }
     }
 

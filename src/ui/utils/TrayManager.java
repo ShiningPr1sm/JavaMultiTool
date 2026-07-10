@@ -2,6 +2,7 @@ package ui.utils;
 
 import ui.MainFrame;
 import ui.UIStyle;
+import util.AppLogger;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -64,6 +65,7 @@ public class TrayManager {
                 item.setIcon(icon);
             }
         } catch (Exception e) {
+            AppLogger.error("TrayManager: failed to load icon: " + e.getMessage());
         }
 
         item.setIconTextGap(12);
@@ -111,7 +113,7 @@ public class TrayManager {
                 }
             });
             tray.add(trayIcon);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { AppLogger.error("TrayManager: failed to setup tray: " + e.getMessage()); }
     }
 
     private void showJPopupMenu(MouseEvent e) {

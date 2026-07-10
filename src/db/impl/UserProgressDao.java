@@ -1,5 +1,6 @@
 package db.impl;
 
+import util.AppLogger;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class UserProgressDao {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserProgressDao SQL error: " + e.getMessage());
         }
         return 0;
     }
@@ -49,7 +50,7 @@ public class UserProgressDao {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserProgressDao SQL error: " + e.getMessage());
         }
     }
 
@@ -65,7 +66,7 @@ public class UserProgressDao {
                 map.put(rs.getString("achievement_code"), rs.getInt("progress"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("UserProgressDao SQL error: " + e.getMessage());
         }
         return map;
     }

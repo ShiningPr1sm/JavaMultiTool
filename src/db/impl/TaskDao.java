@@ -1,5 +1,6 @@
 package db.impl;
 
+import util.AppLogger;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class TaskDao {
             pstmt.setString(3, LocalDate.now().toString());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("TaskDao SQL error: " + e.getMessage());
         }
     }
 
@@ -34,7 +35,7 @@ public class TaskDao {
                 pstmt2.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("TaskDao SQL error: " + e.getMessage());
         }
     }
 
@@ -47,7 +48,7 @@ public class TaskDao {
                 tasks.add(new Object[]{rs.getInt("id"), rs.getString("task_name"), rs.getString("description")});
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("TaskDao SQL error: " + e.getMessage());
         }
         return tasks;
     }

@@ -1,15 +1,17 @@
 package ui;
 
+import util.AppLogger;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
 
 public class NotificationPanel extends JPanel {
     private final JButton bellButton;
+    private final JLabel badgeLabel;
     private int badgeCount;
 
     public NotificationPanel(Runnable onOpenNotifications) {
-        setLayout(new OverlayLayout(this));
+        setLayout(null);
         setOpaque(false);
         setPreferredSize(new Dimension(40, 40));
         setMaximumSize(new Dimension(40, 40));
@@ -21,48 +23,53 @@ public class NotificationPanel extends JPanel {
             Image scaled = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
             bellButton.setIcon(new ImageIcon(scaled));
         } catch (Exception e) {
+            AppLogger.error("NotificationPanel: failed to load bell icon: " + e.getMessage());
             bellButton.setText("\uD83D\uDD14");
         }
-        bellButton.setPreferredSize(new Dimension(40, 40));
+        bellButton.setBounds(0, 0, 40, 40);
         bellButton.setFocusPainted(false);
         bellButton.setBorderPainted(false);
-        bellButton.setBackground(UIStyle.HEADER_COLOR);
+        bellButton.setContentAreaFilled(false);
         bellButton.addActionListener(e -> onOpenNotifications.run());
-
-        setLayout(new GridBagLayout());
         add(bellButton);
+
+        badgeLabel = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillOval(0, 0, getWidth(), getHeight());
+                g2.setColor(getForeground());
+                g2.setFont(getFont());
+                FontMetrics fm = g2.getFontMetrics();
+                String text = getText();
+                int x = (getWidth() - fm.stringWidth(text)) / 2;
+                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+                g2.drawString(text, x, y);
+                g2.dispose();
+            }
+        };
+        badgeLabel.setBounds(20, 2, 18, 18);
+        badgeLabel.setBackground(new Color(220, 50, 50));
+        badgeLabel.setForeground(Color.WHITE);
+        badgeLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        badgeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        badgeLabel.setOpaque(false);
+        badgeLabel.setVisible(false);
+        setComponentZOrder(badgeLabel, 0);
+        add(badgeLabel);
     }
 
     public void setBadgeCount(int count) {
         this.badgeCount = count;
+        if (count > 0) {
+            badgeLabel.setText(count > 9 ? "9+" : String.valueOf(count));
+            badgeLabel.setVisible(true);
+        } else {
+            badgeLabel.setVisible(false);
+        }
         repaint();
-    }
-
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-        if (badgeCount <= 0) return;
-
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        int diameter = 18;
-        int x = getWidth() - diameter - 2;
-        int y = 2;
-
-        g2.setColor(new Color(220, 50, 50));
-        g2.fillOval(x, y, diameter, diameter);
-
-        g2.setColor(Color.WHITE);
-        String text = badgeCount > 9 ? "9+" : String.valueOf(badgeCount);
-        Font font = new Font("Segoe UI", Font.BOLD, 10);
-        g2.setFont(font);
-        FontMetrics fm = g2.getFontMetrics();
-        int textX = x + (diameter - fm.stringWidth(text)) / 2;
-        int textY = y + (diameter + fm.getAscent() - fm.getDescent()) / 2;
-        g2.drawString(text, textX, textY);
-
-        g2.dispose();
     }
 
     public int getBadgeCount() {

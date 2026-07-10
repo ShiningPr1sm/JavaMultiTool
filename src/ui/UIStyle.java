@@ -1,6 +1,7 @@
 package ui;
 
 import ui.theme.ComponentStyler;
+import util.AppLogger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -155,7 +156,7 @@ public class UIStyle {
                 dialog.setIconImages(images);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            AppLogger.error("UIStyle: failed to set app icon: " + e.getMessage());
         }
     }
 }

@@ -1,5 +1,6 @@
 package db.impl;
 
+import util.AppLogger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ public class TrackedAppDao {
             pstmt.setString(2, exeName);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("TrackedAppDao error: " + e.getMessage());
         }
     }
 
@@ -28,7 +29,7 @@ public class TrackedAppDao {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
         } catch (Exception e) {
-            e.printStackTrace();
+            AppLogger.error("TrackedAppDao error: " + e.getMessage());
         }
     }
 
@@ -39,7 +40,7 @@ public class TrackedAppDao {
             pstmt.setInt(2, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("TrackedAppDao error: " + e.getMessage());
         }
     }
 
@@ -52,7 +53,7 @@ public class TrackedAppDao {
                 apps.add(new Object[]{rs.getInt("id"), rs.getString("app_name"), rs.getString("exe_name")});
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            AppLogger.error("TrackedAppDao error: " + e.getMessage());
         }
         return apps;
     }
