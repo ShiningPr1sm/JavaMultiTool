@@ -28,5 +28,4 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-/res/ToDoList
 /.idea/modules.xml
