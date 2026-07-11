@@ -105,16 +105,6 @@ public class ParticleField {
     public void paint(Graphics2D g2) {
         for (int i = 0; i < dotCount; i++) {
             Point pi = positions.get(i);
-
-            double pulse = 1.5 + Math.sin(pulsePhase[i]) * 1.5;
-            int size = (int) (dotRadius + pulse);
-            int drawX = pi.x - size / 2;
-            int drawY = pi.y - size / 2;
-
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
-            g2.setColor(Color.WHITE);
-            g2.fillOval(drawX, drawY, size, size);
-
             for (int j = i + 1; j < dotCount; j++) {
                 Point pj = positions.get(j);
                 double dist = pi.distance(pj);
@@ -125,6 +115,17 @@ public class ParticleField {
                     g2.drawLine(pi.x, pi.y, pj.x, pj.y);
                 }
             }
+        }
+
+        for (int i = 0; i < dotCount; i++) {
+            Point pi = positions.get(i);
+            double pulse = 1.5 + Math.sin(pulsePhase[i]) * 1.5;
+            int size = (int) (dotRadius + pulse);
+            int drawX = pi.x - size / 2;
+            int drawY = pi.y - size / 2;
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            g2.setColor(Color.WHITE);
+            g2.fillOval(drawX, drawY, size, size);
         }
 
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
