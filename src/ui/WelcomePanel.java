@@ -24,6 +24,7 @@ public class WelcomePanel extends JPanel {
     private Font[] fonts;
     private Font greetingFont;
     private final Font suffixFont = new Font("SansSerif", Font.PLAIN, 24);
+    private final Font quoteFont = new Font("Segoe UI", Font.PLAIN, 14);
 
     private int typingDelay;
 
@@ -34,13 +35,15 @@ public class WelcomePanel extends JPanel {
     private final Timer timer;
     private final ParticleField particles;
     private final GreetingService greetingService;
+    private final String dailyQuote;
 
-    public WelcomePanel(String login, GreetingService greetingService) {
-        this(login, greetingService, 0.5);
+    public WelcomePanel(String login, GreetingService greetingService, String dailyQuote) {
+        this(login, greetingService, dailyQuote, 0.5);
     }
 
-    public WelcomePanel(String login, GreetingService greetingService, double initialFadeSpeed) {
+    public WelcomePanel(String login, GreetingService greetingService, String dailyQuote, double initialFadeSpeed) {
         this.greetingService = greetingService;
+        this.dailyQuote = dailyQuote;
         suffix = ", " + DatabaseProvider.getUserRepository().getNickname(login) + "!";
         setBackground(UIStyle.BG_COLOR);
         fadeSpeed = Math.max(0.0, Math.min(1.0, initialFadeSpeed));
@@ -59,13 +62,21 @@ public class WelcomePanel extends JPanel {
         SwingUtilities.invokeLater(() -> {
             if (!particles.isInitialized() && getWidth() > 0 && getHeight() > 0) {
                 circleCenterX = getWidth() / 2;
-                circleCenterY = getHeight() - 200;
+                circleCenterY = getHeight() / 2;
                 particles.setCircle(circleCenterX, circleCenterY, circleRadius);
                 particles.init();
             }
         });
 
         timer.start();
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        if (timer != null) {
+            timer.stop();
+        }
     }
 
     private void resetAnimation() {
@@ -133,7 +144,7 @@ public class WelcomePanel extends JPanel {
             lastWidth = currentWidth;
             lastHeight = currentHeight;
             circleCenterX = currentWidth / 2;
-            circleCenterY = currentHeight - 200;
+            circleCenterY = currentHeight / 2;
             particles.setCircle(circleCenterX, circleCenterY, circleRadius);
         }
 
@@ -165,6 +176,37 @@ public class WelcomePanel extends JPanel {
         g2.drawString(suffix, x, y);
 
         particles.paint(g2);
+
+        if (dailyQuote != null && !dailyQuote.isEmpty()) {
+            g2.setFont(quoteFont);
+            g2.setColor(Color.LIGHT_GRAY);
+            FontMetrics fm = g2.getFontMetrics();
+            int maxWidth = getWidth() - 80;
+            int lineHeight = fm.getHeight();
+            String[] words = dailyQuote.split(" ");
+            java.util.ArrayList<String> lines = new java.util.ArrayList<>();
+            StringBuilder currentLine = new StringBuilder();
+            for (String word : words) {
+                if (currentLine.length() == 0) {
+                    currentLine.append(word);
+                } else if (fm.stringWidth(currentLine + " " + word) <= maxWidth) {
+                    currentLine.append(" ").append(word);
+                } else {
+                    lines.add(currentLine.toString());
+                    currentLine = new StringBuilder(word);
+                }
+            }
+            if (currentLine.length() > 0) {
+                lines.add(currentLine.toString());
+            }
+            int totalHeight = lines.size() * lineHeight;
+            int startY = getHeight() - 30 - (lines.size() - 1) * lineHeight;
+            for (int i = 0; i < lines.size(); i++) {
+                int qx = (getWidth() - fm.stringWidth(lines.get(i))) / 2;
+                g2.drawString(lines.get(i), qx, startY + i * lineHeight);
+            }
+        }
+
         g2.dispose();
     }
 }
