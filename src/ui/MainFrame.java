@@ -61,7 +61,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
                 FRAME_SIZE_HEIGHT
         );
 
-        headerPanel = new HeaderPanel(login, services.levelService(), services.achievementService(), services.authService(), this::openAchievements, this::openNotifications, this::openSettings);
+        headerPanel = new HeaderPanel(login, services.levelService(), services.achievementService(), services.authService(), this::openAchievements, this::openNotifications, this::openSettings, this::openWelcome);
         add(headerPanel, BorderLayout.NORTH);
         add(createMainContent(), BorderLayout.CENTER);
         add(createFooter(), BorderLayout.SOUTH);
@@ -76,7 +76,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         }
 
         contentPanel.removeAll();
-        WelcomePanel welcomePanel = new WelcomePanel(login, services.greetingService());
+        WelcomePanel welcomePanel = new WelcomePanel(login, services.greetingService(), services.quoteService().getDailyQuote());
         contentPanel.add(welcomePanel, BorderLayout.CENTER);
         contentPanel.revalidate();
         contentPanel.repaint();
@@ -90,6 +90,9 @@ public class MainFrame extends JFrame implements AchievementCallback {
         if (active > 0) {
             headerPanel.setNotificationBadge(active);
         }
+
+        services.levelService().addXP(login, 5);
+        headerPanel.showXpGain(5);
 
         setVisible(true);
 
@@ -148,6 +151,14 @@ public class MainFrame extends JFrame implements AchievementCallback {
             sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         }
         return sidebar;
+    }
+
+    private void openWelcome() {
+        contentPanel.removeAll();
+        contentPanel.add(new WelcomePanel(login, services.greetingService(), services.quoteService().getDailyQuote()), BorderLayout.CENTER);
+        contentPanel.revalidate();
+        contentPanel.repaint();
+        updateTitle("Welcome");
     }
 
     private void openAchievements() {
@@ -247,7 +258,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         JPanel footer = new JPanel();
         footer.setLayout(new BoxLayout(footer, BoxLayout.LINE_AXIS));
         footer.setBackground(UIStyle.SIDE_BOX);
-        footer.setPreferredSize(new Dimension(getWidth(), 28));
+        footer.setPreferredSize(new Dimension(getWidth(), 40));
         footer.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
 
         JLabel currentVerLabel = new JLabel("Current version: " + VersionInfo.getVersion());

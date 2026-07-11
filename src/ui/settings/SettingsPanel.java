@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class SettingsPanel extends JPanel {
 
@@ -153,11 +155,11 @@ public class SettingsPanel extends JPanel {
         macLabel.setForeground(Color.LIGHT_GRAY);
         macLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel regDateLabel = new JLabel(" Registered: " + userRepo.getRegistrationDate(login));
+        JLabel regDateLabel = new JLabel(" Registered: " + reformatDate(userRepo.getRegistrationDate(login)));
         regDateLabel.setForeground(Color.LIGHT_GRAY);
         regDateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lastLoginLabel = new JLabel(" Last Login: " + userRepo.getLastLoginDate(login));
+        JLabel lastLoginLabel = new JLabel(" Last Login: " + reformatDate(userRepo.getLastLoginDate(login)));
         lastLoginLabel.setForeground(Color.LIGHT_GRAY);
         lastLoginLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -305,6 +307,16 @@ public class SettingsPanel extends JPanel {
             frame.dispose();
             new AuthFrame(services);
         });
+    }
+
+    private static String reformatDate(String dateStr) {
+        if (dateStr == null || dateStr.equals("Unknown")) return dateStr;
+        try {
+            LocalDateTime dt = LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            return dt.format(DateTimeFormatter.ofPattern("HH:mm:ss / dd.MM.yyyy"));
+        } catch (Exception e) {
+            return dateStr;
+        }
     }
 
     private void updateAvatarImage(JLabel label) {

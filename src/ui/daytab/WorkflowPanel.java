@@ -20,6 +20,7 @@ public class WorkflowPanel extends JPanel {
     private final WorkflowRepository workflowRepo = db.DatabaseProvider.getWorkflowRepository();
     private final WorkflowService workflowService;
     private final RunningProcessService runningProcessService;
+    private final Timer uiRefreshTimer;
 
     public WorkflowPanel(WorkflowService workflowService, RunningProcessService runningProcessService) {
         this.workflowService = workflowService;
@@ -42,11 +43,19 @@ public class WorkflowPanel extends JPanel {
 
         add(tabs, BorderLayout.CENTER);
 
-        Timer uiRefreshTimer = new Timer(1000, e -> {
+        uiRefreshTimer = new Timer(1000, e -> {
             if (appTrackerPanel != null) appTrackerPanel.refresh();
             if (taskTrackerPanel != null) taskTrackerPanel.refreshTimers();
         });
         uiRefreshTimer.start();
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        if (uiRefreshTimer != null) {
+            uiRefreshTimer.stop();
+        }
     }
 
     private JPanel createTrackerUI() {

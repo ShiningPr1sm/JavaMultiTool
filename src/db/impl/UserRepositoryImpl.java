@@ -4,6 +4,8 @@ import db.UserRepository;
 import util.AppLogger;
 
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class UserRepositoryImpl implements UserRepository {
     private static final String DB_PATH = util.AppPaths.DB_USER;
@@ -25,7 +27,7 @@ public class UserRepositoryImpl implements UserRepository {
                     reg_time TEXT DEFAULT CURRENT_TIMESTAMP,
                     last_login TEXT DEFAULT CURRENT_TIMESTAMP,
                     save_login INTEGER DEFAULT 0,
-                    theme TEXT DEFAULT 'original_dark',
+                    theme TEXT DEFAULT 'Original Dark',
                     close_to_tray INTEGER DEFAULT 0
                 );
             """);
@@ -170,13 +172,15 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void updateLastLoginDate(String login) {
-        String sql = "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE login = ?";
+public void updateLastLoginDate(String login) {
+        String sql = "UPDATE users SET last_login = ? WHERE login = ?";
+        String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, login);
+            stmt.setString(1, now);
+            stmt.setString(2, login);
             stmt.executeUpdate();
 
         } catch (SQLException e) {
@@ -217,7 +221,7 @@ public class UserRepositoryImpl implements UserRepository {
             if (rs.next())
                 return rs.getString("theme");
         } catch (SQLException e) { AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage()); }
-        return "original_dark";
+        return "Original Dark";
     }
 
     @Override

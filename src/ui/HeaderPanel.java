@@ -27,7 +27,7 @@ public class HeaderPanel extends JPanel {
     private final AuthService authService;
     private NotificationPanel notificationPanel;
 
-    public HeaderPanel(String login, LevelService levelService, AchievementService achievementService, AuthService authService, Runnable onOpenAchievements, Runnable onOpenNotifications, Runnable onOpenSettings) {
+    public HeaderPanel(String login, LevelService levelService, AchievementService achievementService, AuthService authService, Runnable onOpenAchievements, Runnable onOpenNotifications, Runnable onOpenSettings, Runnable onOpenWelcome) {
         this.login = login;
         this.levelService = levelService;
         this.achievementService = achievementService;
@@ -61,8 +61,11 @@ public class HeaderPanel extends JPanel {
         loginLabel.setFont(loginLabel.getFont().deriveFont(14f));
 
         xpPopupLabel.setForeground(new Color(0, 255, 255));
-        xpPopupLabel.setVisible(false);
+        xpPopupLabel.setText("");
         xpPopupLabel.setFont(xpPopupLabel.getFont().deriveFont(11f));
+        xpPopupLabel.setPreferredSize(new Dimension(0, 16));
+        xpPopupLabel.setMinimumSize(new Dimension(0, 16));
+        xpPopupLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         levelLabel.setText(buildLevelText());
         levelLabel.setFont(levelLabel.getFont().deriveFont(11f));
@@ -73,9 +76,17 @@ public class HeaderPanel extends JPanel {
         achievementsLabel.setForeground(Color.LIGHT_GRAY);
 
         textBox.add(loginLabel);
-        textBox.add(xpPopupLabel);
         textBox.add(levelLabel);
         textBox.add(achievementsLabel);
+        textBox.add(xpPopupLabel);
+
+        avatarLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        avatarLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                onOpenWelcome.run();
+            }
+        });
 
         profileBox.add(avatarLabel);
         profileBox.add(textBox);
@@ -155,12 +166,11 @@ public class HeaderPanel extends JPanel {
     public void showXpGain(int amount) {
         levelLabel.setText(buildLevelText());
         xpPopupLabel.setText("+" + amount + " XP");
-        xpPopupLabel.setVisible(true);
 
         new java.util.Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                SwingUtilities.invokeLater(() -> xpPopupLabel.setVisible(false));
+                SwingUtilities.invokeLater(() -> xpPopupLabel.setText(""));
             }
         }, 3000);
     }
