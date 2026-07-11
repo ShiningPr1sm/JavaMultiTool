@@ -10,5 +10,6 @@ public record Services(
     GreetingService greetingService,
     RunningProcessService runningProcessService,
     UserSession userSession,
-    NotificationService notificationService
+    NotificationService notificationService,
+    QuoteService quoteService
 ) {}
