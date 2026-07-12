@@ -1,8 +1,14 @@
 ### IntelliJ IDEA ###
+/.idea/
+/*.iml
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 target/
+
+### DB ####
+*.sqlite
+/dependency-reduced-pom.xml
 
 ### Eclipse ###
 .apt_generated
