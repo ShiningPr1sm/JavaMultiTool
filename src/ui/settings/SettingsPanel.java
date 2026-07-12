@@ -29,6 +29,9 @@ public class SettingsPanel extends JPanel {
     private final AchievementService achievementService;
     private final SystemInfoService systemInfoService;
     private final Services services;
+    private final JLabel appUptimeLabel = new JLabel();
+    private final JLabel sysUptimeLabel = new JLabel();
+    private final Timer uptimeTimer;
 
     public SettingsPanel(MainFrame mainFrame, String login, AchievementService achievementService, SystemInfoService systemInfoService, Services services) {
         this.login = login;
@@ -90,7 +93,7 @@ public class SettingsPanel extends JPanel {
             userRepo.setTheme(login, selected);
             assert selected != null;
             UIStyle.applyTheme(selected);
-            JOptionPane.showMessageDialog(this, "Theme applied! Program would restart to apply changes!");
+            StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Theme applied! Program would restart to apply changes!");
             System.exit(0);
         });
 
@@ -155,6 +158,46 @@ public class SettingsPanel extends JPanel {
         macLabel.setForeground(Color.LIGHT_GRAY);
         macLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        JButton gatewayBtn = new JButton("Gateway IP: ***.***.***.***");
+        gatewayBtn.setForeground(Color.WHITE);
+        gatewayBtn.setFont(UIManager.getFont("Label.font"));
+        gatewayBtn.setContentAreaFilled(false);
+        gatewayBtn.setBorderPainted(false);
+        gatewayBtn.setFocusPainted(false);
+        gatewayBtn.setOpaque(false);
+        gatewayBtn.setMargin(new Insets(0, 0, 0, 0));
+        gatewayBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        gatewayBtn.addActionListener(e -> {
+            if (gatewayBtn.getText().contains("***")) {
+                String gw = systemInfoService.getCachedGatewayIp();
+                gatewayBtn.setText("Gateway IP: " + (gw != null ? gw : "Loading..."));
+            } else {
+                gatewayBtn.setText("Gateway IP: ***.***.***.***");
+            }
+        });
+
+        JButton dnsBtn = new JButton("DNS Servers: ***.***.***.***");
+        dnsBtn.setForeground(Color.WHITE);
+        dnsBtn.setFont(UIManager.getFont("Label.font"));
+        dnsBtn.setContentAreaFilled(false);
+        dnsBtn.setBorderPainted(false);
+        dnsBtn.setFocusPainted(false);
+        dnsBtn.setOpaque(false);
+        dnsBtn.setMargin(new Insets(0, 0, 0, 0));
+        dnsBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        dnsBtn.addActionListener(e -> {
+            if (dnsBtn.getText().contains("***")) {
+                String dns = systemInfoService.getCachedDnsServers();
+                dnsBtn.setText("DNS Servers: " + (dns != null ? dns : "Loading..."));
+            } else {
+                dnsBtn.setText("DNS Servers: ***.***.***.***");
+            }
+        });
+
+        JLabel archLabel = new JLabel(" Architecture: " + systemInfoService.getArchitecture());
+        archLabel.setForeground(Color.LIGHT_GRAY);
+        archLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel regDateLabel = new JLabel(" Registered: " + reformatDate(userRepo.getRegistrationDate(login)));
         regDateLabel.setForeground(Color.LIGHT_GRAY);
         regDateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -162,6 +205,12 @@ public class SettingsPanel extends JPanel {
         JLabel lastLoginLabel = new JLabel(" Last Login: " + reformatDate(userRepo.getLastLoginDate(login)));
         lastLoginLabel.setForeground(Color.LIGHT_GRAY);
         lastLoginLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        appUptimeLabel.setForeground(Color.LIGHT_GRAY);
+        appUptimeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        sysUptimeLabel.setForeground(Color.LIGHT_GRAY);
+        sysUptimeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JCheckBox saveLoginBox = new JCheckBox("Save data after first login");
         saveLoginBox.setBackground(UIStyle.BG_COLOR);
@@ -196,9 +245,19 @@ public class SettingsPanel extends JPanel {
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(macLabel);
         infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(gatewayBtn);
+        infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(dnsBtn);
+        infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(archLabel);
+        infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(regDateLabel);
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(lastLoginLabel);
+        infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(appUptimeLabel);
+        infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(sysUptimeLabel);
         infoPanel.add(Box.createVerticalStrut(10));
         infoPanel.add(saveLoginBox);
         infoPanel.add(Box.createVerticalStrut(2));
@@ -207,6 +266,20 @@ public class SettingsPanel extends JPanel {
         infoPanel.add(logoutBtn);
         add(userInfoPanel);
         add(infoPanel);
+
+        uptimeTimer = new Timer(1000, e -> {
+            appUptimeLabel.setText(" App uptime: " + systemInfoService.getAppUptime());
+            sysUptimeLabel.setText(" System uptime: " + systemInfoService.getSystemUptime());
+        });
+        uptimeTimer.start();
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        if (uptimeTimer != null) {
+            uptimeTimer.stop();
+        }
     }
 
     private void chooseAvatar(MainFrame mainFrame, JLabel avatarLabel) {
@@ -258,11 +331,11 @@ public class SettingsPanel extends JPanel {
                 stmt.setString(1, nickname);
                 stmt.setString(2, login);
                 stmt.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Nickname updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Nickname updated successfully!", "Success");
                 achievementService.complete(login, "change_nickname");
                 mainFrame.updateNickName(userRepo.getNickname(login));
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Failed to update nickname.", "Error", JOptionPane.ERROR_MESSAGE);
+                StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Failed to update nickname.");
             }
         }
     }
@@ -272,32 +345,39 @@ public class SettingsPanel extends JPanel {
         JPasswordField newPassword = new JPasswordField();
         JPasswordField confirmPassword = new JPasswordField();
 
-        JPanel panel = new JPanel(new GridLayout(0, 1));
-        panel.add(new JLabel("Current Password:"));
+        JPanel panel = new JPanel(new GridLayout(0, 1, 0, 6));
+        panel.setBackground(UIStyle.SIDE_BOX);
+        JLabel curLabel = new JLabel("Current Password:");
+        curLabel.setForeground(Color.WHITE);
+        JLabel newLabel = new JLabel("New Password:");
+        newLabel.setForeground(Color.WHITE);
+        JLabel confLabel = new JLabel("Confirm New Password:");
+        confLabel.setForeground(Color.WHITE);
+        panel.add(curLabel);
         panel.add(currentPassword);
-        panel.add(new JLabel("New Password:"));
+        panel.add(newLabel);
         panel.add(newPassword);
-        panel.add(new JLabel("Confirm New Password:"));
+        panel.add(confLabel);
         panel.add(confirmPassword);
 
-        int result = JOptionPane.showConfirmDialog(this, panel, "Change Password", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (result == JOptionPane.OK_OPTION) {
+        boolean confirmed = StyledDialog.confirm(SwingUtilities.getWindowAncestor(this), panel, "Change Password");
+        if (confirmed) {
             String current = new String(currentPassword.getPassword());
             String newPass = new String(newPassword.getPassword());
             String confirmPass = new String(confirmPassword.getPassword());
 
             if (!newPass.equals(confirmPass)) {
-                JOptionPane.showMessageDialog(this, "New passwords do not match.", "Error", JOptionPane.ERROR_MESSAGE);
+                StyledDialog.show(SwingUtilities.getWindowAncestor(this), "New passwords do not match.");
                 return;
             }
 
             if (!userRepo.checkPassword(login, current)) {
-                JOptionPane.showMessageDialog(this, "Current password is incorrect.", "Error", JOptionPane.ERROR_MESSAGE);
+                StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Current password is incorrect.");
                 return;
             }
 
             userRepo.updatePassword(login, newPass);
-            JOptionPane.showMessageDialog(this, "Password changed successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Password changed successfully!", "Success");
         }
     }
 
