@@ -86,8 +86,8 @@ public class AuthFrame extends JFrame {
             if (userRepo.checkLogin(login, password)) {
                 String theme = userRepo.getTheme(login);
                 UIStyle.applyTheme(theme);
-                userRepo.updateLastLoginDate(login);
                 new MainFrame(login, services);
+                userRepo.updateLastLoginDate(login);
                 this.dispose();
             } else {
                 StyledDialog.show(this, "Invalid login or password");

@@ -159,6 +159,131 @@ public class ComponentStyler {
         }
     }
 
+    public static void styleProgressBar(JProgressBar pb) {
+        pb.setForeground(UIStyle.PROGRESS_BAR);
+        pb.setBackground(UIStyle.BG_PROGRESS_BAR);
+        pb.setBorder(BorderFactory.createEmptyBorder());
+        pb.setOpaque(false);
+        pb.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pb.setPreferredSize(new Dimension(pb.getPreferredSize().width, 20));
+        pb.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        pb.setUI(new javax.swing.plaf.basic.BasicProgressBarUI() {
+            @Override
+            protected void paintDeterminate(Graphics g, JComponent c) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int width = c.getWidth();
+                int height = c.getHeight();
+
+                g2d.setColor(pb.getBackground());
+                g2d.fillRect(0, 0, width, height);
+
+                double percent = Math.min(1.0, (double) pb.getValue() / Math.max(1, pb.getMaximum()));
+                int progressWidth = (int) (width * percent);
+                g2d.setColor(pb.getForeground());
+                g2d.fillRect(0, 0, progressWidth, height);
+
+                g2d.setColor(UIStyle.TEXT_COLOR);
+                FontMetrics fm = g2d.getFontMetrics();
+                int percentDisplay = (int) Math.round(percent * 100);
+                String text = percentDisplay + "%";
+                int textX = (width - fm.stringWidth(text)) / 2;
+                int textY = (height - fm.getHeight()) / 2 + fm.getAscent();
+                g2d.drawString(text, textX, textY);
+
+                g2d.dispose();
+            }
+        });
+    }
+
+    public static void styleSpinner(JSpinner s) {
+        s.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
+        s.setBackground(UIStyle.SIDE_BOX);
+        s.setForeground(UIStyle.TEXT_COLOR);
+        JComponent editor = s.getEditor();
+        if (editor instanceof JSpinner.NumberEditor numEditor) {
+            JFormattedTextField tf = numEditor.getTextField();
+            tf.setBackground(UIStyle.SIDE_BOX);
+            tf.setForeground(UIStyle.TEXT_COLOR);
+            tf.setCaretColor(UIStyle.TEXT_COLOR);
+        }
+        s.setUI(new javax.swing.plaf.basic.BasicSpinnerUI() {
+            @Override
+            protected Component createPreviousButton() {
+                return createArrowButton(false);
+            }
+            @Override
+            protected Component createNextButton() {
+                return createArrowButton(true);
+            }
+            private JButton createArrowButton(boolean up) {
+                JButton btn = new JButton() {
+                    @Override
+                    public Dimension getPreferredSize() {
+                        return new Dimension(24, 14);
+                    }
+                    @Override
+                    public Dimension getMinimumSize() {
+                        return getPreferredSize();
+                    }
+                    @Override
+                    public Dimension getMaximumSize() {
+                        return getPreferredSize();
+                    }
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2.setColor(getBackground());
+                        g2.fillRect(0, 0, getWidth(), getHeight());
+
+                        g2.setColor(UIStyle.TEXT_COLOR);
+
+                        int w = getWidth();
+                        int h = getHeight();
+                        int size = Math.max(5, Math.min(w, h) / 2);
+                        int cx = w / 2;
+                        int cy = h / 2;
+
+                        int[] xPoints;
+                        int[] yPoints;
+                        if (up) {
+                            xPoints = new int[]{cx, cx - size, cx + size};
+                            yPoints = new int[]{cy - size / 2, cy + size / 2, cy + size / 2};
+                        } else {
+                            xPoints = new int[]{cx, cx - size, cx + size};
+                            yPoints = new int[]{cy + size / 2, cy - size / 2, cy - size / 2};
+                        }
+                        g2.fillPolygon(xPoints, yPoints, 3);
+                        g2.dispose();
+                    }
+                };
+                btn.setBackground(UIStyle.BUTTON_BG);
+                btn.setOpaque(true);
+                btn.setBorderPainted(false);
+                btn.setFocusPainted(false);
+                btn.getModel().addChangeListener(e -> {
+                    ButtonModel m = btn.getModel();
+                    if (m.isPressed())
+                        btn.setBackground(UIStyle.BUTTON_PRESSED);
+                    else if (m.isRollover())
+                        btn.setBackground(UIStyle.BUTTON_HOVER);
+                    else
+                        btn.setBackground(UIStyle.BUTTON_BG);
+                });
+                btn.addActionListener(e -> {
+                    try {
+                        Object val = up ? s.getNextValue() : s.getPreviousValue();
+                        if (val != null) s.setValue(val);
+                    } catch (IllegalArgumentException ignored) {}
+                });
+                return btn;
+            }
+        });
+    }
+
     public static void styleTabbedPane(JTabbedPane tabs) {
         tabs.setBackground(UIStyle.BG_COLOR);
         tabs.setForeground(Color.WHITE);

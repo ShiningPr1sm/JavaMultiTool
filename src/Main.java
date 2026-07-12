@@ -42,9 +42,9 @@ public class Main {
             if (savedLogin != null && !savedLogin.isBlank()) {
                 String userTheme = userRepo.getTheme(savedLogin);
                 UIStyle.applyTheme(userTheme);
-                userRepo.updateLastLoginDate(savedLogin);
 
                 new MainFrame(savedLogin, services);
+                userRepo.updateLastLoginDate(savedLogin);
                 AppLogger.info("Auto-login: User '" + savedLogin + "' entered the system.");
             } else {
                 new AuthFrame(services);

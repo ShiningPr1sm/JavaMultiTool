@@ -1,6 +1,7 @@
 package ui.photovideotab;
 
 import service.MediaDownloadService;
+import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
 
@@ -80,11 +81,7 @@ public class MediaDownloaderPanel extends JPanel {
         centralPanel.add(scrollPane, gbc);
 
         progressBar = new JProgressBar(0, 100);
-        progressBar.setStringPainted(true);
-        progressBar.setPreferredSize(new Dimension(450, 25));
-        progressBar.setBackground(UIStyle.SECONDARY_BG);
-        progressBar.setForeground(UIStyle.ACCENT_COLOR);
-        progressBar.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
+        UIStyle.styleProgressBar(progressBar);
         centralPanel.add(progressBar, gbc);
 
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -125,7 +122,7 @@ public class MediaDownloaderPanel extends JPanel {
     private void startDownloadTask() {
         String input = textArea.getText().trim();
         if (input.isEmpty() || input.equals(PLACEHOLDER)) {
-            JOptionPane.showMessageDialog(this, "Please enter at least one video URL!");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Please enter at least one video URL!");
             AppLogger.error("No URL entered.");
             return;
         }
@@ -136,7 +133,7 @@ public class MediaDownloaderPanel extends JPanel {
             if (!url.trim().isEmpty()) videoUrls.add(url.trim());
         }
         if (videoUrls.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No valid URLs found!");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "No valid URLs found!");
             return;
         }
 
@@ -171,7 +168,7 @@ public class MediaDownloaderPanel extends JPanel {
                     if (exitCode != 0) {
                         int finalI = i;
                         SwingUtilities.invokeLater(() ->
-                                JOptionPane.showMessageDialog(this,
+                                StyledDialog.show(SwingUtilities.windowForComponent(this),
                                         "Error downloading " + videoUrls.get(finalI) + ". Check logs for details."));
                     }
                 }
@@ -187,7 +184,7 @@ public class MediaDownloaderPanel extends JPanel {
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setString("Error: " + ex.getMessage());
                     downloadButton.setEnabled(true);
-                    JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage());
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), "An error occurred: " + ex.getMessage());
                 });
             }
         }).start();
@@ -196,7 +193,7 @@ public class MediaDownloaderPanel extends JPanel {
     private void startThumbnailTask() {
         String input = textArea.getText().trim();
         if (input.isEmpty() || input.equals(PLACEHOLDER)) {
-            JOptionPane.showMessageDialog(this, "Please enter at least one video URL!");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Please enter at least one video URL!");
             return;
         }
 
@@ -206,7 +203,7 @@ public class MediaDownloaderPanel extends JPanel {
             if (!url.trim().isEmpty()) videoUrls.add(url.trim());
         }
         if (videoUrls.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No valid URLs found!");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "No valid URLs found!");
             return;
         }
 
@@ -244,7 +241,7 @@ public class MediaDownloaderPanel extends JPanel {
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setString("Error: " + ex.getMessage());
                     thumbnailButton.setEnabled(true);
-                    JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage());
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), "An error occurred: " + ex.getMessage());
                 });
             }
         }).start();

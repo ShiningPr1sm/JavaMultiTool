@@ -20,11 +20,11 @@ import java.util.zip.ZipFile;
 
 public class MediaDownloadService {
 
-    private static final File YTDLP_DIR = new File(util.AppPaths.COMMON_DIR, "yt-dlp-app");
+    private static final File YTDLP_DIR = new File(util.AppPaths.COMMON_DIR, "yt-dlp");
     public static final File YTDLP_EXE = new File(YTDLP_DIR, "yt-dlp.exe");
     private static final File YTDLP_VERSION_FILE = new File(YTDLP_DIR, "version.txt");
     private static final String YTDLP_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
-    private static final File FFMPEG_DIR = new File(YTDLP_DIR, "ffmpeg");
+    private static final File FFMPEG_DIR = new File(util.AppPaths.COMMON_DIR, "ffmpeg");
     public static final File FFMPEG_EXE = new File(FFMPEG_DIR, "ffmpeg.exe");
     private static final String FFMPEG_ZIP_URL = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
 

@@ -4,7 +4,7 @@ import db.DatabaseProvider;
 import service.*;
 import ui.achievements.AchievementsPanel;
 import ui.admin.AdminLogPanel;
-import ui.daytab.BDaysNotifierPanel;
+import ui.daytab.BirthdayTrackerPanel;
 import ui.daytab.WorkflowPanel;
 import ui.photovideotab.ImageToolsPanel;
 import ui.photovideotab.MediaDownloaderPanel;
@@ -32,6 +32,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
     private TrayManager trayManager;
     private final Services services;
     private AchievementsPanel achievementsPanel;
+    private WorkflowPanel workflowPanel;
     private JLabel actualVerLabel;
 
     public MainFrame(String login, Services services) {
@@ -91,8 +92,14 @@ public class MainFrame extends JFrame implements AchievementCallback {
             headerPanel.setNotificationBadge(active);
         }
 
-        services.levelService().addXP(login, 5);
-        headerPanel.showXpGain(5);
+        String lastLogin = DatabaseProvider.getUserRepository().getLastLoginDate(login);
+        String today = java.time.LocalDate.now().toString();
+        if (lastLogin == null || !lastLogin.startsWith(today)) {
+            services.levelService().addXP(login, 20);
+            headerPanel.showXpGain(20);
+            AppLogger.info("Added 20 EXP for first login this day.");
+        }
+        DatabaseProvider.getUserRepository().updateLastLoginDate(login);
 
         setVisible(true);
 
@@ -142,7 +149,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         sidebar.add(new ExpandableSection("Text", new String[]{"Find & Replace"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(new ExpandableSection("Time", new String[]{"Workflow", "BDays notifier"},
+        sidebar.add(new ExpandableSection("Time", new String[]{"Workflow", "Birthday Tracker"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         if (services.authService().isTester()) {
@@ -186,15 +193,20 @@ public class MainFrame extends JFrame implements AchievementCallback {
     }
 
     public void openTab(String itemName) {
+        AppLogger.info("openTab called with: " + itemName);
         contentPanel.removeAll();
 
         switch (itemName) {
             case "Media Downloader" ->
                     contentPanel.add(new MediaDownloaderPanel(), BorderLayout.CENTER);
-            case "BDays notifier" ->
-                    contentPanel.add(new BDaysNotifierPanel(login, services.bdaysService(), services.achievementService(), services.userSession()), BorderLayout.CENTER);
-            case "Workflow" ->
-                    contentPanel.add(new WorkflowPanel(services.workflowService(), services.runningProcessService()), BorderLayout.CENTER);
+            case "Birthday Tracker" ->
+                    contentPanel.add(new BirthdayTrackerPanel(login, services.bdaysService(), services.achievementService(), services.userSession()), BorderLayout.CENTER);
+            case "Workflow" -> {
+                    if (workflowPanel == null) {
+                        workflowPanel = new WorkflowPanel(services.workflowService(), services.runningProcessService());
+                    }
+                    contentPanel.add(workflowPanel, BorderLayout.CENTER);
+                }
             case "Admin CMD" ->
                     contentPanel.add(new AdminLogPanel(), BorderLayout.CENTER);
             case "Settings" ->

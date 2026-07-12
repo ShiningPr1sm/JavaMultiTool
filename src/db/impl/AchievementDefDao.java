@@ -123,7 +123,7 @@ public class AchievementDefDao {
         addAchievement("timer_sec", "Dr. Stephen Vincent Strange", "Start a timer.");
         addAchievementLevel("timer_sec", 1, 1, 20);
 
-        addAchievement("real_friend", "You are a real friend..", "Add your first date to BDays notifier.");
+        addAchievement("real_friend", "You are a real friend..", "Add your first date to Birthday Tracker.");
         addAchievementLevel("real_friend", 1, 1, 25);
     }
 }

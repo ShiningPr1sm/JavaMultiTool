@@ -123,49 +123,9 @@ public class AchievementsPanel extends JPanel {
         descLabel.setForeground(Color.LIGHT_GRAY);
         descLabel.setFont(descLabel.getFont().deriveFont(11f));
 
-        JProgressBar progressBar = new JProgressBar(0, max) {
-            @Override
-            public Dimension getPreferredSize() {
-                Dimension d = super.getPreferredSize();
-                return new Dimension(d.width, 20);
-            }
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                int width = getWidth();
-                int height = getHeight();
-                g2d.setColor(getBackground());
-                g2d.fillRect(0, 0, width, height);
-                double percent = (double) getValue() / getMaximum();
-                int progressWidth = (int) (width * percent);
-                g2d.setColor(getForeground());
-                g2d.fillRect(0, 0, progressWidth, height);
-                if (isStringPainted()) {
-                    g2d.setColor(UIStyle.TEXT_COLOR);
-                    Font font = getFont();
-                    g2d.setFont(font);
-
-                    int percentDisplay = (int) Math.round((double) getValue() / getMaximum() * 100);
-                    String text = percentDisplay + "%";
-
-                    FontMetrics fm = g2d.getFontMetrics();
-                    int textX = (width - fm.stringWidth(text)) / 2;
-                    int textY = (height - fm.getHeight()) / 2 + fm.getAscent();
-                    g2d.drawString(text, textX, textY);
-                }
-                g2d.dispose();
-            }
-        };
-
+        JProgressBar progressBar = new JProgressBar(0, max);
+        UIStyle.styleProgressBar(progressBar);
         progressBar.setValue(progress);
-        progressBar.setStringPainted(true);
-        progressBar.setForeground(UIStyle.PROGRESS_BAR);
-        progressBar.setBackground(UIStyle.BG_PROGRESS_BAR);
-        progressBar.setOpaque(false);
-        progressBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         info.add(titleLabel);
         info.add(xpLabel);
