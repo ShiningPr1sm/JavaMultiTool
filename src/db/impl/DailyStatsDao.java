@@ -51,7 +51,7 @@ public class DailyStatsDao {
     public Map<String, Integer> getDaySummary(String date) {
         Map<String, Integer> data = new LinkedHashMap<>();
         String sql = """
-        SELECT COALESCE(ta.app_name, t.task_name) as name, SUM(ds.seconds_spent) as total
+        SELECT COALESCE(ta.app_name, t.task_name, 'Unknown') as name, SUM(ds.seconds_spent) as total
         FROM daily_stats ds
         LEFT JOIN tracked_apps ta ON ds.item_id = ta.id AND ds.type = 0
         LEFT JOIN tasks t ON ds.item_id = t.id AND ds.type = 1

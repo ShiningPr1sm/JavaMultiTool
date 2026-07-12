@@ -20,7 +20,7 @@ public class TaskTrackerPanel extends JPanel {
         setLayout(new BorderLayout(0, 10));
         setBackground(UIStyle.BG_COLOR);
 
-        JLabel title = new JLabel("Task Worklog (Manual)");
+        JLabel title = new JLabel("Task Worklog | Manual");
         title.setForeground(UIStyle.ACCENT_COLOR);
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
@@ -78,6 +78,8 @@ public class TaskTrackerPanel extends JPanel {
         add(title, BorderLayout.NORTH);
         add(sp, BorderLayout.CENTER);
         add(addForm, BorderLayout.SOUTH);
+
+        loadTasksFromDB();
     }
 
     public void refreshTimers() {

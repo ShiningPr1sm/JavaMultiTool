@@ -10,14 +10,11 @@ public class PieChartPanel extends JPanel {
     private final JPanel legendContainer;
     private final PieCanvas chartCanvas;
 
-    private final Color[] PALETTE = {
-            new Color(100, 200, 100), new Color(194, 0, 255),
-            new Color(0, 200, 255),   new Color(255, 140, 0),
-            new Color(255, 75, 75),   new Color(255, 215, 0),
-            new Color(64, 224, 208),  new Color(250, 128, 114),
-            new Color(123, 104, 238), new Color(173, 255, 47),
-            new Color(255, 105, 180), new Color(0, 255, 127)
-    };
+    private static Color colorForName(String name) {
+        if (name == null) return Color.GRAY;
+        float hue = ((name.hashCode() & Integer.MAX_VALUE) % 1000000) / 1000000.0f;
+        return Color.getHSBColor(hue, 0.65f, 0.85f);
+    }
 
     public PieChartPanel() {
         setLayout(new BorderLayout());
@@ -43,7 +40,11 @@ public class PieChartPanel extends JPanel {
 
     public void setData(Map<String, Integer> data) {
         this.data = data;
-        updateLegend();
+        try {
+            updateLegend();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         chartCanvas.repaint();
     }
 
@@ -52,10 +53,9 @@ public class PieChartPanel extends JPanel {
         if (data == null || data.isEmpty()) return;
 
         int totalSeconds = data.values().stream().mapToInt(Integer::intValue).sum();
-        int i = 0;
 
         for (Map.Entry<String, Integer> entry : data.entrySet()) {
-            Color color = (i < PALETTE.length) ? PALETTE[i] : Color.getHSBColor((float) i / data.size(), 0.7f, 0.9f);
+            Color color = colorForName(entry.getKey());
 
             double percent = (entry.getValue() * 100.0) / totalSeconds;
             String timeFormatted = formatFullTime(entry.getValue());
@@ -76,8 +76,6 @@ public class PieChartPanel extends JPanel {
             row.add(marker);
             row.add(label);
             legendContainer.add(row);
-
-            i++;
         }
         legendContainer.revalidate();
         legendContainer.repaint();
@@ -121,16 +119,14 @@ public class PieChartPanel extends JPanel {
             int y = titleSpace + (getHeight() - titleSpace - size) / 2;
 
             double curAngle = 0;
-            int i = 0;
             for (Map.Entry<String, Integer> entry : data.entrySet()) {
                 double angle = (entry.getValue() * 360.0) / totalSeconds;
-                Color color = (i < PALETTE.length) ? PALETTE[i] : Color.getHSBColor((float) i / data.size(), 0.7f, 0.9f);
+                Color color = colorForName(entry.getKey());
 
                 g2.setColor(color);
                 g2.fillArc(x, y, size, size, (int) Math.round(curAngle), (int) Math.round(angle) + 1);
 
                 curAngle += angle;
-                i++;
             }
         }
     }

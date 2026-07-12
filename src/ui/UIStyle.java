@@ -133,6 +133,14 @@ public class UIStyle {
         ComponentStyler.styleTabbedPane(tabs);
     }
 
+    public static void styleProgressBar(JProgressBar pb) {
+        ComponentStyler.styleProgressBar(pb);
+    }
+
+    public static void styleSpinner(JSpinner s) {
+        ComponentStyler.styleSpinner(s);
+    }
+
     public static void styleSidebarMainButton(JButton button, int sidebarWidth) {
         ComponentStyler.styleSidebarMainButton(button, sidebarWidth);
     }

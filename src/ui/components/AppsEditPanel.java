@@ -21,9 +21,12 @@ public class AppsEditPanel extends JPanel {
         this.workflowRepo = workflowRepo;
         this.onDataChanged = onDataChanged;
 
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 10));
         setBackground(UIStyle.BG_COLOR);
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel title = new JLabel("Edit Apps");
+        title.setForeground(UIStyle.ACCENT_COLOR);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
         String[] columns = {"EXE Name", "Display Name", "ID"};
         model = new DefaultTableModel(columns, 0) {
@@ -35,6 +38,7 @@ public class AppsEditPanel extends JPanel {
         editTable.setForeground(Color.WHITE);
         editTable.setGridColor(UIStyle.BORDER_COLOR);
         editTable.setRowHeight(30);
+        editTable.setToolTipText("Double-click on 'Display Name' to rename an application.");
 
         JTableHeader header = editTable.getTableHeader();
         header.setBackground(UIStyle.BG_COLOR);
@@ -60,10 +64,6 @@ public class AppsEditPanel extends JPanel {
             }
         });
 
-        JButton refreshBtn = new JButton("Refresh List");
-        UIStyle.styleButton(refreshBtn);
-        refreshBtn.addActionListener(e -> refreshTable());
-
         JButton deleteBtn = new JButton("Delete Selected");
         UIStyle.styleButton(deleteBtn);
         deleteBtn.setForeground(new Color(255, 100, 100));
@@ -76,16 +76,26 @@ public class AppsEditPanel extends JPanel {
             }
         });
 
+        JButton refreshBtn = new JButton("Refresh List");
+        UIStyle.styleButton(refreshBtn);
+        refreshBtn.addActionListener(e -> refreshTable());
+
         JScrollPane sp = new JScrollPane(editTable);
         UIStyle.styleScrollBar(sp);
         sp.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
+        JPanel corner = new JPanel();
+        corner.setBackground(UIStyle.BG_COLOR);
+        sp.setCorner(JScrollPane.UPPER_RIGHT_CORNER, corner);
+        JPanel corner2 = new JPanel();
+        corner2.setBackground(UIStyle.BG_COLOR);
+        sp.setCorner(JScrollPane.LOWER_RIGHT_CORNER, corner2);
 
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         btnPanel.setBackground(UIStyle.BG_COLOR);
         btnPanel.add(deleteBtn);
         btnPanel.add(refreshBtn);
 
-        add(new JLabel("<html><body style='width: 300px; color: white;'>Double-click on 'Display Name' to rename an application.</body></html>"), BorderLayout.NORTH);
+        add(title, BorderLayout.NORTH);
         add(sp, BorderLayout.CENTER);
         add(btnPanel, BorderLayout.SOUTH);
 

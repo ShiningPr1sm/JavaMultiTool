@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class OverviewChartsPanel extends JPanel {
@@ -33,6 +34,18 @@ public class OverviewChartsPanel extends JPanel {
         UIStyle.styleComboBox(dateSelector);
         refreshDateSelector();
         dateSelector.setPreferredSize(new Dimension(120, 30));
+        dateSelector.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Object display = value;
+                if (value instanceof String raw) {
+                    try {
+                        display = LocalDate.parse(raw).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+                    } catch (Exception ignored) {}
+                }
+                return super.getListCellRendererComponent(list, display, index, isSelected, cellHasFocus);
+            }
+        });
 
         UIStyle.styleComboBox(appFilter);
         appFilter.setPreferredSize(new Dimension(150, 30));

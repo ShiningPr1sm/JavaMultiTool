@@ -38,7 +38,7 @@ public class AppTrackerPanel extends JPanel {
         sp.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
         UIStyle.styleScrollBar(sp);
 
-        JPanel btnPanel = new JPanel(new GridLayout(1, 2, 5, 0));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         btnPanel.setBackground(UIStyle.BG_COLOR);
 
         JButton addManualBtn = new JButton("Browse EXE");
