@@ -24,10 +24,15 @@ public class TrackedAppDao {
     }
 
     public void deleteTrackedApp(int id) {
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement("DELETE FROM tracked_apps WHERE id = ?")) {
-            pstmt.setInt(1, id);
-            pstmt.executeUpdate();
+        try (Connection conn = getConnection()) {
+            try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM daily_stats WHERE item_id = ? AND type = 0")) {
+                pstmt.setInt(1, id);
+                pstmt.executeUpdate();
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM tracked_apps WHERE id = ?")) {
+                pstmt.setInt(1, id);
+                pstmt.executeUpdate();
+            }
         } catch (Exception e) {
             AppLogger.error("TrackedAppDao error: " + e.getMessage());
         }

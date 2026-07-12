@@ -45,7 +45,7 @@ public class TrayManager {
         addMenuItem("Open MultiTool", "/icons/menu/home_icon.png", e -> showFrame());
         swingMenu.add(createSeparator());
         addMenuItem("Media Downloader", "/icons/menu/download_icon.png", e -> { showFrame(); frame.openTab("Media Downloader"); });
-        addMenuItem("BDays Notifier", "/icons/menu/bdays_icon.png", e -> { showFrame(); frame.openTab("BDays notifier"); });
+        addMenuItem("Birthday Tracker", "/icons/menu/bdays_icon.png", e -> { showFrame(); frame.openTab("Birthday Tracker"); });
         addMenuItem("Settings", "/icons/menu/settings_icon.png", e -> { showFrame(); frame.openSettings(); });
         swingMenu.add(createSeparator());
         addMenuItem("Exit", "/icons/menu/exit_icon.png", e -> System.exit(0));

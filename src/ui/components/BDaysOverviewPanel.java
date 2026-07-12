@@ -18,12 +18,27 @@ public class BDaysOverviewPanel extends JPanel {
     private final JPanel overviewContainer = new JPanel();
     private final BDaysRepository repo;
     private final BDaysService bdaysService;
+    private final JComboBox<String> modeSelector;
+    private String currentMode;
 
     public BDaysOverviewPanel(BDaysRepository repo, BDaysService bdaysService) {
         this.repo = repo;
         this.bdaysService = bdaysService;
         setLayout(new BorderLayout());
         setBackground(UIStyle.BG_COLOR);
+
+        modeSelector = new JComboBox<>(new String[]{"Upcoming", "List", "Reverse List"});
+        UIStyle.styleComboBox(modeSelector);
+        modeSelector.addActionListener(e -> refresh((String) modeSelector.getSelectedItem()));
+
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        top.setBackground(UIStyle.BG_COLOR);
+
+        JLabel modeLabel = new JLabel("Mode:");
+        modeLabel.setForeground(UIStyle.TEXT_COLOR);
+        modeLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        top.add(modeLabel);
+        top.add(modeSelector);
 
         overviewContainer.setLayout(new BoxLayout(overviewContainer, BoxLayout.Y_AXIS));
         overviewContainer.setBackground(UIStyle.BG_COLOR);
@@ -34,12 +49,20 @@ public class BDaysOverviewPanel extends JPanel {
         sp.setBorder(null);
         sp.setViewportBorder(null);
         sp.getViewport().setBackground(UIStyle.BG_COLOR);
-        sp.getVerticalScrollBar().setUnitIncrement(20);
-        styleScrollBar(sp);
+        UIStyle.styleScrollBar(sp);
+
+        add(top, BorderLayout.NORTH);
         add(sp, BorderLayout.CENTER);
+
+        refresh("Upcoming");
+    }
+
+    public void refresh() {
+        refresh(currentMode);
     }
 
     public void refresh(String mode) {
+        currentMode = mode;
         overviewContainer.removeAll();
         boolean upcoming = "Upcoming".equals(mode);
         LocalDate today = LocalDate.now();
@@ -124,42 +147,5 @@ public class BDaysOverviewPanel extends JPanel {
             case "Autumn" -> new Color(255, 140, 0);
             default -> Color.WHITE;
         };
-    }
-
-    private void styleScrollBar(JScrollPane sp) {
-        JScrollBar vBar = sp.getVerticalScrollBar();
-        vBar.setPreferredSize(new Dimension(8, 0));
-        vBar.setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
-            @Override
-            protected void configureScrollBarColors() {
-                thumbColor = UIStyle.BORDER_COLOR;
-                trackColor = UIStyle.BG_COLOR;
-            }
-
-            @Override
-            protected JButton createDecreaseButton(int orientation) {
-                return createZeroButton();
-            }
-
-            @Override
-            protected JButton createIncreaseButton(int orientation) {
-                return createZeroButton();
-            }
-
-            private JButton createZeroButton() {
-                JButton b = new JButton();
-                b.setPreferredSize(new Dimension(0, 0));
-                return b;
-            }
-
-            @Override
-            protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(thumbColor);
-                g2.fillRoundRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height, 8, 8);
-                g2.dispose();
-            }
-        });
     }
 }

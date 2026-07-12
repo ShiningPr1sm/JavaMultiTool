@@ -19,14 +19,24 @@ public class BDaysEditPanel extends JPanel {
     private final BDaysService bdaysService;
     private final AchievementService achievementService;
     private final String login;
+    private Runnable onDataChanged;
 
     public BDaysEditPanel(BDaysRepository repo, BDaysService bdaysService, AchievementService achievementService, String login) {
+        this(repo, bdaysService, achievementService, login, null);
+    }
+
+    public BDaysEditPanel(BDaysRepository repo, BDaysService bdaysService, AchievementService achievementService, String login, Runnable onDataChanged) {
         this.repo = repo;
         this.bdaysService = bdaysService;
         this.achievementService = achievementService;
         this.login = login;
-        setLayout(new BorderLayout());
+        this.onDataChanged = onDataChanged;
+        setLayout(new BorderLayout(0, 10));
         setBackground(UIStyle.BG_COLOR);
+
+        JLabel title = new JLabel(" Edit Birthdays");
+        title.setForeground(UIStyle.ACCENT_COLOR);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
         model = new DefaultTableModel(new String[]{"ID", "Name", "Birthday"}, 0) {
             @Override
@@ -42,6 +52,7 @@ public class BDaysEditPanel extends JPanel {
                 String dateStr = model.getValueAt(row, 2).toString();
                 try {
                     repo.updateBirthday(id, name, bdaysService.uiToDb(dateStr));
+                    notifyDataChanged();
                 } catch (Exception ex) {
                     AppLogger.error("BDaysEditPanel: invalid birthday format: " + ex.getMessage());
                     JOptionPane.showMessageDialog(this, "Invalid format. Use DD.MM.YYYY or DD.MM.xxxx");
@@ -51,6 +62,14 @@ public class BDaysEditPanel extends JPanel {
         });
 
         table = new JTable(model);
+        table.setBackground(UIStyle.SECONDARY_BG);
+        table.setForeground(Color.WHITE);
+        table.setGridColor(UIStyle.BORDER_COLOR);
+        table.setRowHeight(30);
+        table.setFillsViewportHeight(true);
+
+        table.getColumnModel().getColumn(0).setPreferredWidth(50);
+        table.getColumnModel().getColumn(0).setMaxWidth(80);
         table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable tbl, Object value,
@@ -60,52 +79,55 @@ public class BDaysEditPanel extends JPanel {
                 return label;
             }
         });
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(0).setMaxWidth(80);
         table.getColumnModel().getColumn(1).setPreferredWidth(250);
         table.getColumnModel().getColumn(2).setPreferredWidth(150);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        table.setFillsViewportHeight(true);
-        table.setBackground(UIStyle.BG_COLOR);
-        table.setForeground(Color.WHITE);
-        table.setGridColor(UIStyle.BORDER_COLOR);
-        table.setFont(table.getFont().deriveFont(15f));
 
         JTableHeader header = table.getTableHeader();
+        header.setBackground(UIStyle.BG_COLOR);
+        header.setForeground(Color.GRAY);
         header.setDefaultRenderer(new DefaultTableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable tbl, Object val,
-                                                           boolean isSel, boolean hasFocus,
-                                                           int row, int col) {
-                JLabel lbl = (JLabel) super.getTableCellRendererComponent(tbl, val, isSel, hasFocus, row, col);
-                lbl.setBackground(UIStyle.BUTTON_BG);
-                lbl.setForeground(Color.WHITE);
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
+                lbl.setBackground(UIStyle.BG_COLOR);
+                lbl.setForeground(Color.GRAY);
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
+                lbl.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, UIStyle.BORDER_COLOR));
                 return lbl;
             }
         });
-        header.setOpaque(true);
 
         JScrollPane scroll = new JScrollPane(table);
+        UIStyle.styleScrollBar(scroll);
         scroll.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
         scroll.getViewport().setBackground(UIStyle.BG_COLOR);
-        add(scroll, BorderLayout.CENTER);
+        JPanel corner = new JPanel();
+        corner.setBackground(UIStyle.BG_COLOR);
+        scroll.setCorner(JScrollPane.UPPER_RIGHT_CORNER, corner);
+        JPanel corner2 = new JPanel();
+        corner2.setBackground(UIStyle.BG_COLOR);
+        scroll.setCorner(JScrollPane.LOWER_RIGHT_CORNER, corner2);
 
         JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        form.setBackground(UIStyle.HEADER_COLOR);
-        JTextField nameField = new JTextField(10);
-        JTextField dateField = new JTextField(8);
-        dateField.setToolTipText("Format: dd.MM.yyyy or dd.MM.xxxx");
-        dateField.setColumns(8);
-        JButton addBtn = new JButton("Add");
-        JButton removeBtn = new JButton("Remove");
+        form.setBackground(UIStyle.BG_COLOR);
 
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setForeground(UIStyle.TEXT_COLOR);
+        JTextField nameField = new JTextField(12);
+        UIStyle.styleTextField(nameField);
+
+        JLabel dateLabel = new JLabel("Date (dd.MM.yyyy):");
+        dateLabel.setForeground(UIStyle.TEXT_COLOR);
+        JTextField dateField = new JTextField(10);
+        dateField.setToolTipText("Format: dd.MM.yyyy or dd.MM.xxxx");
+        UIStyle.styleTextField(dateField);
+
+        JButton addBtn = new JButton("Add");
+        addBtn.setForeground(new Color(150, 255, 150));
+        JButton removeBtn = new JButton("Remove");
+        removeBtn.setForeground(new Color(255, 150, 150));
         UIStyle.styleButton(addBtn);
         UIStyle.styleButton(removeBtn);
-
-        addBtn.setForeground(new Color(150, 255, 150));
-        removeBtn.setForeground(new Color(255, 150, 150));
 
         addBtn.addActionListener(e -> {
             try {
@@ -120,6 +142,7 @@ public class BDaysEditPanel extends JPanel {
 
                 achievementService.complete(login, "real_friend");
                 refreshTable();
+                notifyDataChanged();
                 dateField.setText("");
                 nameField.setText("");
             } catch (Exception ex) {
@@ -132,19 +155,28 @@ public class BDaysEditPanel extends JPanel {
                 int id = (int) model.getValueAt(sel, 0);
                 repo.removeBirthday(id);
                 refreshTable();
+                notifyDataChanged();
             }
         });
-        JLabel nameLabel = new JLabel("Name:");
-        nameLabel.setForeground(Color.WHITE);
+
         form.add(nameLabel);
         form.add(nameField);
-        JLabel dateLabel = new JLabel("Date (dd.MM.yyyy):");
-        dateLabel.setForeground(Color.WHITE);
         form.add(dateLabel);
         form.add(dateField);
         form.add(addBtn);
         form.add(removeBtn);
+
+        add(title, BorderLayout.NORTH);
+        add(scroll, BorderLayout.CENTER);
         add(form, BorderLayout.SOUTH);
+
+        refreshTable();
+    }
+
+    private void notifyDataChanged() {
+        if (onDataChanged != null) {
+            onDataChanged.run();
+        }
     }
 
     public void refreshTable() {
