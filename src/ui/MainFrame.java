@@ -9,6 +9,7 @@ import ui.daytab.WorkflowPanel;
 import ui.photovideotab.ImageToolsPanel;
 import ui.photovideotab.MediaDownloaderPanel;
 import ui.settings.SettingsPanel;
+
 import ui.components.ExpandableSection;
 import ui.utils.*;
 import util.AchievementCallback;
@@ -152,6 +153,9 @@ public class MainFrame extends JFrame implements AchievementCallback {
         sidebar.add(new ExpandableSection("Time", new String[]{"Workflow", "Birthday Tracker"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
+        sidebar.add(new ExpandableSection("Utils", new String[]{"Color Picker/Converter", "Password Generator", "QR Generator & Decoder", "Network Tools"},
+                SIDEBAR_WIDTH, this::openTab));
+        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         if (services.authService().isTester()) {
             sidebar.add(new ExpandableSection("Admin Panel", new String[]{"Admin CMD"},
                     SIDEBAR_WIDTH, this::openTab));
@@ -213,6 +217,14 @@ public class MainFrame extends JFrame implements AchievementCallback {
                     openSettings();
             case "Image Tools" ->
                     contentPanel.add(new ImageToolsPanel(), BorderLayout.CENTER);
+            case "Color Picker/Converter" ->
+                    contentPanel.add(new ui.utilstab.ColorPickerPanel(), BorderLayout.CENTER);
+            case "Password Generator" ->
+                    contentPanel.add(new ui.utilstab.PasswordGeneratorPanel(), BorderLayout.CENTER);
+            case "QR Generator & Decoder" ->
+                    contentPanel.add(new ui.utilstab.QRToolsPanel(), BorderLayout.CENTER);
+            case "Network Tools" ->
+                    contentPanel.add(new ui.utilstab.NetworkToolsPanel(), BorderLayout.CENTER);
             case "Notifications" ->
                     contentPanel.add(new ui.notifications.NotificationsPanel(services.notificationService(), headerPanel), BorderLayout.CENTER);
             default ->
