@@ -14,7 +14,7 @@ public class ComponentStyler {
         btn.setForeground(UIStyle.TEXT_COLOR);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         btn.getModel().addChangeListener(e -> {
             ButtonModel m = btn.getModel();
             if (m.isPressed())
@@ -101,6 +101,7 @@ public class ComponentStyler {
         cb.setBackground(UIStyle.BUTTON_BG);
         cb.setForeground(UIStyle.TEXT_COLOR);
         cb.setFocusable(false);
+        cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cb.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
 
         cb.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
@@ -138,6 +139,7 @@ public class ComponentStyler {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                 lbl.setOpaque(true);
 
                 if (isSelected) {
@@ -166,7 +168,7 @@ public class ComponentStyler {
         pb.setOpaque(false);
         pb.setAlignmentX(Component.LEFT_ALIGNMENT);
         pb.setPreferredSize(new Dimension(pb.getPreferredSize().width, 20));
-        pb.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        pb.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
         pb.setUI(new javax.swing.plaf.basic.BasicProgressBarUI() {
             @Override

@@ -76,6 +76,45 @@ public class UIStyle {
                 PROGRESS_BAR   = new Color(255, 121, 198);
                 ACCENT_COLOR   = new Color(189, 147, 249);
             }
+            case "Calm Tech" -> {
+                BG_COLOR       = new Color(30, 30, 38);
+                HEADER_COLOR   = new Color(37, 37, 51);
+                SECONDARY_BG   = new Color(46, 46, 62);
+                BUTTON_BG      = new Color(58, 58, 78);
+                SIDE_BOX       = new Color(42, 42, 58);
+                BORDER_COLOR   = new Color(65, 65, 85);
+                BUTTON_HOVER   = new Color(75, 75, 100);
+                BUTTON_PRESSED = new Color(90, 90, 115);
+                BG_PROGRESS_BAR= new Color(46, 46, 62);
+                PROGRESS_BAR   = new Color(184, 167, 240);
+                ACCENT_COLOR   = new Color(184, 167, 240);
+            }
+            case "Blush Pink" -> {
+                BG_COLOR       = new Color(40, 32, 37);
+                HEADER_COLOR   = new Color(53, 40, 48);
+                SECONDARY_BG   = new Color(61, 46, 56);
+                BUTTON_BG      = new Color(74, 56, 69);
+                SIDE_BOX       = new Color(56, 42, 52);
+                BORDER_COLOR   = new Color(80, 62, 75);
+                BUTTON_HOVER   = new Color(95, 75, 90);
+                BUTTON_PRESSED = new Color(115, 90, 105);
+                BG_PROGRESS_BAR= new Color(61, 46, 56);
+                PROGRESS_BAR   = new Color(255, 176, 184);
+                ACCENT_COLOR   = new Color(255, 176, 184);
+            }
+            case "Night Energy" -> {
+                BG_COLOR       = new Color(24, 24, 42);
+                HEADER_COLOR   = new Color(32, 32, 58);
+                SECONDARY_BG   = new Color(42, 42, 72);
+                BUTTON_BG      = new Color(50, 48, 80);
+                SIDE_BOX       = new Color(37, 37, 64);
+                BORDER_COLOR   = new Color(60, 60, 95);
+                BUTTON_HOVER   = new Color(72, 70, 110);
+                BUTTON_PRESSED = new Color(90, 85, 130);
+                BG_PROGRESS_BAR= new Color(42, 42, 72);
+                PROGRESS_BAR   = new Color(255, 196, 155);
+                ACCENT_COLOR   = new Color(255, 196, 155);
+            }
             case "Crimson Ember" -> {
                 BG_COLOR       = new Color(20, 15, 15);
                 HEADER_COLOR   = new Color(28, 20, 20);
