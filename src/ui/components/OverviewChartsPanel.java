@@ -43,7 +43,18 @@ public class OverviewChartsPanel extends JPanel {
                         display = LocalDate.parse(raw).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
                     } catch (Exception ignored) {}
                 }
-                return super.getListCellRendererComponent(list, display, index, isSelected, cellHasFocus);
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, display, index, isSelected, cellHasFocus);
+                lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                lbl.setOpaque(true);
+                if (isSelected) {
+                    lbl.setBackground(UIStyle.BUTTON_HOVER);
+                    lbl.setForeground(UIStyle.ACCENT_COLOR);
+                } else {
+                    lbl.setBackground(UIStyle.BUTTON_BG);
+                    lbl.setForeground(UIStyle.TEXT_COLOR);
+                }
+                lbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+                return lbl;
             }
         });
 

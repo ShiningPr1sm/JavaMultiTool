@@ -61,6 +61,8 @@ public class SettingsPanel extends JPanel {
         JButton changeAvatarBtn = new JButton("Change Avatar");
         changeAvatarBtn.addActionListener(e -> chooseAvatar(mainFrame, avatarLabel));
         UIStyle.styleButton(changeAvatarBtn);
+        changeAvatarBtn.setPreferredSize(new Dimension(avatarLabel.getPreferredSize().width, changeAvatarBtn.getPreferredSize().height));
+        changeAvatarBtn.setMaximumSize(new Dimension(avatarLabel.getPreferredSize().width, changeAvatarBtn.getPreferredSize().height));
 
         JPanel avatarBox = new JPanel();
         avatarBox.setLayout(new BoxLayout(avatarBox, BoxLayout.Y_AXIS));
@@ -83,10 +85,9 @@ public class SettingsPanel extends JPanel {
         changePasswordBtn.addActionListener(e -> openChangePasswordDialog(login));
         UIStyle.styleButton(changePasswordBtn);
 
-        String[] themes = {"Original Dark", "Midnight Blue", "Deep Forest", "Crimson Ember", "Dracula"};
+        String[] themes = {"Original Dark", "Midnight Blue", "Deep Forest", "Crimson Ember", "Dracula", "Calm Tech", "Night Energy", "Blush Pink"};
         JComboBox<String> themeBox = new JComboBox<>(themes);
         UIStyle.styleComboBox(themeBox);
-        themeBox.setFont(new Font("Segoe UI", Font.BOLD, 13));
         themeBox.setSelectedItem(userRepo.getTheme(login));
         themeBox.addActionListener(e -> {
             String selected = (String) themeBox.getSelectedItem();

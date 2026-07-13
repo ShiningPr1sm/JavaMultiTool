@@ -8,13 +8,16 @@ import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.icc.IccDirectory;
 import com.drew.metadata.file.FileTypeDirectory;
 
-import javax.imageio.ImageIO;
+import javax.imageio.*;
+import javax.imageio.stream.*;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.*;
+import java.util.*;
+import java.util.List;
 
 public class ImageMetadataService {
 
@@ -80,7 +83,55 @@ public class ImageMetadataService {
             sb.append("Space: ").append(colorSpace != null ? colorSpace : "Unknown").append("\n\n");
         }
 
-        return new ImageMetadataResult(sb.toString(), processedImage, avgColor, mapUrl);
+        List<Color> dominantColors = extractDominantColors(processedImage, 10);
+
+        return new ImageMetadataResult(sb.toString(), processedImage, avgColor, mapUrl, dominantColors);
+    }
+
+    public void saveWithoutExif(BufferedImage img, File source, File target) throws IOException {
+        String name = source.getName().toLowerCase();
+        String format;
+        if (name.endsWith(".png")) format = "png";
+        else if (name.endsWith(".webp")) format = "webp";
+        else if (name.endsWith(".bmp")) format = "bmp";
+        else if (name.endsWith(".gif")) format = "gif";
+        else format = "jpg";
+        ImageIO.write(img, format, target);
+    }
+
+    public List<Color> extractDominantColors(BufferedImage img, int count) {
+        int step = Math.max(1, Math.min(img.getWidth(), img.getHeight()) / 100);
+        int bins = 8;
+        int shift = 8 / 3;
+        Map<Integer, long[]> colorMap = new HashMap<>();
+
+        for (int x = 0; x < img.getWidth(); x += step) {
+            for (int y = 0; y < img.getHeight(); y += step) {
+                Color c = new Color(img.getRGB(x, y));
+                int ri = c.getRed() >> (8 - shift);
+                int gi = c.getGreen() >> (8 - shift);
+                int bi = c.getBlue() >> (8 - shift);
+                int key = (ri << (shift * 2)) | (gi << shift) | bi;
+                colorMap.computeIfAbsent(key, k -> new long[]{0, 0, 0, 0});
+                long[] sums = colorMap.get(key);
+                sums[0] += c.getRed();
+                sums[1] += c.getGreen();
+                sums[2] += c.getBlue();
+                sums[3]++;
+            }
+        }
+
+        return colorMap.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue()[3], a.getValue()[3]))
+                .limit(count)
+                .map(e -> {
+                    long[] sums = e.getValue();
+                    int r = (int) (sums[0] / sums[3]);
+                    int g = (int) (sums[1] / sums[3]);
+                    int b = (int) (sums[2] / sums[3]);
+                    return new Color(r, g, b);
+                })
+                .toList();
     }
 
     public Image getScaledImage(BufferedImage src, int w, int h) {
@@ -131,17 +182,71 @@ public class ImageMetadataService {
         return new Color((int) (r / count), (int) (g / count), (int) (b / count));
     }
 
+    public ElaResult elaAnalysis(BufferedImage img) throws IOException {
+        int w = img.getWidth(), h = img.getHeight();
+
+        if (w * h > 2000 * 2000) {
+            double scale = Math.sqrt((2000.0 * 2000.0) / (w * h));
+            w = (int) (w * scale);
+            h = (int) (h * scale);
+            BufferedImage scaled = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = scaled.createGraphics();
+            g.drawImage(img, 0, 0, w, h, null);
+            g.dispose();
+            img = scaled;
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+        ImageWriter writer = writers.next();
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        param.setCompressionQuality(0.95f);
+        writer.setOutput(ImageIO.createImageOutputStream(baos));
+        writer.write(null, new IIOImage(img, null, null), param);
+        writer.dispose();
+
+        BufferedImage recompressed = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
+
+        BufferedImage elaMap = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        double totalDiff = 0;
+
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                Color orig = new Color(img.getRGB(x, y));
+                Color recomp = new Color(recompressed.getRGB(x, y));
+
+                int dr = Math.abs(orig.getRed() - recomp.getRed());
+                int dg = Math.abs(orig.getGreen() - recomp.getGreen());
+                int db = Math.abs(orig.getBlue() - recomp.getBlue());
+                int maxDiff = Math.max(dr, Math.max(dg, db));
+
+                totalDiff += maxDiff;
+
+                int ela = Math.min(maxDiff * 15, 255);
+                elaMap.setRGB(x, y, 0xFF000000 | (ela << 16) | (ela << 8) | ela);
+            }
+        }
+
+        double avgDiff = totalDiff / (w * h);
+        return new ElaResult(elaMap, avgDiff);
+    }
+
+    public record ElaResult(BufferedImage elaImage, double score) {}
+
     public static class ImageMetadataResult {
         private final String metadataText;
         private final BufferedImage processedImage;
         private final Color averageColor;
         private final String mapUrl;
+        private final List<Color> dominantColors;
 
-        public ImageMetadataResult(String metadataText, BufferedImage processedImage, Color averageColor, String mapUrl) {
+        public ImageMetadataResult(String metadataText, BufferedImage processedImage, Color averageColor, String mapUrl, List<Color> dominantColors) {
             this.metadataText = metadataText;
             this.processedImage = processedImage;
             this.averageColor = averageColor;
             this.mapUrl = mapUrl;
+            this.dominantColors = dominantColors;
         }
 
         public String getMetadataText() {
@@ -158,6 +263,37 @@ public class ImageMetadataService {
 
         public String getMapUrl() {
             return mapUrl;
+        }
+
+        public List<Color> getDominantColors() {
+            return dominantColors;
+        }
+
+        public String getMetadataJson() {
+            StringBuilder j = new StringBuilder();
+            j.append("{\n");
+            String[] lines = metadataText.split("\n");
+            String section = "";
+            for (String line : lines) {
+                if (line.startsWith("[") && line.endsWith("]")) {
+                    section = line.substring(1, line.length() - 1).trim().toLowerCase().replace(" ", "_");
+                    continue;
+                }
+                if (line.isBlank()) continue;
+                int colon = line.indexOf(": ");
+                if (colon > 0) {
+                    String key = line.substring(0, colon).trim().toLowerCase().replace(" ", "_");
+                    String val = line.substring(colon + 2).trim();
+                    j.append("  \"").append(section).append(".").append(key).append("\": \"").append(escapeJson(val)).append("\",\n");
+                }
+            }
+            if (j.length() > 1) j.setLength(j.length() - 2);
+            j.append("\n}");
+            return j.toString();
+        }
+
+        private String escapeJson(String s) {
+            return s.replace("\\", "\\\\").replace("\"", "\\\"");
         }
     }
 }

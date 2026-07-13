@@ -89,21 +89,7 @@ public class NotificationsPanel extends JPanel {
         textLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         JButton dismissBtn = new JButton("Dismiss");
-        dismissBtn.setOpaque(true);
-        dismissBtn.setBackground(UIStyle.BUTTON_BG);
-        dismissBtn.setForeground(Color.WHITE);
-        dismissBtn.setFocusPainted(false);
-        dismissBtn.setBorderPainted(false);
-        dismissBtn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        dismissBtn.getModel().addChangeListener(e -> {
-            ButtonModel m = dismissBtn.getModel();
-            if (m.isPressed())
-                dismissBtn.setBackground(UIStyle.BUTTON_PRESSED);
-            else if (m.isRollover())
-                dismissBtn.setBackground(UIStyle.BUTTON_PRESSED);
-            else
-                dismissBtn.setBackground(UIStyle.BUTTON_BG);
-        });
+        UIStyle.styleButton(dismissBtn);
         dismissBtn.addActionListener(e -> {
             notificationService.dismissNotification(rec.getId());
             refreshList();
