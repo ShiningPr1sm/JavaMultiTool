@@ -51,8 +51,7 @@ public class PasswordGeneratorPanel extends JPanel {
         digitCb = new JCheckBox("Digits (0-9)", true);
         symbolCb = new JCheckBox("Symbols (!@#...)", true);
         for (var cb : new JCheckBox[]{upperCb, lowerCb, digitCb, symbolCb}) {
-            cb.setOpaque(false);
-            cb.setForeground(UIStyle.TEXT_COLOR);
+            UIStyle.styleCheckbox(cb);
             center.add(cb, c);
         }
 

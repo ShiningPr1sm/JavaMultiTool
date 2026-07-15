@@ -315,6 +315,18 @@ public class ComponentStyler {
         });
     }
 
+    public static void styleCheckbox(JCheckBox cb) {
+        cb.setFocusPainted(false);
+        cb.setOpaque(false);
+        cb.setForeground(UIStyle.TEXT_COLOR);
+        cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    }
+
+    public static void styleSlider(JSlider slider) {
+        slider.setFocusable(false);
+        slider.setOpaque(false);
+    }
+
     public static void styleSidebarMainButton(JButton button, int sidebarWidth) {
         button.setMaximumSize(new Dimension(sidebarWidth - 20, 40));
         button.setPreferredSize(new Dimension(sidebarWidth - 20, 40));

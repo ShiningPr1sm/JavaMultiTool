@@ -57,7 +57,9 @@ public class QRToolsPanel extends JPanel {
 
         JPanel inputPanel = new JPanel(new BorderLayout(5, 5));
         inputPanel.setOpaque(false);
-        inputPanel.add(new JLabel("Text / URL:"), BorderLayout.NORTH);
+        JLabel textAndUrl = new JLabel("Text / URL: ");
+        textAndUrl.setForeground(Color.white);
+        inputPanel.add(textAndUrl, BorderLayout.NORTH);
         JScrollPane inputScroll = new JScrollPane(inputArea);
         inputScroll.setBorder(null);
         inputPanel.add(inputScroll, BorderLayout.CENTER);
@@ -191,5 +193,4 @@ public class QRToolsPanel extends JPanel {
         g.dispose();
         return scaled;
     }
-
 }

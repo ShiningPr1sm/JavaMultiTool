@@ -124,7 +124,7 @@ public class ColorPickerPanel extends JPanel {
 
     private JSlider createSlider() {
         JSlider s = new JSlider(0, 255);
-        s.setOpaque(false);
+        UIStyle.styleSlider(s);
         s.setPreferredSize(new Dimension(180, 22));
         return s;
     }

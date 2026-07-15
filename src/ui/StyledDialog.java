@@ -117,4 +117,70 @@ public class StyledDialog {
         dialog.setVisible(true);
         return result[0];
     }
+
+    public static boolean confirmYesNo(Window parent, String message, String title) {
+        JDialog dialog = new JDialog(parent, title != null ? title : "", Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setUndecorated(true);
+        dialog.setBackground(UIStyle.BG_COLOR);
+
+        JPanel panel = new JPanel(new BorderLayout(0, 20));
+        panel.setBackground(UIStyle.SIDE_BOX);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIStyle.BORDER_COLOR, 1),
+                BorderFactory.createEmptyBorder(25, 30, 20, 30)));
+
+        final boolean[] result = {false};
+
+        JTextArea msgArea = new JTextArea(message);
+        msgArea.setEditable(false);
+        msgArea.setBackground(UIStyle.SIDE_BOX);
+        msgArea.setForeground(UIStyle.TEXT_COLOR);
+        msgArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        msgArea.setLineWrap(true);
+        msgArea.setWrapStyleWord(true);
+
+        JButton yesButton = new JButton("Yes");
+        yesButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        yesButton.setPreferredSize(new Dimension(100, 35));
+        UIStyle.styleButton(yesButton);
+        yesButton.addActionListener(e -> {
+            result[0] = true;
+            dialog.dispose();
+        });
+
+        JButton noButton = new JButton("No");
+        noButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        noButton.setPreferredSize(new Dimension(100, 35));
+        UIStyle.styleButton(noButton);
+        noButton.addActionListener(e -> dialog.dispose());
+
+        dialog.getRootPane().setDefaultButton(yesButton);
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        btnPanel.setBackground(UIStyle.SIDE_BOX);
+        btnPanel.add(yesButton);
+        btnPanel.add(noButton);
+
+        panel.add(msgArea, BorderLayout.CENTER);
+        panel.add(btnPanel, BorderLayout.SOUTH);
+
+        dialog.setContentPane(panel);
+        dialog.pack();
+
+        Dimension dialogSize = dialog.getSize();
+        dialogSize.width = Math.max(dialogSize.width, 360);
+        dialog.setSize(dialogSize);
+
+        if (parent != null) {
+            dialog.setLocationRelativeTo(parent);
+        } else {
+            Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+            dialog.setLocation(
+                    (screen.width - dialog.getWidth()) / 2,
+                    (screen.height - dialog.getHeight()) / 2);
+        }
+
+        dialog.setVisible(true);
+        return result[0];
+    }
 }

@@ -180,6 +180,14 @@ public class UIStyle {
         ComponentStyler.styleSpinner(s);
     }
 
+    public static void styleCheckbox(JCheckBox cb) {
+        ComponentStyler.styleCheckbox(cb);
+    }
+
+    public static void styleSlider(JSlider slider) {
+        ComponentStyler.styleSlider(slider);
+    }
+
     public static void styleSidebarMainButton(JButton button, int sidebarWidth) {
         ComponentStyler.styleSidebarMainButton(button, sidebarWidth);
     }

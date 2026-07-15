@@ -13,6 +13,8 @@ import ui.settings.SettingsPanel;
 import ui.components.ExpandableSection;
 import ui.utils.*;
 import util.AchievementCallback;
+
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import util.AppLogger;
 import util.VersionInfo;
 
@@ -32,6 +34,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
     private JPanel contentPanel;
     private TrayManager trayManager;
     private final Services services;
+    private String currentTab;
     private AchievementsPanel achievementsPanel;
     private WorkflowPanel workflowPanel;
     private JLabel actualVerLabel;
@@ -82,6 +85,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         contentPanel.add(welcomePanel, BorderLayout.CENTER);
         contentPanel.revalidate();
         contentPanel.repaint();
+        currentTab = "Welcome";
 
         services.workflowService().startTracking();
 
@@ -133,10 +137,9 @@ public class MainFrame extends JFrame implements AchievementCallback {
         return main;
     }
 
-    private JPanel createSidebar() {
+    private JScrollPane createSidebar() {
         JPanel sidebar = new JPanel();
         sidebar.setBackground(UIStyle.SIDE_BOX);
-        sidebar.setPreferredSize(new Dimension(SIDEBAR_WIDTH, getHeight()));
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
 
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -153,7 +156,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         sidebar.add(new ExpandableSection("Time", new String[]{"Workflow", "Birthday Tracker"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(new ExpandableSection("Utils", new String[]{"Color Picker/Converter", "Password Generator", "QR Generator & Decoder", "Network Tools"},
+        sidebar.add(new ExpandableSection("Utils", new String[]{"Color Picker & Converter", "Password Generator", "QR Generator & Decoder", "Network Tools"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         if (services.authService().isTester()) {
@@ -161,18 +164,47 @@ public class MainFrame extends JFrame implements AchievementCallback {
                     SIDEBAR_WIDTH, this::openTab));
             sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         }
-        return sidebar;
+
+        JScrollPane scrollPane = new JScrollPane(sidebar);
+        scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(new Dimension(SIDEBAR_WIDTH, 0));
+        scrollPane.setBackground(UIStyle.SIDE_BOX);
+        scrollPane.getViewport().setBackground(UIStyle.SIDE_BOX);
+
+        JScrollBar vb = scrollPane.getVerticalScrollBar();
+        vb.setUnitIncrement(24);
+        vb.setPreferredSize(new Dimension(0, 0));
+        vb.setUI(new BasicScrollBarUI() {
+            @Override protected void paintTrack(Graphics g, JComponent c, Rectangle r) {}
+            @Override protected void paintThumb(Graphics g, JComponent c, Rectangle r) {}
+            @Override protected JButton createDecreaseButton(int o) { return zeroBtn(); }
+            @Override protected JButton createIncreaseButton(int o) { return zeroBtn(); }
+            private JButton zeroBtn() {
+                JButton b = new JButton();
+                b.setPreferredSize(new Dimension(0, 0));
+                b.setMinimumSize(new Dimension(0, 0));
+                b.setMaximumSize(new Dimension(0, 0));
+                return b;
+            }
+        });
+
+        return scrollPane;
     }
 
     private void openWelcome() {
+        if ("Welcome".equals(currentTab)) return;
         contentPanel.removeAll();
         contentPanel.add(new WelcomePanel(login, services.greetingService(), services.quoteService().getDailyQuote()), BorderLayout.CENTER);
         contentPanel.revalidate();
         contentPanel.repaint();
         updateTitle("Welcome");
+        currentTab = "Welcome";
     }
 
     private void openAchievements() {
+        if ("Achievements".equals(currentTab)) return;
         contentPanel.removeAll();
         if (achievementsPanel != null) {
             contentPanel.add(achievementsPanel, BorderLayout.CENTER);
@@ -182,14 +214,17 @@ public class MainFrame extends JFrame implements AchievementCallback {
         contentPanel.revalidate();
         contentPanel.repaint();
         updateTitle("Achievements");
+        currentTab = "Achievements";
     }
 
     public void openSettings() {
+        if ("Settings".equals(currentTab)) return;
         contentPanel.removeAll();
         contentPanel.add(new SettingsPanel(this, login, services.achievementService(), services.systemInfoService(), services), BorderLayout.CENTER);
         contentPanel.revalidate();
         contentPanel.repaint();
         updateTitle("Settings");
+        currentTab = "Settings";
     }
 
     private void openNotifications() {
@@ -197,6 +232,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
     }
 
     public void openTab(String itemName) {
+        if (itemName.equals(currentTab)) return;
         AppLogger.info("openTab called with: " + itemName);
         contentPanel.removeAll();
 
@@ -217,7 +253,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
                     openSettings();
             case "Image Tools" ->
                     contentPanel.add(new ImageToolsPanel(), BorderLayout.CENTER);
-            case "Color Picker/Converter" ->
+            case "Color Picker & Converter" ->
                     contentPanel.add(new ui.utilstab.ColorPickerPanel(), BorderLayout.CENTER);
             case "Password Generator" ->
                     contentPanel.add(new ui.utilstab.PasswordGeneratorPanel(), BorderLayout.CENTER);
@@ -234,6 +270,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         contentPanel.revalidate();
         contentPanel.repaint();
         updateTitle(itemName);
+        currentTab = itemName;
 
         AppLogger.info("Tab switched to: " + itemName);
     }

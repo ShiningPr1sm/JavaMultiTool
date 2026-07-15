@@ -29,8 +29,8 @@ public class SettingsPanel extends JPanel {
     private final AchievementService achievementService;
     private final SystemInfoService systemInfoService;
     private final Services services;
-    private final JLabel appUptimeLabel = new JLabel();
-    private final JLabel sysUptimeLabel = new JLabel();
+    private final JLabel appUptimeLabel = new JLabel(" App uptime: Loading...");
+    private final JLabel sysUptimeLabel = new JLabel(" System uptime: Loading...");
     private final Timer uptimeTimer;
 
     public SettingsPanel(MainFrame mainFrame, String login, AchievementService achievementService, SystemInfoService systemInfoService, Services services) {
@@ -214,15 +214,13 @@ public class SettingsPanel extends JPanel {
         sysUptimeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JCheckBox saveLoginBox = new JCheckBox("Save data after first login");
-        saveLoginBox.setBackground(UIStyle.BG_COLOR);
-        saveLoginBox.setForeground(Color.WHITE);
+        UIStyle.styleCheckbox(saveLoginBox);
         saveLoginBox.setSelected(userRepo.isSaveLoginEnabled(login));
         saveLoginBox.addActionListener(e -> userRepo.setSaveLogin(login, saveLoginBox.isSelected()));
         saveLoginBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JCheckBox trayBox = new JCheckBox("Minimize to tray on close");
-        trayBox.setBackground(UIStyle.BG_COLOR);
-        trayBox.setForeground(Color.WHITE);
+        UIStyle.styleCheckbox(trayBox);
         trayBox.setSelected(userRepo.isCloseToTrayEnabled(login));
         trayBox.setAlignmentX(Component.LEFT_ALIGNMENT);
         trayBox.addActionListener(e -> {

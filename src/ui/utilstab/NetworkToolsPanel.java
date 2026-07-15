@@ -109,9 +109,13 @@ public class NetworkToolsPanel extends JPanel {
                 }
             }).start();
         });
-        p.add(new JLabel("Host:"));
+        JLabel host = new JLabel("Host: ");
+        host.setForeground(Color.white);
+        p.add(host);
         p.add(hostField);
-        p.add(new JLabel("Count:"));
+        JLabel count = new JLabel("Count: ");
+        count.setForeground(Color.white);
+        p.add(count);
         p.add(countSpinner);
         p.add(pingBtn);
         return p;
@@ -140,9 +144,13 @@ public class NetworkToolsPanel extends JPanel {
                 }
             }).start();
         });
-        p.add(new JLabel("Host:"));
+        JLabel host = new JLabel("Host: ");
+        host.setForeground(Color.WHITE);
+        p.add(host);
         p.add(hostField);
-        p.add(new JLabel("Port:"));
+        JLabel port = new JLabel("Port: ");
+        port.setForeground(Color.white);
+        p.add(port);
         p.add(portSpinner);
         p.add(checkBtn);
         return p;
@@ -177,7 +185,9 @@ public class NetworkToolsPanel extends JPanel {
                 }
             }).start();
         });
-        p.add(new JLabel("Domain:"));
+        JLabel domain = new JLabel("Domain: ");
+        domain.setForeground(Color.white);
+        p.add(domain);
         p.add(domainField);
         p.add(whoisBtn);
         return p;

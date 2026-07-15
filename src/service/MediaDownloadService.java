@@ -235,7 +235,7 @@ public class MediaDownloadService {
         }
     }
 
-    private void checkAndDownloadFFMPEG() throws IOException {
+    public void checkAndDownloadFFMPEG() throws IOException {
         AppLogger.info("Checking ffmpeg...");
         if (!FFMPEG_DIR.exists()) {
             FFMPEG_DIR.mkdirs();
