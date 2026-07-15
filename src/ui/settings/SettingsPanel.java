@@ -64,12 +64,20 @@ public class SettingsPanel extends JPanel {
         changeAvatarBtn.setPreferredSize(new Dimension(avatarLabel.getPreferredSize().width, changeAvatarBtn.getPreferredSize().height));
         changeAvatarBtn.setMaximumSize(new Dimension(avatarLabel.getPreferredSize().width, changeAvatarBtn.getPreferredSize().height));
 
+        JButton deleteAvatarBtn = new JButton("Delete Avatar");
+        deleteAvatarBtn.addActionListener(e -> deleteAvatar(mainFrame, avatarLabel));
+        UIStyle.styleButton(deleteAvatarBtn);
+        deleteAvatarBtn.setPreferredSize(new Dimension(avatarLabel.getPreferredSize().width, deleteAvatarBtn.getPreferredSize().height));
+        deleteAvatarBtn.setMaximumSize(new Dimension(avatarLabel.getPreferredSize().width, deleteAvatarBtn.getPreferredSize().height));
+
         JPanel avatarBox = new JPanel();
         avatarBox.setLayout(new BoxLayout(avatarBox, BoxLayout.Y_AXIS));
         avatarBox.setBackground(UIStyle.BG_COLOR);
         avatarBox.add(avatarLabel);
         avatarBox.add(Box.createVerticalStrut(10));
         avatarBox.add(changeAvatarBtn);
+        avatarBox.add(Box.createVerticalStrut(5));
+        avatarBox.add(deleteAvatarBtn);
 
         JLabel nicknameLabel = new JLabel("Nickname:");
         nicknameLabel.setForeground(Color.WHITE);
@@ -409,6 +417,28 @@ public class SettingsPanel extends JPanel {
             } catch (IOException e) {
                 AppLogger.error("SettingsPanel: failed to update avatar image: " + e.getMessage());
             }
+        } else {
+            java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");
+            if (defaultUrl != null) {
+                ImageIcon defaultIcon = new ImageIcon(defaultUrl);
+                Image scaled = defaultIcon.getImage().getScaledInstance(121, 121, Image.SCALE_SMOOTH);
+                label.setIcon(new ImageIcon(scaled));
+                label.setText("");
+            }
+        }
+    }
+
+    private void deleteAvatar(MainFrame mainFrame, JLabel avatarLabel) {
+        File avatarFile = new File(AVATAR_DIR, login + ".png");
+        if (avatarFile.exists() && avatarFile.delete()) {
+            AppLogger.info("SettingsPanel: avatar deleted for " + login);
+        }
+        updateAvatarImage(avatarLabel);
+        java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");
+        if (defaultUrl != null) {
+            ImageIcon defaultIcon = new ImageIcon(defaultUrl);
+            Image scaled = defaultIcon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
+            mainFrame.updateAvatarImage(new ImageIcon(scaled));
         }
     }
 

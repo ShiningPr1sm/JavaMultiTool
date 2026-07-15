@@ -49,6 +49,13 @@ public class HeaderPanel extends JPanel {
             ImageIcon icon = new ImageIcon(avatarFile.getAbsolutePath());
             Image scaledImage = icon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
             avatarLabel.setIcon(new ImageIcon(scaledImage));
+        } else {
+            java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");
+            if (defaultUrl != null) {
+                ImageIcon defaultIcon = new ImageIcon(defaultUrl);
+                Image scaled = defaultIcon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
+                avatarLabel.setIcon(new ImageIcon(scaled));
+            }
         }
 
         JPanel textBox = new JPanel();
