@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 public class AchievementRepositoryImpl implements AchievementRepository {
-    private static final String DB_PATH = util.AppPaths.DB_ACHIEVEMENTS;
     private final List<AchievementCallback> callbacks = new ArrayList<>();
     private final AchievementDefDao defDao = new AchievementDefDao();
     private final UserProgressDao progressDao = new UserProgressDao();
@@ -23,7 +22,7 @@ public class AchievementRepositoryImpl implements AchievementRepository {
 
     @Override
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        return DriverManager.getConnection("jdbc:sqlite:" + util.AppPaths.DB_ACHIEVEMENTS);
     }
 
     @Override

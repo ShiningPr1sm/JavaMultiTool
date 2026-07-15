@@ -23,7 +23,6 @@ import java.time.format.DateTimeFormatter;
 
 public class SettingsPanel extends JPanel {
 
-    private static final String AVATAR_DIR = util.AppPaths.AVATAR_DIR;
     private final db.UserRepository userRepo = DatabaseProvider.getUserRepository();
     private final String login;
     private final AchievementService achievementService;
@@ -312,9 +311,11 @@ public class SettingsPanel extends JPanel {
                     Graphics2D g2d = resized.createGraphics();
                     g2d.drawImage(cropped.getScaledInstance(121, 121, Image.SCALE_SMOOTH), 0, 0, null);
                     g2d.dispose();
-                    File avatarDir = new File(AVATAR_DIR);
-                    if (!avatarDir.exists()) avatarDir.mkdirs();
-                    File avatarFile = new File(avatarDir, login + ".png");
+                    String avatarPath = util.AppPaths.avatarFile(login);
+                    if (avatarPath == null) return;
+                    File avatarFile = new File(avatarPath);
+                    File avatarDir = avatarFile.getParentFile();
+                    if (avatarDir != null && !avatarDir.exists()) avatarDir.mkdirs();
                     ImageIO.write(resized, "png", avatarFile);
                     updateAvatarImage(avatarLabel);
 
@@ -407,31 +408,37 @@ public class SettingsPanel extends JPanel {
     }
 
     private void updateAvatarImage(JLabel label) {
-        File avatarFile = new File(AVATAR_DIR, login + ".png");
-        if (avatarFile.exists()) {
-            try {
-                BufferedImage img = ImageIO.read(avatarFile);
-                ImageIcon icon = new ImageIcon(img.getScaledInstance(121, 121, Image.SCALE_SMOOTH));
-                label.setIcon(icon);
-                label.setText("");
-            } catch (IOException e) {
-                AppLogger.error("SettingsPanel: failed to update avatar image: " + e.getMessage());
+        String avatarPath = util.AppPaths.avatarFile(login);
+        if (avatarPath != null) {
+            File avatarFile = new File(avatarPath);
+            if (avatarFile.exists()) {
+                try {
+                    BufferedImage img = ImageIO.read(avatarFile);
+                    ImageIcon icon = new ImageIcon(img.getScaledInstance(121, 121, Image.SCALE_SMOOTH));
+                    label.setIcon(icon);
+                    label.setText("");
+                } catch (IOException e) {
+                    AppLogger.error("SettingsPanel: failed to update avatar image: " + e.getMessage());
+                }
+                return;
             }
-        } else {
-            java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");
-            if (defaultUrl != null) {
-                ImageIcon defaultIcon = new ImageIcon(defaultUrl);
-                Image scaled = defaultIcon.getImage().getScaledInstance(121, 121, Image.SCALE_SMOOTH);
-                label.setIcon(new ImageIcon(scaled));
-                label.setText("");
-            }
+        }
+        java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");
+        if (defaultUrl != null) {
+            ImageIcon defaultIcon = new ImageIcon(defaultUrl);
+            Image scaled = defaultIcon.getImage().getScaledInstance(121, 121, Image.SCALE_SMOOTH);
+            label.setIcon(new ImageIcon(scaled));
+            label.setText("");
         }
     }
 
     private void deleteAvatar(MainFrame mainFrame, JLabel avatarLabel) {
-        File avatarFile = new File(AVATAR_DIR, login + ".png");
-        if (avatarFile.exists() && avatarFile.delete()) {
-            AppLogger.info("SettingsPanel: avatar deleted for " + login);
+        String avatarPath = util.AppPaths.avatarFile(login);
+        if (avatarPath != null) {
+            File avatarFile = new File(avatarPath);
+            if (avatarFile.exists() && avatarFile.delete()) {
+                AppLogger.info("SettingsPanel: avatar deleted for " + login);
+            }
         }
         updateAvatarImage(avatarLabel);
         java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");

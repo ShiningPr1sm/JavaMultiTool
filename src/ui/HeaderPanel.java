@@ -5,6 +5,7 @@ import service.AchievementService;
 import service.AuthService;
 import service.LevelService;
 import util.AppLogger;
+import util.AppPaths;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,7 +16,6 @@ import java.util.TimerTask;
 public class HeaderPanel extends JPanel {
     private static final int HEADER_HEIGHT = 70;
     private static final int SIDEBAR_WIDTH = 230;
-    private static final String AVATAR_DIR = util.AppPaths.AVATAR_DIR;
 
     private final JLabel avatarLabel = new JLabel();
     private final JLabel loginLabel = new JLabel("");
@@ -44,17 +44,20 @@ public class HeaderPanel extends JPanel {
         avatarLabel.setOpaque(true);
         avatarLabel.setBackground(Color.LIGHT_GRAY);
 
-        File avatarFile = new File(AVATAR_DIR, login + ".png");
-        if (avatarFile.exists()) {
-            ImageIcon icon = new ImageIcon(avatarFile.getAbsolutePath());
-            Image scaledImage = icon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
-            avatarLabel.setIcon(new ImageIcon(scaledImage));
-        } else {
-            java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");
-            if (defaultUrl != null) {
-                ImageIcon defaultIcon = new ImageIcon(defaultUrl);
-                Image scaled = defaultIcon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
-                avatarLabel.setIcon(new ImageIcon(scaled));
+        String avatarPath = AppPaths.avatarFile(login);
+        if (avatarPath != null) {
+            File avatarF = new File(avatarPath);
+            if (avatarF.exists()) {
+                ImageIcon icon = new ImageIcon(avatarF.getAbsolutePath());
+                Image scaledImage = icon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
+                avatarLabel.setIcon(new ImageIcon(scaledImage));
+            } else {
+                java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");
+                if (defaultUrl != null) {
+                    ImageIcon defaultIcon = new ImageIcon(defaultUrl);
+                    Image scaled = defaultIcon.getImage().getScaledInstance(55, 55, Image.SCALE_SMOOTH);
+                    avatarLabel.setIcon(new ImageIcon(scaled));
+                }
             }
         }
 

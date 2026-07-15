@@ -9,15 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 public class WorkflowRepositoryImpl implements WorkflowRepository {
-    private static final String DB_PATH = util.AppPaths.DB_WORKFLOW;
-
     private final TrackedAppDao trackedAppDao = new TrackedAppDao();
     private final TaskDao taskDao = new TaskDao();
     private final DailyStatsDao dailyStatsDao = new DailyStatsDao();
 
     @Override
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        return DriverManager.getConnection("jdbc:sqlite:" + util.AppPaths.DB_WORKFLOW);
     }
 
     @Override

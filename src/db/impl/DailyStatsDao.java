@@ -8,10 +8,8 @@ import java.time.LocalDate;
 import java.util.*;
 
 public class DailyStatsDao {
-    private static final String DB_PATH = util.AppPaths.DB_WORKFLOW;
-
     private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        return DriverManager.getConnection("jdbc:sqlite:" + util.AppPaths.DB_WORKFLOW);
     }
 
     public void addTime(int itemId, int type, int seconds) {

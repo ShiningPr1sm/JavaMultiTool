@@ -16,6 +16,7 @@ import util.AchievementCallback;
 
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import util.AppLogger;
+import util.AppPaths;
 import util.VersionInfo;
 
 import javax.swing.*;
@@ -43,6 +44,10 @@ public class MainFrame extends JFrame implements AchievementCallback {
         this.login = login;
         this.services = services;
         services.userSession().setLogin(login);
+
+        String nickname = DatabaseProvider.getUserRepository().getNickname(login);
+        AppPaths.migrateUserData(login, nickname);
+        DatabaseProvider.reset();
 
         services.levelService().initialize(login);
 

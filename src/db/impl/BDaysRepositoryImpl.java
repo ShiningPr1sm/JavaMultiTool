@@ -9,11 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BDaysRepositoryImpl implements BDaysRepository {
-    private static final String DB_PATH = util.AppPaths.DB_BDAYS;
-
     @Override
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        return DriverManager.getConnection("jdbc:sqlite:" + util.AppPaths.DB_BDAYS);
     }
 
     @Override

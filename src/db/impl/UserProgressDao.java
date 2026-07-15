@@ -6,10 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UserProgressDao {
-    private static final String DB_PATH = util.AppPaths.DB_ACHIEVEMENTS;
-
     private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        return DriverManager.getConnection("jdbc:sqlite:" + util.AppPaths.DB_ACHIEVEMENTS);
     }
 
     public int getTotalUserAchievementsLevels(String login) {

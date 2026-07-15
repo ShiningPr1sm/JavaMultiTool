@@ -8,11 +8,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class UserRepositoryImpl implements UserRepository {
-    private static final String DB_PATH = util.AppPaths.DB_USER;
-
     @Override
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        return DriverManager.getConnection("jdbc:sqlite:" + util.AppPaths.DB_USER);
     }
 
     @Override

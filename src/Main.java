@@ -44,7 +44,7 @@ public class Main {
                 UIStyle.applyTheme(userTheme);
 
                 new MainFrame(savedLogin, services);
-                userRepo.updateLastLoginDate(savedLogin);
+                DatabaseProvider.getUserRepository().updateLastLoginDate(savedLogin);
                 AppLogger.info("Auto-login: User '" + savedLogin + "' entered the system.");
             } else {
                 new AuthFrame(services);

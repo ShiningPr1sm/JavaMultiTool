@@ -7,10 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TaskDao {
-    private static final String DB_PATH = util.AppPaths.DB_WORKFLOW;
-
     private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+        return DriverManager.getConnection("jdbc:sqlite:" + util.AppPaths.DB_WORKFLOW);
     }
 
     public void addTask(String name, String desc) {

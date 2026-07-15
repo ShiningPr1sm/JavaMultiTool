@@ -10,6 +10,15 @@ public class DatabaseProvider {
     private static LevelRepository levelRepo;
     private static NotificationRepository notificationRepo;
 
+    public static void reset() {
+        userRepo = null;
+        achievementRepo = null;
+        workflowRepo = null;
+        bdaysRepo = null;
+        levelRepo = null;
+        notificationRepo = null;
+    }
+
     public static UserRepository getUserRepository() {
         if (userRepo == null) {
             userRepo = new UserRepositoryImpl();
