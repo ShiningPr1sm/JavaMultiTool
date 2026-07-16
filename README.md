@@ -21,22 +21,35 @@
 ---
 
 ## Overview
-JavaMultiTool is a comprehensive desktop utility suite engineered to streamline routine digital operations and eliminate the need for multiple standalone apps. It solves the problem of scattered workflows by consolidating media management, productivity tracking, and system utilities into a centralized hub. The project is built using Java 21, utilizing a robust Service/Repository architecture, a local SQLite database for persistent storage, and Maven for dependency management.
+JavaMultiTool is a comprehensive desktop utility suite engineered to streamline routine digital operations and eliminate the need for multiple standalone apps. It solves the problem of scattered workflows by consolidating media management, productivity tracking, and system utilities into a centralized hub. The project is built using Java 21, a local SQLite database for persistent storage, and Maven for dependency management.
 
 ## Key Features
-* **Media & File Management**: Built-in tools for handling downloads, batch operations, image processing, etc.;
-* **Productivity & Tracking**: Centralized modules for workflow tracking, task management, and birthday reminders with automated notifications;
-* **Gamified Experience**: An interactive, data-driven achievement system that tracks user statistics;
-* **Modular Architecture**: Built with a clean separation of concerns using Dao/Repository layers, rendering custom UI themes and Swing components.
+* **Media & File Management**: Built-in tools for handling downloads, batch operations, image processing, etc.
+* **Productivity & Tracking**: Centralized modules for workflow tracking, task management, and birthday reminders with automated notifications
+* **Gamified Experience**: An interactive, data-driven achievement system that tracks user statistics
+* **Modular Architecture**: Built with a clean separation of concerns using Dao/Repository layers, rendering custom UI themes and Swing components
 
 ## Getting Started
+ 
+### 👤 I just want to use the app
+No setup required — download the ready-to-run build for your system from the [Releases](https://github.com/ShiningPr1sm/JavaMultiTool/releases) page:
+* **Windows**: download the `.exe` and run it
+* **Other platforms**: download the `.jar` (requires [Java 21+](https://adoptium.net/) installed) and run it with `java -jar JavaMultiTool.jar`
 
-### Prerequisites
+### 🛠️ I want to build from source
+**Prerequisites**
 * Java Development Kit (JDK) 21+
-* Maven (for building from source)
+* Maven
 
-### Download
-* You can download a .jar file or .exe from Releases;
-
+```bash
+git clone https://github.com/ShiningPr1sm/JavaMultiTool.git
+cd JavaMultiTool
+mvn clean install
+```
+ 
+## Documentation
+* 📖 [Wiki](https://github.com/ShiningPr1sm/JavaMultiTool/wiki) — full guide to every panel and tool
+* 🧩 [Changelog](https://github.com/ShiningPr1sm/JavaMultiTool/blob/master/CHANGELOG.md) — full version history
 ### Acknowledgments
-If you find a bug, error, or typo, please submit a report in the Issues section. Thank you very much for using this program!
+If you find a bug, error, or typo, please submit a report in the [Issues](https://github.com/ShiningPr1sm/JavaMultiTool/issues) section. Thank you very much for using this program!
+
