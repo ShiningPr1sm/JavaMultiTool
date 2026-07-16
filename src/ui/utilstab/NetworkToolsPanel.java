@@ -4,6 +4,7 @@ import ui.UIStyle;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.*;
 
@@ -37,12 +38,19 @@ public class NetworkToolsPanel extends JPanel {
         add(new JScrollPane(outputArea), BorderLayout.CENTER);
     }
 
+    private ActionListener clearOutputArea(ActionListener action) {
+        return e -> {
+            outputArea.setText("");
+            action.actionPerformed(e);
+        };
+    }
+
     private JPanel createMyIpPanel() {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         p.setOpaque(false);
         JButton checkBtn = new JButton("Check My Public IP");
         UIStyle.styleButton(checkBtn);
-        checkBtn.addActionListener(e -> {
+        checkBtn.addActionListener(clearOutputArea(e -> {
             appendOutput("Checking public IP...");
             new Thread(() -> {
                 try {
@@ -53,7 +61,7 @@ public class NetworkToolsPanel extends JPanel {
                     SwingUtilities.invokeLater(() -> appendOutput("Failed to get IP: " + ex.getMessage()));
                 }
             }).start();
-        });
+        }));
         p.add(checkBtn);
         return p;
     }
@@ -68,7 +76,7 @@ public class NetworkToolsPanel extends JPanel {
         UIStyle.styleSpinner(countSpinner);
         JButton pingBtn = new JButton("Ping");
         UIStyle.styleButton(pingBtn);
-        pingBtn.addActionListener(e -> {
+        pingBtn.addActionListener(clearOutputArea(e -> {
             String host = hostField.getText().trim();
             int count = (int) countSpinner.getValue();
             appendOutput("Pinging " + host + " (" + count + " times)...");
@@ -108,7 +116,7 @@ public class NetworkToolsPanel extends JPanel {
                     SwingUtilities.invokeLater(() -> appendOutput("Ping failed: " + ex.getMessage()));
                 }
             }).start();
-        });
+        }));
         JLabel host = new JLabel("Host: ");
         host.setForeground(Color.white);
         p.add(host);
@@ -131,7 +139,7 @@ public class NetworkToolsPanel extends JPanel {
         UIStyle.styleSpinner(portSpinner);
         JButton checkBtn = new JButton("Check Port");
         UIStyle.styleButton(checkBtn);
-        checkBtn.addActionListener(e -> {
+        checkBtn.addActionListener(clearOutputArea(e -> {
             String host = hostField.getText().trim();
             int port = (int) portSpinner.getValue();
             appendOutput("Checking " + host + ":" + port + "...");
@@ -143,7 +151,7 @@ public class NetworkToolsPanel extends JPanel {
                     SwingUtilities.invokeLater(() -> appendOutput("Port " + port + " is CLOSED or filtered"));
                 }
             }).start();
-        });
+        }));
         JLabel host = new JLabel("Host: ");
         host.setForeground(Color.WHITE);
         p.add(host);
@@ -164,7 +172,7 @@ public class NetworkToolsPanel extends JPanel {
         domainField.setText("google.com");
         JButton whoisBtn = new JButton("Whois");
         UIStyle.styleButton(whoisBtn);
-        whoisBtn.addActionListener(e -> {
+        whoisBtn.addActionListener(clearOutputArea(e -> {
             String domain = domainField.getText().trim();
             appendOutput("Looking up whois for " + domain + "...");
             new Thread(() -> {
@@ -184,7 +192,7 @@ public class NetworkToolsPanel extends JPanel {
                     SwingUtilities.invokeLater(() -> appendOutput("Whois failed: " + ex.getMessage()));
                 }
             }).start();
-        });
+        }));
         JLabel domain = new JLabel("Domain: ");
         domain.setForeground(Color.white);
         p.add(domain);
