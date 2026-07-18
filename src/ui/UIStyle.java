@@ -3,8 +3,10 @@ package ui;
 import ui.theme.ComponentStyler;
 import util.AppLogger;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class UIStyle {
     public static Color BG_COLOR = new Color(25, 25, 25);
@@ -196,14 +198,45 @@ public class UIStyle {
         ComponentStyler.styleSidebarSubButton(button, sidebarWidth);
     }
 
+    public static BufferedImage scaleSmoothly(BufferedImage src, int targetSize) {
+        BufferedImage current = src;
+
+        while (current.getWidth() > targetSize * 2 && current.getHeight() > targetSize * 2) {
+            int nw = current.getWidth() / 2;
+            int nh = current.getHeight() / 2;
+            BufferedImage half = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = half.createGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.drawImage(current, 0, 0, nw, nh, null);
+            g2.dispose();
+            current = half;
+        }
+
+        BufferedImage result = new BufferedImage(targetSize, targetSize, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g3 = result.createGraphics();
+        g3.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g3.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g3.drawImage(current, 0, 0, targetSize, targetSize, null);
+        g3.dispose();
+        return result;
+    }
+
     public static void setAppIcon(Window window) {
         try {
-            java.net.URL iconUrl = UIStyle.class.getResource("/project_icon.png");
-            if (iconUrl == null) return;
-            Image sourceImage = new ImageIcon(iconUrl).getImage();
+            BufferedImage icon16 = ImageIO.read(UIStyle.class.getResource("/project_icon_16.png"));
+            BufferedImage icon256 = ImageIO.read(UIStyle.class.getResource("/project_icon_256.png"));
             java.util.List<Image> images = new java.util.ArrayList<>();
-            for (int size : new int[]{16, 32, 64, 128}) {
-                images.add(sourceImage.getScaledInstance(size, size, Image.SCALE_SMOOTH));
+            images.add(icon16 != null ? icon16 : scaleSmoothly(icon256, 16));
+            if (icon256 != null) {
+                images.add(scaleSmoothly(icon256, 32));
+                images.add(scaleSmoothly(icon256, 64));
+                images.add(scaleSmoothly(icon256, 128));
+                images.add(icon256);
+            } else if (icon16 != null) {
+                images.add(icon16);
+                images.add(icon16);
+                images.add(icon16);
             }
             if (window instanceof JFrame frame) {
                 frame.setIconImages(images);

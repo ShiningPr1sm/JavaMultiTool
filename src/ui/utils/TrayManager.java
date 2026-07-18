@@ -3,11 +3,13 @@ package ui.utils;
 import ui.MainFrame;
 import ui.UIStyle;
 import util.AppLogger;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 
 public class TrayManager {
     private final MainFrame frame;
@@ -61,7 +63,8 @@ public class TrayManager {
         try {
             java.net.URL imgUrl = getClass().getResource(iconPath);
             if (imgUrl != null) {
-                ImageIcon icon = new ImageIcon(new ImageIcon(imgUrl).getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH));
+                BufferedImage menuImg = ImageIO.read(imgUrl);
+                ImageIcon icon = new ImageIcon(UIStyle.scaleSmoothly(menuImg, 16));
                 item.setIcon(icon);
             }
         } catch (Exception e) {
@@ -96,10 +99,8 @@ public class TrayManager {
         if (!SystemTray.isSupported()) return;
         try {
             SystemTray tray = SystemTray.getSystemTray();
-            Image icon = new ImageIcon(getClass().getResource("/project_icon.png")).getImage()
-                    .getScaledInstance(16, 16, Image.SCALE_SMOOTH);
-            trayIcon = new TrayIcon(icon, "MultiTool");
-            trayIcon.setImageAutoSize(true);
+            BufferedImage trayImg = ImageIO.read(getClass().getResource("/project_icon_16.png"));
+            trayIcon = new TrayIcon(trayImg, "MultiTool");
             trayIcon.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseReleased(MouseEvent e) {
