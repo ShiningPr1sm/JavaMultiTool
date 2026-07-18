@@ -13,11 +13,14 @@ import util.AppLogger;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -29,6 +32,8 @@ public class QRToolsPanel extends JPanel {
     private final JButton generateBtn;
     private final JButton decodeBtn;
     private final JTextField decodeResult;
+    private final JButton downloadBtn;
+    private BufferedImage lastQrImage;
 
     public QRToolsPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -89,7 +94,17 @@ public class QRToolsPanel extends JPanel {
         qrPreview = new JLabel("", SwingConstants.CENTER);
         qrPreview.setPreferredSize(new Dimension(250, 250));
         qrPreview.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
-        add(qrPreview, BorderLayout.EAST);
+
+        downloadBtn = new JButton("Download");
+        UIStyle.styleButton(downloadBtn);
+        downloadBtn.setEnabled(false);
+        downloadBtn.addActionListener(e -> downloadQR());
+
+        JPanel right = new JPanel(new BorderLayout(5, 5));
+        right.setOpaque(false);
+        right.add(qrPreview, BorderLayout.CENTER);
+        right.add(downloadBtn, BorderLayout.SOUTH);
+        add(right, BorderLayout.EAST);
     }
 
     private void generateQR() {
@@ -101,9 +116,11 @@ public class QRToolsPanel extends JPanel {
                 QRCodeWriter writer = new QRCodeWriter();
                 BitMatrix matrix = writer.encode(text, BarcodeFormat.QR_CODE, 240, 240);
                 BufferedImage img = toBufferedImage(matrix);
+                lastQrImage = img;
                 SwingUtilities.invokeLater(() -> {
                     qrPreview.setIcon(new ImageIcon(img));
                     qrPreview.setText("");
+                    downloadBtn.setEnabled(true);
                 });
             } catch (Exception ex) {
                 AppLogger.error("QR generation failed: " + ex.getMessage());
@@ -181,6 +198,20 @@ public class QRToolsPanel extends JPanel {
         g.drawImage(src, 0, 0, null);
         g.dispose();
         return gray;
+    }
+
+    private void downloadQR() {
+        if (lastQrImage == null) return;
+        String timestamp = LocalTime.now().format(DateTimeFormatter.ofPattern("HH-mm-ss"));
+        String filename = "QR_" + timestamp + ".png";
+        String downloads = System.getProperty("user.home") + "/Downloads";
+        File file = new File(downloads, filename);
+        try {
+            ImageIO.write(lastQrImage, "png", file);
+        } catch (Exception ex) {
+            AppLogger.error("QR download failed: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Failed to save QR", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private BufferedImage scale(BufferedImage src, double factor) {

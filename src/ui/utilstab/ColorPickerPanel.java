@@ -206,62 +206,132 @@ public class ColorPickerPanel extends JPanel {
     }
 
     private void startPipette() {
-        try {
-            Window parent = SwingUtilities.getWindowAncestor(this);
-            GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-            DisplayMode dm = gd.getDisplayMode();
-            int w = dm.getWidth(), h = dm.getHeight();
+        Window parent = SwingUtilities.getWindowAncestor(this);
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        DisplayMode dm = gd.getDisplayMode();
+        int w = dm.getWidth(), h = dm.getHeight();
 
-            Robot robot = new Robot();
-            BufferedImage screenshot = robot.createScreenCapture(new Rectangle(w, h));
+        new Thread(() -> {
+            if (parent instanceof Frame f) f.setState(Frame.ICONIFIED);
+            try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+            try {
+                Robot robot = new Robot();
+                BufferedImage screenshot = robot.createScreenCapture(new Rectangle(w, h));
+                SwingUtilities.invokeLater(() -> showOverlay(parent, screenshot, w, h));
+            } catch (AWTException ex) {
+                SwingUtilities.invokeLater(() ->
+                    JOptionPane.showMessageDialog(this, "Failed to initialize screen capture."));
+            }
+        }).start();
+    }
 
-            JWindow overlay = new JWindow();
-            overlay.setAlwaysOnTop(true);
+    private void showOverlay(Window parent, BufferedImage screenshot, int w, int h) {
+        int sampleSize = 9;
+        int scaleFactor = 9;
+        int magSize = sampleSize * scaleFactor;
 
-            JLabel bg = new JLabel(new ImageIcon(screenshot));
-            bg.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        JWindow overlay = new JWindow();
+        overlay.setAlwaysOnTop(true);
 
-            JLabel info = new JLabel("Click anywhere to pick a color", SwingConstants.CENTER);
-            info.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            info.setOpaque(true);
-            info.setBackground(new Color(0, 0, 0, 160));
-            info.setForeground(Color.WHITE);
-            info.setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 12));
+        JLabel bg = new JLabel(new ImageIcon(screenshot));
+        bg.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-            bg.addMouseMotionListener(new MouseMotionAdapter() {
-                @Override
-                public void mouseMoved(MouseEvent e) {
-                    int x = Math.min(Math.max(e.getX(), 0), w - 1);
-                    int y = Math.min(Math.max(e.getY(), 0), h - 1);
-                    Color c = new Color(screenshot.getRGB(x, y));
-                    String hex = String.format("#%02X%02X%02X", c.getRed(), c.getGreen(), c.getBlue());
-                    info.setText(hex + "  RGB(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")");
-                    info.setForeground(new Color(255 - c.getRed(), 255 - c.getGreen(), 255 - c.getBlue()));
+        JWindow magnifier = new JWindow();
+        magnifier.setAlwaysOnTop(true);
+        JLabel magLabel = new JLabel();
+        magLabel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        magnifier.getContentPane().add(magLabel);
+        magnifier.setSize(magSize + 4, magSize + 4);
+
+        JPanel infoBar = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 2));
+        infoBar.setOpaque(true);
+        infoBar.setBackground(new Color(40, 40, 40));
+
+        JPanel colorPreview = new JPanel();
+        colorPreview.setPreferredSize(new Dimension(30, 20));
+        colorPreview.setOpaque(true);
+        colorPreview.setBackground(Color.BLACK);
+        colorPreview.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+
+        JLabel infoText = new JLabel("Click anywhere to pick a color", SwingConstants.CENTER);
+        infoText.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        infoText.setForeground(Color.WHITE);
+        infoText.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
+
+        infoBar.add(colorPreview);
+        infoBar.add(infoText);
+
+        bg.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                int cx = Math.min(Math.max(e.getX(), sampleSize / 2), w - sampleSize / 2 - 1);
+                int cy = Math.min(Math.max(e.getY(), sampleSize / 2), h - sampleSize / 2 - 1);
+
+                Color c = new Color(screenshot.getRGB(cx, cy));
+                colorPreview.setBackground(c);
+                String hex = String.format("#%02X%02X%02X", c.getRed(), c.getGreen(), c.getBlue());
+                infoText.setText(hex + "  RGB(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")");
+                infoText.setForeground(new Color(255 - c.getRed(), 255 - c.getGreen(), 255 - c.getBlue()));
+
+                BufferedImage magImg = new BufferedImage(magSize, magSize, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2 = magImg.createGraphics();
+                int startX = cx - sampleSize / 2;
+                int startY = cy - sampleSize / 2;
+                for (int dy = 0; dy < sampleSize; dy++) {
+                    for (int dx = 0; dx < sampleSize; dx++) {
+                        g2.setColor(new Color(screenshot.getRGB(startX + dx, startY + dy)));
+                        g2.fillRect(dx * scaleFactor, dy * scaleFactor, scaleFactor, scaleFactor);
+                    }
                 }
-            });
 
-            bg.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    int x = Math.min(Math.max(e.getX(), 0), w - 1);
-                    int y = Math.min(Math.max(e.getY(), 0), h - 1);
-                    Color c = new Color(screenshot.getRGB(x, y));
-                    setColor(c);
-                    String hex = String.format("#%02X%02X%02X", c.getRed(), c.getGreen(), c.getBlue());
-                    copy(hex);
-                    overlay.dispose();
-                    if (parent != null) parent.toFront();
-                }
-            });
+                int vLine = (sampleSize / 2) * scaleFactor;
+                int hLine = (sampleSize / 2) * scaleFactor;
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.setColor(Color.BLACK);
+                g2.drawLine(vLine - 1, 0, vLine - 1, magSize - 1);
+                g2.drawLine(vLine + 1, 0, vLine + 1, magSize - 1);
+                g2.drawLine(0, hLine - 1, magSize - 1, hLine - 1);
+                g2.drawLine(0, hLine + 1, magSize - 1, hLine + 1);
+                g2.setColor(Color.WHITE);
+                g2.drawLine(vLine, 0, vLine, magSize - 1);
+                g2.drawLine(0, hLine, magSize - 1, hLine);
+                g2.dispose();
 
-            overlay.getContentPane().setLayout(new BorderLayout());
-            overlay.getContentPane().add(bg, BorderLayout.CENTER);
-            overlay.getContentPane().add(info, BorderLayout.SOUTH);
-            overlay.setBounds(0, 0, w, h);
-            if (parent != null) parent.setVisible(false);
-            overlay.setVisible(true);
-        } catch (AWTException ex) {
-            JOptionPane.showMessageDialog(this, "Failed to initialize screen capture.");
-        }
+                magLabel.setIcon(new ImageIcon(magImg));
+
+                int magX = e.getXOnScreen() + 15;
+                int magY = e.getYOnScreen() - magSize - 15;
+                magX = Math.max(0, Math.min(magX, w - magSize - 4));
+                magY = Math.max(0, Math.min(magY, h - magSize - 4));
+                magnifier.setLocation(magX, magY);
+                magnifier.setVisible(true);
+            }
+        });
+
+        bg.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int x = Math.min(Math.max(e.getX(), 0), w - 1);
+                int y = Math.min(Math.max(e.getY(), 0), h - 1);
+                Color c = new Color(screenshot.getRGB(x, y));
+                setColor(c);
+                String hex = String.format("#%02X%02X%02X", c.getRed(), c.getGreen(), c.getBlue());
+                copy(hex);
+                magnifier.dispose();
+                overlay.dispose();
+                if (parent instanceof Frame f) { f.setState(Frame.NORMAL); f.toFront(); }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                magnifier.setVisible(false);
+            }
+        });
+
+        overlay.getContentPane().setLayout(new BorderLayout());
+        overlay.getContentPane().add(bg, BorderLayout.CENTER);
+        overlay.getContentPane().add(infoBar, BorderLayout.SOUTH);
+        overlay.setBounds(0, 0, w, h);
+        overlay.setVisible(true);
     }
 }
