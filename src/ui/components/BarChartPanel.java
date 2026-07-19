@@ -141,7 +141,7 @@ public class BarChartPanel extends JPanel {
             g2.setColor(new Color(180, 180, 180));
             int[] hoursToShow = {0, 6, 12, 18, 24};
             for (int h : hoursToShow) {
-                String l = h + "h";
+                String l = h + ".00";
                 int lx = PADDING_LEFT + (int) (h * (width / 24.0)) - (fm.stringWidth(l) / 2);
                 g2.drawString(l, lx, PADDING_TOP + height + 18);
             }

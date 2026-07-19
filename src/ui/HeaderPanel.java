@@ -26,6 +26,7 @@ public class HeaderPanel extends JPanel {
     private final AchievementService achievementService;
     private final AuthService authService;
     private NotificationPanel notificationPanel;
+    private final JLabel achievementsLabel;
 
     public HeaderPanel(String login, LevelService levelService, AchievementService achievementService, AuthService authService, Runnable onOpenAchievements, Runnable onOpenNotifications, Runnable onOpenSettings, Runnable onOpenWelcome) {
         this.login = login;
@@ -81,7 +82,7 @@ public class HeaderPanel extends JPanel {
         levelLabel.setFont(levelLabel.getFont().deriveFont(11f));
         levelLabel.setForeground(Color.LIGHT_GRAY);
 
-        JLabel achievementsLabel = new JLabel(buildAchievementsText());
+        achievementsLabel = new JLabel(buildAchievementsText());
         achievementsLabel.setFont(achievementsLabel.getFont().deriveFont(11f));
         achievementsLabel.setForeground(Color.LIGHT_GRAY);
 
@@ -171,6 +172,10 @@ public class HeaderPanel extends JPanel {
 
     public void setNotificationBadge(int count) {
         notificationPanel.setBadgeCount(count);
+    }
+
+    public void refreshAchievementsText() {
+        achievementsLabel.setText(buildAchievementsText());
     }
 
     public void showXpGain(int amount) {

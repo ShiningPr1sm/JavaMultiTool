@@ -11,6 +11,7 @@ import ui.photovideotab.MediaDownloaderPanel;
 import ui.settings.SettingsPanel;
 
 import ui.components.ExpandableSection;
+import ui.components.ProgressBarFooter;
 import ui.utils.*;
 import util.AchievementCallback;
 
@@ -39,6 +40,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
     private AchievementsPanel achievementsPanel;
     private WorkflowPanel workflowPanel;
     private JLabel actualVerLabel;
+    private final ProgressBarFooter downloadProgress = new ProgressBarFooter();
 
     public MainFrame(String login, Services services) {
         this.login = login;
@@ -76,8 +78,21 @@ public class MainFrame extends JFrame implements AchievementCallback {
         add(createMainContent(), BorderLayout.CENTER);
         add(createFooter(), BorderLayout.SOUTH);
 
+        MediaDownloadService.setDownloadProgressCallback(
+                (stage, percent) -> SwingUtilities.invokeLater(() -> {
+                    if (percent < 100) {
+                        downloadProgress.setActive(true);
+                        if (percent < 0) {
+                            downloadProgress.setProgress(0, -1, "DL " + stage);
+                        } else {
+                            downloadProgress.setProgress(percent, 100, "DL " + stage);
+                        }
+                    } else {
+                        downloadProgress.setActive(false);
+                    }
+                }));
+
         services.achievementService().initialize();
-        services.achievementService().syncUser(login);
         services.achievementService().addCallback(this);
         services.achievementService().complete(login, "first_login");
 
@@ -249,6 +264,8 @@ public class MainFrame extends JFrame implements AchievementCallback {
             case "Workflow" -> {
                     if (workflowPanel == null) {
                         workflowPanel = new WorkflowPanel(services.workflowService(), services.runningProcessService());
+                        workflowPanel.setOnPomodoroStartCallback(() ->
+                                services.achievementService().complete(login, "timer_sec"));
                     }
                     contentPanel.add(workflowPanel, BorderLayout.CENTER);
                 }
@@ -263,7 +280,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
             case "Password Generator" ->
                     contentPanel.add(new ui.utilstab.PasswordGeneratorPanel(), BorderLayout.CENTER);
             case "QR Generator & Decoder" ->
-                    contentPanel.add(new ui.utilstab.QRToolsPanel(), BorderLayout.CENTER);
+                    contentPanel.add(new ui.utilstab.QRToolsPanel(services, login), BorderLayout.CENTER);
             case "Network Tools" ->
                     contentPanel.add(new ui.utilstab.NetworkToolsPanel(), BorderLayout.CENTER);
             case "Notifications" ->
@@ -297,11 +314,10 @@ public class MainFrame extends JFrame implements AchievementCallback {
     public void onAchievementLevelUp(String user, int amount) {
         services.levelService().addXP(user, amount);
         headerPanel.showXpGain(amount);
-    }
-
-    @Override
-    public void onAchievementNotification(int amount) {
-        headerPanel.showXpGain(amount);
+        headerPanel.refreshAchievementsText();
+        if (achievementsPanel != null) {
+            achievementsPanel.refreshData();
+        }
     }
 
     public void updateAvatarImage(ImageIcon newIcon) {
@@ -356,6 +372,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         actualVerLabel.setForeground(Color.LIGHT_GRAY);
         actualVerLabel.setFont(actualVerLabel.getFont().deriveFont(11f));
 
+        footer.add(downloadProgress);
         footer.add(Box.createHorizontalGlue());
         footer.add(currentVerLabel);
         footer.add(Box.createHorizontalStrut(10));
