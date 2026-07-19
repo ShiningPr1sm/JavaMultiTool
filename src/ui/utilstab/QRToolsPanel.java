@@ -7,6 +7,7 @@ import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 import com.google.zxing.qrcode.QRCodeWriter;
+import service.Services;
 import ui.UIStyle;
 import util.AppLogger;
 
@@ -21,6 +22,7 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -35,7 +37,12 @@ public class QRToolsPanel extends JPanel {
     private final JButton downloadBtn;
     private BufferedImage lastQrImage;
 
-    public QRToolsPanel() {
+    private final String login;
+    private final Services services;
+
+    public QRToolsPanel(Services services, String login) {
+        this.login = login;
+        this.services = services;
         setLayout(new BorderLayout(10, 10));
         setBackground(UIStyle.BG_COLOR);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -171,13 +178,13 @@ public class QRToolsPanel extends JPanel {
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
             Result result = new QRCodeReader().decode(bitmap, hints);
             return result.getText();
-        } catch (NotFoundException | com.google.zxing.ChecksumException | com.google.zxing.FormatException ignored) {
+        } catch (NotFoundException | ChecksumException | FormatException ignored) {
         }
         try {
             BinaryBitmap bitmap = new BinaryBitmap(new GlobalHistogramBinarizer(source));
             Result result = new QRCodeReader().decode(bitmap, hints);
             return result.getText();
-        } catch (NotFoundException | com.google.zxing.ChecksumException | com.google.zxing.FormatException ignored) {
+        } catch (NotFoundException | ChecksumException | FormatException ignored) {
             return null;
         }
     }
@@ -186,7 +193,7 @@ public class QRToolsPanel extends JPanel {
         int size = radius * 2 + 1;
         float weight = 1.0f / (size * size);
         float[] data = new float[size * size];
-        java.util.Arrays.fill(data, weight);
+        Arrays.fill(data, weight);
         Kernel kernel = new Kernel(size, size, data);
         BufferedImageOp op = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
         return op.filter(src, null);
@@ -208,6 +215,7 @@ public class QRToolsPanel extends JPanel {
         File file = new File(downloads, filename);
         try {
             ImageIO.write(lastQrImage, "png", file);
+            services.achievementService().complete(login, "qrcode");
         } catch (Exception ex) {
             AppLogger.error("QR download failed: " + ex.getMessage());
             JOptionPane.showMessageDialog(this, "Failed to save QR", "Error", JOptionPane.ERROR_MESSAGE);

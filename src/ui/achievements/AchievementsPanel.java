@@ -10,27 +10,18 @@ import java.awt.*;
 public class AchievementsPanel extends JPanel {
 
     private final AchievementService achievementService;
+    private final String login;
+    private final JPanel grid;
 
     public AchievementsPanel(String login, AchievementService achievementService) {
+        this.login = login;
         this.achievementService = achievementService;
         setLayout(new BorderLayout());
         setBackground(UIStyle.BG_COLOR);
 
-        JPanel grid = new JPanel(new GridLayout(0, 2, 20, 20));
+        grid = new JPanel(new GridLayout(0, 2, 20, 20));
         grid.setBackground(UIStyle.BG_COLOR);
         grid.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
-
-        for (AchievementService.AchievementData data : achievementService.loadUserAchievements(login)) {
-            String iconPath = "/icons/achievements/" + data.code + ".jpg";
-            grid.add(createAchievementCard(
-                    data.getDisplayTitle(),
-                    data.description,
-                    data.progress,
-                    data.required,
-                    iconPath,
-                    data.xpReward
-            ));
-        }
 
         JPanel container = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         container.setBackground(UIStyle.BG_COLOR);
@@ -46,6 +37,29 @@ public class AchievementsPanel extends JPanel {
         scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
 
         add(scrollPane, BorderLayout.CENTER);
+
+        loadData();
+    }
+
+    private void loadData() {
+        grid.removeAll();
+        for (AchievementService.AchievementData data : achievementService.loadUserAchievements(login)) {
+            String iconPath = "/icons/achievements/" + data.code + ".jpg";
+            grid.add(createAchievementCard(
+                    data.getDisplayTitle(),
+                    data.description,
+                    data.progress,
+                    data.required,
+                    iconPath,
+                    data.xpReward
+            ));
+        }
+        grid.revalidate();
+        grid.repaint();
+    }
+
+    public void refreshData() {
+        loadData();
     }
 
     private JPanel createAchievementCard(String title, String description, int progress, int max, String iconPath, int xpReward) {

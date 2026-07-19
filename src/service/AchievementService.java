@@ -52,16 +52,16 @@ public class AchievementService {
                    a.title,
                    a.description,
                    al.xp_reward AS xp_reward,
-                   ua.level,
-                   ua.progress,
+                   COALESCE(ua.level, 1) AS level,
+                   COALESCE(ua.progress, 0) AS progress,
                    al.required_progress
               FROM achievements a
-              JOIN user_achievements ua
+              LEFT JOIN user_achievements ua
                 ON a.code = ua.achievement_code
+               AND ua.user_login = ?
               LEFT JOIN achievement_levels al
                 ON a.code = al.achievement_code
-               AND ua.level = al.level
-             WHERE ua.user_login = ?
+               AND COALESCE(ua.level, 1) = al.level
         """;
 
         try (Connection conn = getConnection();

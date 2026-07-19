@@ -73,6 +73,12 @@ public class AchievementRepositoryImpl implements AchievementRepository {
     @Override
     public void completeAchievement(String login, String code) {
         try (Connection conn = getConnection()) {
+            PreparedStatement ensure = conn.prepareStatement(
+                    "INSERT OR IGNORE INTO user_achievements(user_login, achievement_code, level, progress) VALUES(?, ?, 1, 0)");
+            ensure.setString(1, login);
+            ensure.setString(2, code);
+            ensure.executeUpdate();
+
             PreparedStatement getState = conn.prepareStatement(
                     "SELECT level, progress FROM user_achievements WHERE user_login=? AND achievement_code=?");
             getState.setString(1, login);
@@ -112,7 +118,6 @@ public class AchievementRepositoryImpl implements AchievementRepository {
             if (leveledUp) {
                 for (AchievementCallback cb : callbacks) {
                     cb.onAchievementLevelUp(login, reward);
-                    cb.onAchievementNotification(reward);
                 }
             }
         } catch (SQLException e) {

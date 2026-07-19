@@ -123,5 +123,14 @@ public class AchievementDefDao {
 
         addAchievement("real_friend", "You are a real friend..", "Add your first date to Birthday Tracker.");
         addAchievementLevel("real_friend", 1, 1, 25);
+
+        addAchievement("security", "Safety is everything to us!", "Generate a password and then copy it.");
+        addAchievementLevel("security", 1, 1, 15);
+
+        addAchievement("qrcode", "QRcoder", "Generate and download the first QR code.");
+        addAchievementLevel("qrcode", 1, 1, 20);
+
+        addAchievement("magnifier", "What are you looking for here??", "View the photo's metadata for the first time.");
+        addAchievementLevel("magnifier", 1, 1, 10);
     }
 }
