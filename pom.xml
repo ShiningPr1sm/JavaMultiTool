@@ -54,6 +54,11 @@
             <artifactId>javase</artifactId>
             <version>3.5.3</version>
         </dependency>
+        <dependency>
+            <groupId>dev.shiningpr1sm</groupId>
+            <artifactId>PercentAnimation</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
 
     <build>
