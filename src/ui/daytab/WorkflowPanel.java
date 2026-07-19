@@ -22,6 +22,7 @@ public class WorkflowPanel extends JPanel {
     private final WorkflowService workflowService;
     private final RunningProcessService runningProcessService;
     private Timer uiRefreshTimer;
+    private final PomodoroPanel pomodoroPanel;
 
     public WorkflowPanel(WorkflowService workflowService, RunningProcessService runningProcessService) {
         this.workflowService = workflowService;
@@ -29,7 +30,7 @@ public class WorkflowPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(UIStyle.BG_COLOR);
 
-        PomodoroPanel pomodoroPanel = new PomodoroPanel();
+        pomodoroPanel = new PomodoroPanel();
 
         taskTrackerPanel = new TaskTrackerPanel(workflowRepo, workflowService);
         appTrackerPanel = new AppTrackerPanel(workflowRepo, () -> appTrackerPanel.refresh(), this, runningProcessService);
@@ -70,6 +71,10 @@ public class WorkflowPanel extends JPanel {
         if (uiRefreshTimer != null) {
             uiRefreshTimer.stop();
         }
+    }
+
+    public void setOnPomodoroStartCallback(Runnable r) {
+        pomodoroPanel.setOnTimerStart(r);
     }
 
     private JPanel createWorklogUI(TaskTrackerPanel tasks, PomodoroPanel pomodoro) {

@@ -19,6 +19,7 @@ public class PomodoroPanel extends JPanel {
     private int remainingSeconds;
     private int sessionCount = 0;
     private boolean running = false;
+    private Runnable onTimerStart;
 
     private final JLabel phaseLabel = new JLabel("Work", SwingConstants.CENTER);
     private final JLabel timerLabel = new JLabel("25:00", SwingConstants.CENTER);
@@ -135,15 +136,23 @@ public class PomodoroPanel extends JPanel {
         return l;
     }
 
+    public void setOnTimerStart(Runnable r) {
+        this.onTimerStart = r;
+    }
+
     private void toggleStartPause() {
         if (running) {
             countdownTimer.stop();
             running = false;
             startBtn.setText("Resume");
         } else {
+            boolean isFirstStart = "Start".equals(startBtn.getText());
             countdownTimer.start();
             running = true;
             startBtn.setText("Pause");
+            if (isFirstStart && onTimerStart != null) {
+                onTimerStart.run();
+            }
         }
     }
 
