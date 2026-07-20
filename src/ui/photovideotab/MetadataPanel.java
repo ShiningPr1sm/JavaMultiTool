@@ -1,6 +1,7 @@
 package ui.photovideotab;
 
 import service.ImageMetadataService;
+import service.Services;
 import ui.UIStyle;
 import util.AppLogger;
 
@@ -28,8 +29,13 @@ public class MetadataPanel extends JPanel {
     private final ImageMetadataService metadataService;
     private ImageMetadataService.ImageMetadataResult currentResult;
     private File currentFile;
+    private Services services;
+    private String login;
 
-    public MetadataPanel() {
+    public MetadataPanel(Services services, String login) {
+        this.services = services;
+        this.login = login;
+
         setLayout(new BorderLayout(15, 10));
         setBackground(UIStyle.BG_COLOR);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -155,7 +161,9 @@ public class MetadataPanel extends JPanel {
                     java.awt.datatransfer.Transferable t = dtde.getTransferable();
                     if (t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                         List<File> files = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
-                        if (!files.isEmpty()) processImage(files.get(0));
+                        if (!files.isEmpty()) {
+                            processImage(files.get(0));
+                        }
                     }
                 } catch (Exception ex) {
                     AppLogger.error("DND Error: " + ex.getMessage());
@@ -209,6 +217,7 @@ public class MetadataPanel extends JPanel {
                     buildPalette(result.getDominantColors());
                 });
 
+                services.achievementService().complete(login, "magnifier");
             } catch (Exception e) {
                 AppLogger.error("Image Processing Error: " + e.getMessage());
                 SwingUtilities.invokeLater(() -> infoArea.setText("Failed to process image: " + e.getMessage()));

@@ -1,5 +1,6 @@
 package ui.utilstab;
 
+import service.Services;
 import ui.UIStyle;
 
 import javax.swing.*;
@@ -14,8 +15,12 @@ public class PasswordGeneratorPanel extends JPanel {
     private final JLabel strengthLabel;
     private static final String SYMBOLS = "!@#$%^&*()_+-=[]{}|;:',.<>?/~`";
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static Services services;
+    private static String login;
 
-    public PasswordGeneratorPanel() {
+    public PasswordGeneratorPanel(Services services, String login) {
+        this.services = services;
+        this.login = login;
         setLayout(new BorderLayout(10, 10));
         setBackground(UIStyle.BG_COLOR);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -74,6 +79,7 @@ public class PasswordGeneratorPanel extends JPanel {
             if (!pwd.isEmpty()) {
                 Toolkit.getDefaultToolkit().getSystemClipboard()
                         .setContents(new StringSelection(pwd), null);
+                services.achievementService().complete(login, "security");
             }
         });
         btnRow.add(genBtn);

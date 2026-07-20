@@ -19,7 +19,7 @@ public class UtilsPanel extends JPanel {
 
         content.add(wrapInSection("Color Picker / Converter", new ColorPickerPanel()));
         content.add(Box.createRigidArea(new Dimension(0, 10)));
-        content.add(wrapInSection("Password Generator", new PasswordGeneratorPanel()));
+        content.add(wrapInSection("Password Generator", new PasswordGeneratorPanel(null, null)));
         content.add(Box.createRigidArea(new Dimension(0, 10)));
         content.add(wrapInSection("QR Generator & Decoder", new QRToolsPanel(null, null)));
         content.add(Box.createRigidArea(new Dimension(0, 10)));

@@ -274,11 +274,11 @@ public class MainFrame extends JFrame implements AchievementCallback {
             case "Settings" ->
                     openSettings();
             case "Image Tools" ->
-                    contentPanel.add(new ImageToolsPanel(), BorderLayout.CENTER);
+                    contentPanel.add(new ImageToolsPanel(services, login), BorderLayout.CENTER);
             case "Color Picker & Converter" ->
                     contentPanel.add(new ui.utilstab.ColorPickerPanel(), BorderLayout.CENTER);
             case "Password Generator" ->
-                    contentPanel.add(new ui.utilstab.PasswordGeneratorPanel(), BorderLayout.CENTER);
+                    contentPanel.add(new ui.utilstab.PasswordGeneratorPanel(services, login), BorderLayout.CENTER);
             case "QR Generator & Decoder" ->
                     contentPanel.add(new ui.utilstab.QRToolsPanel(services, login), BorderLayout.CENTER);
             case "Network Tools" ->
