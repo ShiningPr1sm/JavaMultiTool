@@ -66,10 +66,10 @@ public class ExpandableSection extends JPanel {
             @Override
             public void actionPerformed(ActionEvent evt) {
                 if (isExpanding && height < targetHeight) {
-                    height += 10;
+                    height += 12;
                     if (height > targetHeight) height = targetHeight;
                 } else if (!isExpanding && height > 0) {
-                    height -= 10;
+                    height -= 12;
                     if (height < 0) height = 0;
                 }
 

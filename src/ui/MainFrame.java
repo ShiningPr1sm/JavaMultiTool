@@ -41,6 +41,8 @@ public class MainFrame extends JFrame implements AchievementCallback {
     private WorkflowPanel workflowPanel;
     private JLabel actualVerLabel;
     private final ProgressBarFooter downloadProgress = new ProgressBarFooter();
+    private final JLabel fpsLabel = new JLabel("-- FPS");
+    private int frameCount;
 
     public MainFrame(String login, Services services) {
         this.login = login;
@@ -77,6 +79,28 @@ public class MainFrame extends JFrame implements AchievementCallback {
         add(headerPanel, BorderLayout.NORTH);
         add(createMainContent(), BorderLayout.CENTER);
         add(createFooter(), BorderLayout.SOUTH);
+
+        if ("dev".equals(VersionInfo.getVersion())) {
+            new Timer(1000, e -> {
+                fpsLabel.setText(frameCount + " FPS");
+                frameCount = 0;
+            }).start();
+
+            JComponent fpsGlass = new JComponent() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    if (fpsLabel.isVisible()) frameCount++;
+                }
+
+                @Override
+                public boolean contains(int x, int y) {
+                    return false;
+                }
+            };
+            fpsGlass.setOpaque(false);
+            setGlassPane(fpsGlass);
+            fpsGlass.setVisible(true);
+        }
 
         MediaDownloadService.setDownloadProgressCallback(
                 (stage, percent) -> SwingUtilities.invokeLater(() -> {
@@ -372,6 +396,11 @@ public class MainFrame extends JFrame implements AchievementCallback {
         actualVerLabel.setForeground(Color.LIGHT_GRAY);
         actualVerLabel.setFont(actualVerLabel.getFont().deriveFont(11f));
 
+        fpsLabel.setForeground(Color.LIGHT_GRAY);
+        fpsLabel.setFont(fpsLabel.getFont().deriveFont(11f));
+        fpsLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+        fpsLabel.setVisible("dev".equals(VersionInfo.getVersion()));
+        footer.add(fpsLabel);
         footer.add(downloadProgress);
         footer.add(Box.createHorizontalGlue());
         footer.add(currentVerLabel);

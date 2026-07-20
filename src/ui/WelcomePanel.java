@@ -96,7 +96,7 @@ public class WelcomePanel extends JPanel {
                 if (typingDelay > 0) typingDelay--;
                 else if (pos < greeting.length()) {
                     pos++;
-                    typingDelay = 2;
+                    typingDelay = 4;
                 } else {
                     phase = 1;
                     delayCounter = 25;
