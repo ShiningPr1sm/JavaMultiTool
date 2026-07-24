@@ -13,6 +13,38 @@ All notable changes to JMT project will be documented in this file.
 **Text Panel:**
 - Find & Replace
 
+## 🧩 [0.1.5] - 2026-07-24
+# Added
+### Core:
+- The size of the app icon in the system tray and in the app window has been corrected. (#1)
+- A button to delete the avatar has been added.
+- 3 new achievements have been added.
+- 17 new quotes have been added.
+
+**Photo & Video Panel:** 
+- Now, when downloading with YT-dlp/FFmpeg, a progress bar appears at the bottom left.
+- Each downloaded file now has a unique timestamp.
+
+**Utils Panel:**
+- When you use the functions in the Network Tools Panel, they do not leave any traces in the command line.
+- “Pick from Screen” now works correctly. A magnifying glass and a preview of the color to be copied have been added. The window now hides when you click the button and reappears once a color has been selected.
+- You can now download the QR code, and the QR code decoder now works much better.
+
+### Fixed
+**Core:**
+- [!] As noted in version 0.1.4, each user will now have their own directory where their files will be stored.
+
+**Photo & Video Panel:**
+- The link to download FFmpeg has been changed to a more stable one.
+
+## What's Changed
+* The output panel does not clear for next input. by @EmaniPreethika in https://github.com/ShiningPr1sm/JavaMultiTool/pull/6
+
+## New Contributors
+* @EmaniPreethika made their first contribution in https://github.com/ShiningPr1sm/JavaMultiTool/pull/6
+
+**Full Changelog**: https://github.com/ShiningPr1sm/JavaMultiTool/compare/v0.1.4...v0.1.5
+
 ## 🧩 [0.1.4] - 2026-07-15
 ### HOTFIX v0.1.4
 
@@ -27,7 +59,7 @@ All notable changes to JMT project will be documented in this file.
 
 **Full Changelog**: https://github.com/ShiningPr1sm/JavaMultiTool/compare/v0.1.3...v0.1.4
 
-## 🧩 [0.1.3] - 2026-07-15
+## 🧩 [0.1.3] - 2026-07-15 (Some issues with this tag were identified on GitHub, so it was removed)
 ### Added
 **Core:**
 - Additional device information has been added to the settings panel
