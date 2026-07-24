@@ -29,7 +29,7 @@ public class ParticleField {
     }
 
     public ParticleField() {
-        this(35, 4, 100);
+        this(20, 4, 100);
     }
 
     public void setCircle(int centerX, int centerY, int radius) {
