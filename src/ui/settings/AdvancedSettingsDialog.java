@@ -127,7 +127,7 @@ public class AdvancedSettingsDialog extends JDialog {
         c.gridx = 0;
         c.anchor = GridBagConstraints.WEST;
         c.fill = GridBagConstraints.HORIZONTAL;
-        JLabel startupLabel = new JLabel("Launch at startup");
+        JLabel startupLabel = new JLabel("Launch at startup (beta)");
         startupLabel.setForeground(UIStyle.TEXT_COLOR);
         startupLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         content.add(startupLabel, c);
