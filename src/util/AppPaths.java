@@ -22,6 +22,7 @@ public class AppPaths {
     public static String DB_ACHIEVEMENTS = APP_DIR + "/Databases/achievements.db";
     public static String DB_BDAYS = APP_DIR + "/Databases/bdays.db";
     public static String DB_LEVELS = APP_DIR + "/Databases/levels.db";
+    public static String DB_DAILY = APP_DIR + "/Databases/daily.db";
 
     public static void init() {
         new File(APP_DIR + "/Databases").mkdirs();
@@ -42,6 +43,7 @@ public class AppPaths {
         DB_ACHIEVEMENTS = userDbDir + "/achievements.db";
         DB_BDAYS = userDbDir + "/bdays.db";
         DB_LEVELS = userDbDir + "/levels.db";
+        DB_DAILY = userDbDir + "/daily.db";
     }
 
     public static void migrateUserData(String login, String nickname) {

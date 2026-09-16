@@ -9,6 +9,9 @@ public class DatabaseProvider {
     private static BDaysRepository bdaysRepo;
     private static LevelRepository levelRepo;
     private static NotificationRepository notificationRepo;
+    private static NutritionRepository nutritionRepo;
+    private static StepsRepository stepsRepo;
+    private static PurchasesRepository purchasesRepo;
 
     public static void reset() {
         userRepo = null;
@@ -17,6 +20,9 @@ public class DatabaseProvider {
         bdaysRepo = null;
         levelRepo = null;
         notificationRepo = null;
+        nutritionRepo = null;
+        stepsRepo = null;
+        purchasesRepo = null;
     }
 
     public static UserRepository getUserRepository() {
@@ -65,5 +71,29 @@ public class DatabaseProvider {
             notificationRepo.initializeDatabase();
         }
         return notificationRepo;
+    }
+
+    public static NutritionRepository getNutritionRepository() {
+        if (nutritionRepo == null) {
+            nutritionRepo = new NutritionRepositoryImpl();
+            nutritionRepo.initializeDatabase();
+        }
+        return nutritionRepo;
+    }
+
+    public static StepsRepository getStepsRepository() {
+        if (stepsRepo == null) {
+            stepsRepo = new StepsRepositoryImpl();
+            stepsRepo.initializeDatabase();
+        }
+        return stepsRepo;
+    }
+
+    public static PurchasesRepository getPurchasesRepository() {
+        if (purchasesRepo == null) {
+            purchasesRepo = new PurchasesRepositoryImpl();
+            purchasesRepo.initializeDatabase();
+        }
+        return purchasesRepo;
     }
 }

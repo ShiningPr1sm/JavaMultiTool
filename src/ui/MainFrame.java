@@ -6,6 +6,7 @@ import ui.achievements.AchievementsPanel;
 import ui.admin.AdminLogPanel;
 import ui.daytab.BirthdayTrackerPanel;
 import ui.daytab.WorkflowPanel;
+import ui.dailytracker.DailyTrackerPanel;
 import ui.photovideotab.ImageToolsPanel;
 import ui.photovideotab.MediaDownloaderPanel;
 import ui.settings.SettingsPanel;
@@ -201,7 +202,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         sidebar.add(new ExpandableSection("Text", new String[]{"Find & Replace"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(new ExpandableSection("Time", new String[]{"Workflow", "Birthday Tracker"},
+        sidebar.add(new ExpandableSection("Time", new String[]{"Workflow", "Birthday Tracker", "Daily Tracker"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebar.add(new ExpandableSection("Utils", new String[]{"Color Picker & Converter", "Password Generator", "QR Generator & Decoder", "Network Tools"},
@@ -289,6 +290,8 @@ public class MainFrame extends JFrame implements AchievementCallback {
                     contentPanel.add(new MediaDownloaderPanel(), BorderLayout.CENTER);
             case "Birthday Tracker" ->
                     contentPanel.add(new BirthdayTrackerPanel(login, services.bdaysService(), services.achievementService(), services.userSession()), BorderLayout.CENTER);
+            case "Daily Tracker" ->
+                    contentPanel.add(new DailyTrackerPanel(), BorderLayout.CENTER);
             case "Workflow" -> {
                     if (workflowPanel == null) {
                         workflowPanel = new WorkflowPanel(services.workflowService(), services.runningProcessService());
