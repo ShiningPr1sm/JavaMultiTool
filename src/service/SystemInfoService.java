@@ -5,13 +5,10 @@ import util.ConfigManager;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.Method;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -25,13 +22,17 @@ public class SystemInfoService {
     private String cachedGatewayIp;
     private String cachedDnsServers;
     private boolean isPrepared;
+    private volatile long systemBootMillis = -1;
+    private volatile boolean systemBootFetched;
 
     public void prepare() {
         if (isPrepared) return;
         isPrepared = true;
-        if (!ConfigManager.isInternetEnabled()) return;
 
         new Thread(() -> {
+            systemBootMillis = fetchSystemBootMillis();
+            systemBootFetched = true;
+            if (!ConfigManager.isInternetEnabled()) return;
             try {
                 cachedPublicIP = fetchPublicIP();
                 cachedLocalIP = fetchLocalIP();
@@ -75,41 +76,29 @@ public class SystemInfoService {
     }
 
     public String getSystemUptime() {
-        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+        if (!systemBootFetched) return "Loading...";
+        if (systemBootMillis <= 0) return "Unavailable";
+        return formatUptime(System.currentTimeMillis() - systemBootMillis);
+    }
+
+    private long fetchSystemBootMillis() {
         try {
-            Method m = osBean.getClass().getMethod("getSystemUptime");
-            long uptime = (long) m.invoke(osBean);
-            return formatUptime(uptime);
-        } catch (Exception e1) {
-            try {
-                Process process = new ProcessBuilder(
-                        "cmd.exe", "/c", "wmic", "os", "get", "lastbootuptime"
-                ).start();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.isEmpty() || line.contains("LastBootUpTime") || line.contains("lastbootuptime")) continue;
-                    if (line.length() >= 14) {
-                        try {
-                            java.time.LocalDateTime boot = java.time.LocalDateTime.of(
-                                    Integer.parseInt(line.substring(0, 4)),
-                                    Integer.parseInt(line.substring(4, 6)),
-                                    Integer.parseInt(line.substring(6, 8)),
-                                    Integer.parseInt(line.substring(8, 10)),
-                                    Integer.parseInt(line.substring(10, 12)),
-                                    Integer.parseInt(line.substring(12, 14))
-                            );
-                            long diff = java.time.Duration.between(boot, java.time.LocalDateTime.now()).toMillis();
-                            return formatUptime(diff);
-                        } catch (Exception ignored) {}
-                    }
+            Process process = new ProcessBuilder(
+                    "powershell.exe", "-NoProfile", "-Command",
+                    "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToFileTimeUtc()"
+            ).redirectErrorStream(true).start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.matches("\\d+")) {
+                    return Long.parseLong(line) / 10000L - 11644473600000L;
                 }
-            } catch (Exception e2) {
-                return "Unavailable";
             }
-            return "Unavailable";
+        } catch (Exception e) {
+            AppLogger.error("SystemInfoService: failed to fetch system boot time - " + e.getMessage());
         }
+        return -1;
     }
 
     public String fetchPublicIP() {
@@ -151,51 +140,37 @@ public class SystemInfoService {
     private String fetchGatewayIp() {
         try {
             Process process = new ProcessBuilder(
-                    "cmd.exe", "/c", "wmic", "path",
-                    "Win32_NetworkAdapterConfiguration",
-                    "where", "IPEnabled=true",
-                    "get", "DefaultIPGateway", "/format:csv"
-            ).start();
+                    "powershell.exe", "-NoProfile", "-Command",
+                    "(Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -ne $null } | Select-Object -First 1).IPv4DefaultGateway.NextHop"
+            ).redirectErrorStream(true).start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-                if (line.isEmpty() || line.startsWith("Node") || line.startsWith("DefaultIPGateway")) continue;
-                String[] parts = line.split(",");
-                if (parts.length >= 2) {
-                    String gw = parts[1].trim();
-                    if (!gw.isEmpty()) return gw;
-                }
+                if (line.matches("([0-9]{1,3}\\.){3}[0-9]{1,3}")) return line;
             }
-            return "Unavailable";
         } catch (Exception e) {
-            return "Unavailable";
+            AppLogger.error("SystemInfoService: failed to fetch gateway IP - " + e.getMessage());
         }
+        return "Unavailable";
     }
 
     private String fetchDnsServers() {
         try {
             Process process = new ProcessBuilder(
-                    "cmd.exe", "/c", "wmic", "path",
-                    "Win32_NetworkAdapterConfiguration",
-                    "where", "IPEnabled=true",
-                    "get", "DNSServerSearchOrder", "/format:csv"
-            ).start();
+                    "powershell.exe", "-NoProfile", "-Command",
+                    "(Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object { $_.ServerAddresses.Count -gt 0 } | Select-Object -First 1).ServerAddresses -join ', '"
+            ).redirectErrorStream(true).start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-                if (line.isEmpty() || line.startsWith("Node") || line.startsWith("DNSServerSearchOrder")) continue;
-                String[] parts = line.split(",");
-                if (parts.length >= 2) {
-                    String dns = parts[1].trim();
-                    if (!dns.isEmpty()) return dns.replaceAll("\\{([^}]+)\\}", "$1");
-                }
+                if (line.matches("[0-9a-fA-F:.]+(,\\s*[0-9a-fA-F:.]+)*")) return line;
             }
-            return "Unavailable";
         } catch (Exception e) {
-            return "Unavailable";
+            AppLogger.error("SystemInfoService: failed to fetch DNS servers - " + e.getMessage());
         }
+        return "Unavailable";
     }
 
     private String formatUptime(long millis) {

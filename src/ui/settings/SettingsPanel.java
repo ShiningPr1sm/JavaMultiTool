@@ -16,6 +16,8 @@ import javafx.stage.FileChooser;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.function.Supplier;
 
 public class SettingsPanel extends JPanel {
 
@@ -32,9 +35,9 @@ public class SettingsPanel extends JPanel {
     private final Services services;
 
     private static final String LOADING_LABEL = "Loading...";
-    private static final String FONT_LABEL = "Label.font";
-    private final JLabel appUptimeLabel = new JLabel(" App uptime: " + LOADING_LABEL);
-    private final JLabel sysUptimeLabel = new JLabel(" System uptime: " + LOADING_LABEL);
+    private static final int ROW_INSET = 4;
+    private final JLabel appUptimeLabel = new JLabel("App uptime: " + LOADING_LABEL);
+    private final JLabel sysUptimeLabel = new JLabel("System uptime: " + LOADING_LABEL);
     private final Timer uptimeTimer;
 
     public SettingsPanel(MainFrame mainFrame, String login, AchievementService achievementService, SystemInfoService systemInfoService, Services services) {
@@ -151,85 +154,28 @@ public class SettingsPanel extends JPanel {
         userInfoPanel.add(avatarBox);
         userInfoPanel.add(nicknameBox);
 
-        JButton publicIpBtn = new JButton(" Public IP: ***.***.***.***");
-        publicIpBtn.setForeground(Color.LIGHT_GRAY);
-        publicIpBtn.setFont(UIManager.getFont(FONT_LABEL));
-        publicIpBtn.setContentAreaFilled(false);
-        publicIpBtn.setBorderPainted(false);
-        publicIpBtn.setFocusPainted(false);
-        publicIpBtn.setOpaque(false);
-        publicIpBtn.setMargin(new Insets(20, 0, 0, 0));
-        publicIpBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        publicIpBtn.addActionListener(e -> {
-            if (publicIpBtn.getText().contains("***")) {
-                String ip = systemInfoService.getCachedPublicIP();
-                publicIpBtn.setText(" Public IP: " + (ip != null ? ip : LOADING_LABEL));
-            } else {
-                publicIpBtn.setText(" Public IP: ***.***.***.***");
-            }
-        });
+        JLabel publicIpLabel = toggleLabel("Public IP: ***.***.***.***", "Public IP: ",
+                systemInfoService::getCachedPublicIP);
 
-        JLabel localIpLabel = new JLabel("  Local IP: " + (systemInfoService.getCachedLocalIP() != null ? systemInfoService.getCachedLocalIP() : LOADING_LABEL));
-        localIpLabel.setForeground(Color.LIGHT_GRAY);
-        localIpLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel localIpLabel = dataLabel("Local IP: " + valueOrLoading(systemInfoService.getCachedLocalIP()));
 
-        JLabel macLabel = new JLabel("  MAC Address: " + (systemInfoService.getCachedMac() != null ? systemInfoService.getCachedMac() : LOADING_LABEL));
-        macLabel.setForeground(Color.LIGHT_GRAY);
-        macLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel macLabel = dataLabel("MAC Address: " + valueOrLoading(systemInfoService.getCachedMac()));
 
-        JButton gatewayBtn = new JButton(" Gateway IP: ***.***.***.***");
-        gatewayBtn.setForeground(Color.LIGHT_GRAY);
-        gatewayBtn.setFont(UIManager.getFont(FONT_LABEL));
-        gatewayBtn.setContentAreaFilled(false);
-        gatewayBtn.setBorderPainted(false);
-        gatewayBtn.setFocusPainted(false);
-        gatewayBtn.setOpaque(false);
-        gatewayBtn.setMargin(new Insets(0, 0, 0, 0));
-        gatewayBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        gatewayBtn.addActionListener(e -> {
-            if (gatewayBtn.getText().contains("***")) {
-                String gw = systemInfoService.getCachedGatewayIp();
-                gatewayBtn.setText(" Gateway IP: " + (gw != null ? gw : LOADING_LABEL));
-            } else {
-                gatewayBtn.setText(" Gateway IP: ***.***.***.***");
-            }
-        });
+        JLabel gatewayLabel = toggleLabel("Gateway IP: ***.***.***.***", "Gateway IP: ",
+                systemInfoService::getCachedGatewayIp);
 
-        JButton dnsBtn = new JButton(" DNS Servers: ***.***.***.***");
-        dnsBtn.setForeground(Color.LIGHT_GRAY);
-        dnsBtn.setFont(UIManager.getFont(FONT_LABEL));
-        dnsBtn.setContentAreaFilled(false);
-        dnsBtn.setBorderPainted(false);
-        dnsBtn.setFocusPainted(false);
-        dnsBtn.setOpaque(false);
-        dnsBtn.setMargin(new Insets(0, 0, 0, 0));
-        dnsBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        dnsBtn.addActionListener(e -> {
-            if (dnsBtn.getText().contains("***")) {
-                String dns = systemInfoService.getCachedDnsServers();
-                dnsBtn.setText(" DNS Servers: " + (dns != null ? dns : LOADING_LABEL));
-            } else {
-                dnsBtn.setText(" DNS Servers: ***.***.***.***");
-            }
-        });
+        JLabel dnsLabel = toggleLabel("DNS Servers: ***.***.***.***", "DNS Servers: ",
+                systemInfoService::getCachedDnsServers);
 
-        JLabel archLabel = new JLabel(" Architecture: " + systemInfoService.getArchitecture());
-        archLabel.setForeground(Color.LIGHT_GRAY);
-        archLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel archLabel = dataLabel("Architecture: " + systemInfoService.getArchitecture());
 
-        JLabel regDateLabel = new JLabel(" Registered: " + reformatDate(userRepo.getRegistrationDate(login)));
-        regDateLabel.setForeground(Color.LIGHT_GRAY);
-        regDateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel regDateLabel = dataLabel("Registered: " + reformatDate(userRepo.getRegistrationDate(login)));
 
-        JLabel lastLoginLabel = new JLabel(" Last Login: " + reformatDate(userRepo.getLastLoginDate(login)));
-        lastLoginLabel.setForeground(Color.LIGHT_GRAY);
-        lastLoginLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel lastLoginLabel = dataLabel("Last Login: " + reformatDate(userRepo.getLastLoginDate(login)));
 
-        appUptimeLabel.setForeground(Color.LIGHT_GRAY);
-        appUptimeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        styleDataLabel(appUptimeLabel);
 
-        sysUptimeLabel.setForeground(Color.LIGHT_GRAY);
-        sysUptimeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        styleDataLabel(sysUptimeLabel);
 
         JButton logoutBtn = new JButton("Logout");
         logoutBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -241,15 +187,15 @@ public class SettingsPanel extends JPanel {
         infoPanel.setBackground(UIStyle.BG_COLOR);
         infoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(publicIpBtn);
+        infoPanel.add(publicIpLabel);
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(localIpLabel);
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(macLabel);
         infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(gatewayBtn);
+        infoPanel.add(gatewayLabel);
         infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(dnsBtn);
+        infoPanel.add(dnsLabel);
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(archLabel);
         infoPanel.add(Box.createVerticalStrut(5));
@@ -286,10 +232,42 @@ public class SettingsPanel extends JPanel {
         add(bottomBar, BorderLayout.SOUTH);
 
         uptimeTimer = new Timer(1000, e -> {
-            appUptimeLabel.setText(" App uptime: " + systemInfoService.getAppUptime());
-            sysUptimeLabel.setText(" System uptime: " + systemInfoService.getSystemUptime());
+            appUptimeLabel.setText("App uptime: " + systemInfoService.getAppUptime());
+            sysUptimeLabel.setText("System uptime: " + systemInfoService.getSystemUptime());
         });
         uptimeTimer.start();
+    }
+
+    private static String valueOrLoading(String value) {
+        return value != null ? value : LOADING_LABEL;
+    }
+
+    private static JLabel dataLabel(String text) {
+        JLabel label = new JLabel(text);
+        styleDataLabel(label);
+        return label;
+    }
+
+    private static void styleDataLabel(JLabel label) {
+        label.setForeground(Color.LIGHT_GRAY);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        label.setBorder(BorderFactory.createEmptyBorder(0, ROW_INSET, 0, 0));
+    }
+
+    private JLabel toggleLabel(String maskedText, String prefix, Supplier<String> valueSupplier) {
+        JLabel label = dataLabel(maskedText);
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (label.getText().contains("***")) {
+                    label.setText(prefix + valueOrLoading(valueSupplier.get()));
+                } else {
+                    label.setText(maskedText);
+                }
+            }
+        });
+        return label;
     }
 
     @Override
