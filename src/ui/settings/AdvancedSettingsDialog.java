@@ -19,7 +19,10 @@ public class AdvancedSettingsDialog extends JDialog {
             new SettingDef("Show Daily Quote", "dailyQuote", true),
             new SettingDef("Birthday Reminders", "birthdayReminders", true),
             new SettingDef("Use internet to download tools or get data", "useInternet", true),
-            new SettingDef("Send notification messages", "showNotifications", true)
+            new SettingDef("Send notification messages", "showNotifications", true),
+            new SettingDef("Save data after first login", "saveData", true),
+            new SettingDef("Minimize to tray on close", "minToTray", true),
+            new SettingDef("Launch at startup (beta)", "launchAtStartup", true)
     );
 
     public AdvancedSettingsDialog(Frame owner, String login) {
@@ -66,12 +69,18 @@ public class AdvancedSettingsDialog extends JDialog {
             c.gridx = 1;
             c.anchor = GridBagConstraints.CENTER;
             c.fill = GridBagConstraints.NONE;
-            boolean value = Boolean.parseBoolean(ConfigManager.loadProperty(def.key(), String.valueOf(def.defaultValue())));
+            boolean value = "minToTray".equals(def.key())
+                    ? userRepo.isCloseToTrayEnabled(login)
+                    : Boolean.parseBoolean(ConfigManager.loadProperty(def.key(), String.valueOf(def.defaultValue())));
             JCheckBox cb = new JCheckBox();
             UIStyle.styleCheckbox(cb);
             cb.setSelected(value);
             cb.addActionListener(e -> {
-                ConfigManager.saveProperty(def.key(), String.valueOf(cb.isSelected()));
+                if ("minToTray".equals(def.key())) {
+                    userRepo.setCloseToTray(login, cb.isSelected());
+                } else {
+                    ConfigManager.saveProperty(def.key(), String.valueOf(cb.isSelected()));
+                }
                 AppLogger.info("Settings: '" + def.label() + "' set to " + cb.isSelected());
             });
             content.add(cb, c);
@@ -80,74 +89,75 @@ public class AdvancedSettingsDialog extends JDialog {
             c.fill = GridBagConstraints.HORIZONTAL;
         }
 
-        c.gridy++;
-        c.gridx = 0;
-        c.gridwidth = 1;
-        c.anchor = GridBagConstraints.WEST;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        JLabel saveLoginLabel = new JLabel("Save data after first login");
-        saveLoginLabel.setForeground(UIStyle.TEXT_COLOR);
-        saveLoginLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        content.add(saveLoginLabel, c);
-
-        c.gridx = 1;
-        c.anchor = GridBagConstraints.CENTER;
-        c.fill = GridBagConstraints.NONE;
-        JCheckBox saveLoginBox = new JCheckBox();
-        UIStyle.styleCheckbox(saveLoginBox);
-        saveLoginBox.setSelected(userRepo.isSaveLoginEnabled(login));
-        saveLoginBox.addActionListener(e -> {
-            userRepo.setSaveLogin(login, saveLoginBox.isSelected());
-            AppLogger.info("Settings: save login set to " + saveLoginBox.isSelected());
-        });
-        content.add(saveLoginBox, c);
-
-        c.gridy++;
-        c.gridx = 0;
-        c.anchor = GridBagConstraints.WEST;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        JLabel trayLabel = new JLabel("Minimize to tray on close");
-        trayLabel.setForeground(UIStyle.TEXT_COLOR);
-        trayLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        content.add(trayLabel, c);
-
-        c.gridx = 1;
-        c.anchor = GridBagConstraints.CENTER;
-        c.fill = GridBagConstraints.NONE;
-        JCheckBox trayBox = new JCheckBox();
-        UIStyle.styleCheckbox(trayBox);
-        trayBox.setSelected(userRepo.isCloseToTrayEnabled(login));
-        trayBox.addActionListener(e -> {
-            userRepo.setCloseToTray(login, trayBox.isSelected());
-            AppLogger.info("Settings: Close to tray set to " + trayBox.isSelected());
-        });
-        content.add(trayBox, c);
-
-        c.gridy++;
-        c.gridx = 0;
-        c.anchor = GridBagConstraints.WEST;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        JLabel startupLabel = new JLabel("Launch at startup (beta)");
-        startupLabel.setForeground(UIStyle.TEXT_COLOR);
-        startupLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        content.add(startupLabel, c);
-
-        c.gridx = 1;
-        c.anchor = GridBagConstraints.CENTER;
-        c.fill = GridBagConstraints.NONE;
-        JCheckBox startupBox = new JCheckBox();
-        UIStyle.styleCheckbox(startupBox);
-        startupBox.setSelected(ConfigManager.isStartupEnabled());
-        startupBox.addActionListener(e -> {
-            ConfigManager.setStartup(startupBox.isSelected());
-            AppLogger.info("Settings: Launch at startup set to " + startupBox.isSelected());
-        });
-        content.add(startupBox, c);
+//        c.gridy++;
+//        c.gridx = 0;
+//        c.gridwidth = 1;
+//        c.anchor = GridBagConstraints.WEST;
+//        c.fill = GridBagConstraints.HORIZONTAL;
+//        JLabel saveLoginLabel = new JLabel("Save data after first login");
+//        saveLoginLabel.setForeground(UIStyle.TEXT_COLOR);
+//        saveLoginLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+//        content.add(saveLoginLabel, c);
+//
+//        c.gridx = 1;
+//        c.anchor = GridBagConstraints.CENTER;
+//        c.fill = GridBagConstraints.NONE;
+//        JCheckBox saveLoginBox = new JCheckBox();
+//        UIStyle.styleCheckbox(saveLoginBox);
+//        saveLoginBox.setSelected(userRepo.isSaveLoginEnabled(login));
+//        saveLoginBox.addActionListener(e -> {
+//            userRepo.setSaveLogin(login, saveLoginBox.isSelected());
+//            AppLogger.info("Settings: save login set to " + saveLoginBox.isSelected());
+//        });
+//        content.add(saveLoginBox, c);
+//
+//        c.gridy++;
+//        c.gridx = 0;
+//        c.anchor = GridBagConstraints.WEST;
+//        c.fill = GridBagConstraints.HORIZONTAL;
+//        JLabel trayLabel = new JLabel("Minimize to tray on close");
+//        trayLabel.setForeground(UIStyle.TEXT_COLOR);
+//        trayLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+//        content.add(trayLabel, c);
+//
+//        c.gridx = 1;
+//        c.anchor = GridBagConstraints.CENTER;
+//        c.fill = GridBagConstraints.NONE;
+//        JCheckBox trayBox = new JCheckBox();
+//        UIStyle.styleCheckbox(trayBox);
+//        trayBox.setSelected(userRepo.isCloseToTrayEnabled(login));
+//        trayBox.addActionListener(e -> {
+//            userRepo.setCloseToTray(login, trayBox.isSelected());
+//            AppLogger.info("Settings: Close to tray set to " + trayBox.isSelected());
+//        });
+//        content.add(trayBox, c);
+//
+//        c.gridy++;
+//        c.gridx = 0;
+//        c.anchor = GridBagConstraints.WEST;
+//        c.fill = GridBagConstraints.HORIZONTAL;
+//        JLabel startupLabel = new JLabel("Launch at startup (beta)");
+//        startupLabel.setForeground(UIStyle.TEXT_COLOR);
+//        startupLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+//        content.add(startupLabel, c);
+//
+//        c.gridx = 1;
+//        c.anchor = GridBagConstraints.CENTER;
+//        c.fill = GridBagConstraints.NONE;
+//        JCheckBox startupBox = new JCheckBox();
+//        UIStyle.styleCheckbox(startupBox);
+//        startupBox.setSelected(ConfigManager.isStartupEnabled());
+//        startupBox.addActionListener(e -> {
+//            ConfigManager.setStartup(startupBox.isSelected());
+//            AppLogger.info("Settings: Launch at startup set to " + startupBox.isSelected());
+//        });
+//        content.add(startupBox, c);
 
         c.gridy++;
         c.gridx = 0;
         c.gridwidth = 2;
         c.anchor = GridBagConstraints.EAST;
+        c.insets = new Insets(9, 10, 4, 10);
         JButton closeBtn = new JButton("Close");
         UIStyle.styleButton(closeBtn);
         closeBtn.addActionListener(e -> dispose());
