@@ -342,14 +342,18 @@ public class SettingsPanel extends JPanel {
         JPasswordField newPassword = new JPasswordField();
         JPasswordField confirmPassword = new JPasswordField();
 
+        UIStyle.styleTextField(currentPassword);
+        UIStyle.styleTextField(newPassword);
+        UIStyle.styleTextField(confirmPassword);
+
         JPanel panel = new JPanel(new GridLayout(0, 1, 0, 6));
         panel.setBackground(UIStyle.SIDE_BOX);
         JLabel curLabel = new JLabel("Current Password:");
-        curLabel.setForeground(Color.WHITE);
+        curLabel.setForeground(UIStyle.TEXT_COLOR);
         JLabel newLabel = new JLabel("New Password:");
-        newLabel.setForeground(Color.WHITE);
+        newLabel.setForeground(UIStyle.TEXT_COLOR);
         JLabel confLabel = new JLabel("Confirm New Password:");
-        confLabel.setForeground(Color.WHITE);
+        confLabel.setForeground(UIStyle.TEXT_COLOR);
 
         panel.add(curLabel);
         panel.add(currentPassword);
