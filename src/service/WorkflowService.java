@@ -48,6 +48,9 @@ public class WorkflowService {
             }
         }
 
+        workflowRepo.addTime(db.WorkflowRepository.MULTITOOL_ITEM_ID,
+                db.WorkflowRepository.MULTITOOL_TYPE, secondsSinceLastTick);
+
         if (activeTaskId != -1) {
             workflowRepo.addTime(activeTaskId, 1, secondsSinceLastTick);
         }

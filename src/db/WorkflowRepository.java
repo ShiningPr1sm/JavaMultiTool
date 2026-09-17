@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface WorkflowRepository {
+    String MULTITOOL_NAME = "JavaMultiTool";
+    int MULTITOOL_ITEM_ID = 0;
+    int MULTITOOL_TYPE = 2;
+
     Connection getConnection() throws SQLException;
     void initializeDatabase();
     void addTime(int itemId, int type, int seconds);

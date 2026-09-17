@@ -166,7 +166,7 @@ public class OverviewChartsPanel extends JPanel {
         String selectedDate = (String) dateSelector.getSelectedItem();
         String selectedApp = (String) appFilter.getSelectedItem();
         if (selectedDate != null) {
-            updateCharts(selectedDate, selectedApp != null ? selectedApp : "ALL");
+            updateCharts(selectedDate, selectedApp != null ? selectedApp : db.WorkflowRepository.MULTITOOL_NAME);
         }
     }
 
@@ -178,12 +178,12 @@ public class OverviewChartsPanel extends JPanel {
 
     private void refreshAppFilter() {
         appFilter.removeAllItems();
-        appFilter.addItem("ALL");
+        appFilter.addItem(db.WorkflowRepository.MULTITOOL_NAME);
         List<Object[]> apps = workflowRepo.getTrackedAppsFull();
         for (Object[] app : apps) {
             appFilter.addItem((String) app[1]);
         }
-        appFilter.setSelectedItem("ALL");
+        appFilter.setSelectedItem(db.WorkflowRepository.MULTITOOL_NAME);
     }
 
     private void updateCharts(String date, String filter) {
@@ -201,8 +201,13 @@ public class OverviewChartsPanel extends JPanel {
                         .toUpperCase();
             }
             StatResult mData = workflowRepo.getCalendarMonthStats(date, filter);
+            String displayDate = date;
+            try {
+                displayDate = util.DateUtils.toDisplay(LocalDate.parse(date));
+            } catch (Exception ignored) {}
+            final String hourTitleDate = displayDate;
             SwingUtilities.invokeLater(() -> {
-                hourChart.setData("Hourly Distribution (" + date + ")", hVal, hLab);
+                hourChart.setData("Hourly Distribution (" + hourTitleDate + ")", hVal, hLab);
                 weekChart.setData("Weekly Activity", wData.values, dayNames);
                 monthChart.setData("Monthly Activity", mData.values, mData.labels);
                 pieChart.setData(workflowRepo.getDaySummary(date));

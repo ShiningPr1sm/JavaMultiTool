@@ -1,6 +1,7 @@
 package db.impl;
 
 import db.StatResult;
+import db.WorkflowRepository;
 import util.AppLogger;
 
 import java.sql.*;
@@ -53,7 +54,7 @@ public class DailyStatsDao {
         FROM daily_stats ds
         LEFT JOIN tracked_apps ta ON ds.item_id = ta.id AND ds.type = 0
         LEFT JOIN tasks t ON ds.item_id = t.id AND ds.type = 1
-        WHERE ds.date = ?
+        WHERE ds.date = ? AND ds.type IN (0, 1)
         GROUP BY name ORDER BY total DESC
         """;
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -66,16 +67,18 @@ public class DailyStatsDao {
         return data;
     }
 
-    public int[] getHourlyStats(String date, String appName) {
+    public int[] getHourlyStats(String date, String filter) {
         int[] hours = new int[24];
+        boolean isJmt = WorkflowRepository.MULTITOOL_NAME.equals(filter);
         String sql = "SELECT hour, SUM(seconds_spent) FROM daily_stats ds " +
-                "LEFT JOIN tracked_apps ta ON ds.item_id = ta.id AND ds.type = 0 " +
-                "WHERE ds.date = ? " +
-                (appName.equals("ALL") ? "" : "AND ta.app_name = ? ") +
+                (isJmt
+                        ? "WHERE ds.date = ? AND ds.type = " + WorkflowRepository.MULTITOOL_TYPE + " "
+                        : "LEFT JOIN tracked_apps ta ON ds.item_id = ta.id AND ds.type = 0 " +
+                          "WHERE ds.date = ? AND ta.app_name = ? ") +
                 "GROUP BY hour";
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, date);
-            if (!appName.equals("ALL")) pstmt.setString(2, appName);
+            if (!isJmt) pstmt.setString(2, filter);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) hours[rs.getInt(1)] = rs.getInt(2);
         } catch (SQLException e) {
@@ -101,26 +104,26 @@ public class DailyStatsDao {
         return dates;
     }
 
-    public StatResult getPeriodStats(String endDateStr, String appName, int days) {
+    public StatResult getPeriodStats(String endDateStr, String filter, int days) {
         StatResult result = new StatResult(days);
         LocalDate endDate = LocalDate.parse(endDateStr);
+        boolean isJmt = WorkflowRepository.MULTITOOL_NAME.equals(filter);
 
         for (int i = 0; i < days; i++) {
             LocalDate target = endDate.minusDays(days - 1 - i);
             result.labels[i] = target.toString();
 
             String sql = "SELECT SUM(seconds_spent) FROM daily_stats ds " +
-                    "LEFT JOIN tracked_apps ta ON ds.item_id = ta.id AND ds.type = 0 " +
-                    "WHERE ds.date = ? " +
-                    (appName.equals("ALL") ? "" : "AND ta.app_name = ? ");
+                    (isJmt
+                            ? "WHERE ds.date = ? AND ds.type = " + WorkflowRepository.MULTITOOL_TYPE + " "
+                            : "LEFT JOIN tracked_apps ta ON ds.item_id = ta.id AND ds.type = 0 " +
+                              "WHERE ds.date = ? AND ta.app_name = ? ");
 
             try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, target.toString());
-                if (!appName.equals("ALL"))
-                    pstmt.setString(2, appName);
+                if (!isJmt) pstmt.setString(2, filter);
                 ResultSet rs = pstmt.executeQuery();
-                if (rs.next())
-                    result.values[i] = rs.getInt(1);
+                if (rs.next()) result.values[i] = rs.getInt(1);
             } catch (SQLException e) {
                 AppLogger.error("DailyStatsDao SQL error: " + e.getMessage());
             }
@@ -128,27 +131,27 @@ public class DailyStatsDao {
         return result;
     }
 
-    public StatResult getCalendarMonthStats(String dateStr, String appName) {
+    public StatResult getCalendarMonthStats(String dateStr, String filter) {
         LocalDate selectedDate = LocalDate.parse(dateStr);
         int daysInMonth = selectedDate.lengthOfMonth();
         StatResult result = new StatResult(daysInMonth);
         LocalDate firstDay = selectedDate.withDayOfMonth(1);
+        boolean isJmt = WorkflowRepository.MULTITOOL_NAME.equals(filter);
 
         for (int i = 0; i < daysInMonth; i++) {
             LocalDate target = firstDay.plusDays(i);
             result.labels[i] = String.valueOf(i + 1);
 
             String sql = "SELECT SUM(seconds_spent) FROM daily_stats ds " +
-                    "LEFT JOIN tracked_apps ta ON ds.item_id = ta.id AND ds.type = 0 " +
-                    "WHERE ds.date = ? " +
-                    (appName.equals("ALL") ? "" : "AND ta.app_name = ? ");
+                    (isJmt
+                            ? "WHERE ds.date = ? AND ds.type = " + WorkflowRepository.MULTITOOL_TYPE + " "
+                            : "LEFT JOIN tracked_apps ta ON ds.item_id = ta.id AND ds.type = 0 " +
+                              "WHERE ds.date = ? AND ta.app_name = ? ");
             try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, target.toString());
-                if (!appName.equals("ALL"))
-                    pstmt.setString(2, appName);
+                if (!isJmt) pstmt.setString(2, filter);
                 ResultSet rs = pstmt.executeQuery();
-                if (rs.next())
-                    result.values[i] = rs.getInt(1);
+                if (rs.next()) result.values[i] = rs.getInt(1);
             } catch (SQLException e) {
                 AppLogger.error("DailyStatsDao SQL error: " + e.getMessage());
             }
