@@ -36,44 +36,41 @@ public class StepsPanel extends JPanel {
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(5, 5, 5, 5);
 
-        // Row 0: Date + Today
+        // Row 0: Date, Steps, Add (one row)
         c.gridx = 0;
         c.gridy = 0;
         form.add(label("Date (dd.MM.yyyy):"), c);
         c.gridx = 1;
-        dateField = new JTextField(12);
+        dateField = new JTextField(11);
         UIStyle.styleTextField(dateField);
         dateField.setText(DateUtils.todayDisplay());
         form.add(dateField, c);
 
-        c.gridx = 0;
-        c.gridy = 1;
+        c.gridx = 3;
+        c.insets = new Insets(5, 20, 5, 5);
         form.add(label("Steps:"), c);
-        c.gridx = 1;
-        c.gridwidth = 2;
-        stepsField = new JTextField(12);
+        c.gridx = 4;
+        c.insets = new Insets(5, 5, 5, 5);
+        stepsField = new JTextField(9);
         UIStyle.styleTextField(stepsField);
         form.add(stepsField, c);
-        c.gridwidth = 1;
 
-        // Row 2: Calories calculation group
-        c.gridx = 0;
-        c.gridy = 2;
-        c.anchor = GridBagConstraints.NORTHWEST;
-        form.add(label("Calories:"), c);
-        c.gridx = 1;
-        c.gridwidth = 2;
-        c.anchor = GridBagConstraints.WEST;
-        form.add(buildCaloriesGroup(), c);
-        c.gridwidth = 1;
-
-        // Row 3: Add
-        c.gridx = 1;
-        c.gridy = 3;
+        c.gridx = 5;
         JButton addBtn = new JButton("Add Entry");
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> addSteps());
         form.add(addBtn, c);
+
+        // Row 1: Calories calculation group
+        c.gridx = 0;
+        c.gridy = 1;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        form.add(label("Calories:"), c);
+        c.gridx = 1;
+        c.gridwidth = 5;
+        c.anchor = GridBagConstraints.WEST;
+        form.add(buildCaloriesGroup(), c);
+        c.gridwidth = 1;
 
         model = new DefaultTableModel(new String[]{"ID", "Steps", "Calories", "Mode"}, 0) {
             @Override
@@ -160,9 +157,11 @@ public class StepsPanel extends JPanel {
         hintLabel = new JLabel("Calories = steps × 0.04 (fixed coefficient)");
         hintLabel.setForeground(new Color(150, 150, 150));
         hintLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        hintLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel group = new JPanel();
         group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+        group.setAlignmentX(Component.LEFT_ALIGNMENT);
         group.setBackground(new Color(30, 30, 30));
         group.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UIStyle.BORDER_COLOR),
@@ -188,12 +187,14 @@ public class StepsPanel extends JPanel {
         b.setOpaque(false);
         b.setForeground(UIStyle.TEXT_COLOR);
         b.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        b.setAlignmentX(Component.LEFT_ALIGNMENT);
         return b;
     }
 
     private JPanel indent(JComponent comp) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 1));
         p.setOpaque(false);
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
         p.setBorder(BorderFactory.createEmptyBorder(0, 26, 0, 0));
         p.add(comp);
         return p;
