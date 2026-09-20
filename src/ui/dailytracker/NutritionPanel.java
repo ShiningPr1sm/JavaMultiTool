@@ -14,7 +14,9 @@ import java.time.LocalDate;
 
 public class NutritionPanel extends JPanel {
     private final NutritionRepository repo;
-    private final JTextField dateField, mealField, caloriesField;
+    private final JTextField dateField, mealField, caloriesField, weightField;
+    private final JCheckBox manualModeBox;
+    private final JLabel caloriesLabel, weightLabel;
     private final DefaultTableModel model;
     private final JTable table;
     private final JLabel totalLabel;
@@ -28,46 +30,89 @@ public class NutritionPanel extends JPanel {
         setBackground(UIStyle.BG_COLOR);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JPanel form = new JPanel(new GridBagLayout());
-        form.setOpaque(false);
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 0;
-        c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(4, 5, 4, 5);
-
-        form.add(label("Date (dd.MM.yyyy):"), c);
-        c.gridx = 1;
-        dateField = new JTextField(10);
-        UIStyle.styleTextField(dateField);
+        // ---------- Form components (all created up front) ----------
+        dateField = field(10);
         dateField.setText(DateUtils.todayDisplay());
-        form.add(dateField, c);
+        // Column widths: Date = Calories (10), Meal = Weight (12).
+        // Fields stacked in the same grid column now have identical widths.
+        mealField = field(12);
+        caloriesField = field(10);
+        weightField = field(12);
 
-        c.gridx = 2;
-        form.add(label("Meal:"), c);
-        c.gridx = 3;
-        c.gridwidth = 2;
-        mealField = new JTextField(15);
-        UIStyle.styleTextField(mealField);
-        form.add(mealField, c);
+        caloriesLabel = label("Calories:");
+        // Fixed width so the column doesn't jump when the text changes
+        // between "Calories:" and "Calories per 100g:"
+        Dimension calLabelSize = new Dimension(140, caloriesLabel.getPreferredSize().height);
+        caloriesLabel.setPreferredSize(calLabelSize);
+        caloriesLabel.setMinimumSize(calLabelSize);
 
-        c.gridx = 5;
-        c.gridwidth = 1;
-        form.add(label("Calories:"), c);
-        c.gridx = 6;
-        c.gridwidth = 2;
-        caloriesField = new JTextField(8);
-        UIStyle.styleTextField(caloriesField);
-        form.add(caloriesField, c);
+        weightLabel = label("Weight (g):");
 
-        c.gridx = 8;
+        // "Meal:" and "Weight (g):" share column 2. Give both labels the same
+        // fixed width so the column doesn't grow when Weight becomes visible
+        // (that growth was pushing the Meal field and Add button to the right).
+        JLabel mealLabel = label("Meal:");
+        int sharedLabelWidth = Math.max(mealLabel.getPreferredSize().width, weightLabel.getPreferredSize().width);
+        Dimension sharedLabelSize = new Dimension(sharedLabelWidth, mealLabel.getPreferredSize().height);
+        mealLabel.setPreferredSize(sharedLabelSize);
+        mealLabel.setMinimumSize(sharedLabelSize);
+        weightLabel.setPreferredSize(sharedLabelSize);
+        weightLabel.setMinimumSize(sharedLabelSize);
+
         JButton addBtn = new JButton("Add");
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> addFood());
-        form.add(addBtn, c);
 
+        manualModeBox = new JCheckBox("Manual mode");
+        UIStyle.styleCheckbox(manualModeBox);
+        manualModeBox.setSelected(true);
+        manualModeBox.setToolTipText("Checked: enter total calories. Unchecked: enter total weight and calories per 100 g.");
+        manualModeBox.addActionListener(e -> updateMode());
 
+        // ---------- Form layout ----------
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(4, 5, 4, 5);
 
+        // Row 0: Date, Meal, Add
+        c.gridy = 0;
+        c.gridx = 0; form.add(label("Date (dd.MM.yyyy):"), c);
+        c.gridx = 1; form.add(dateField, c);
+        c.gridx = 2; form.add(mealLabel, c);
+        c.gridx = 3; form.add(mealField, c);
+        c.gridx = 4; form.add(addBtn, c);
+
+        // Row 1: Calories, Weight (Weight is hidden in manual mode).
+        // Columns 2-3 keep their width because "Meal:" and the meal field
+        // in row 0 occupy them, so hiding Weight doesn't shrink the form.
+        c.gridy = 1;
+        c.gridx = 0; form.add(caloriesLabel, c);
+        c.gridx = 1; form.add(caloriesField, c);
+        c.gridx = 2; form.add(weightLabel, c);
+        c.gridx = 3; form.add(weightField, c);
+
+        // Row 2: mode toggle
+        c.gridy = 2;
+        c.gridx = 0;
+        c.gridwidth = 2;
+        form.add(manualModeBox, c);
+        c.gridwidth = 1;
+
+        // Filler column: absorbs extra width so the form stays left-aligned
+        // and doesn't get re-centered when the window is resized
+        JPanel filler = new JPanel();
+        filler.setOpaque(false);
+        c.gridy = 0;
+        c.gridx = 5;
+        c.weightx = 1.0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        form.add(filler, c);
+
+        updateMode();
+
+        // ---------- Table ----------
         model = new DefaultTableModel(new String[]{"ID", "Meal", "Calories"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -91,6 +136,7 @@ public class NutritionPanel extends JPanel {
         scroll.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
         scroll.getViewport().setBackground(UIStyle.SECONDARY_BG);
 
+        // ---------- Bottom bar ----------
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setOpaque(false);
         JButton deleteBtn = new JButton("Delete Selected");
@@ -109,6 +155,14 @@ public class NutritionPanel extends JPanel {
         refreshTable();
     }
 
+    /** Creates a styled text field that GridBagLayout can't shrink below its preferred size. */
+    private JTextField field(int columns) {
+        JTextField f = new JTextField(columns);
+        UIStyle.styleTextField(f);
+        f.setMinimumSize(f.getPreferredSize());
+        return f;
+    }
+
     private void addFood() {
         LocalDate date = parseDateField();
         if (date == null) return;
@@ -118,22 +172,59 @@ public class NutritionPanel extends JPanel {
             return;
         }
         int calories;
-        try {
-            calories = Integer.parseInt(caloriesField.getText().trim());
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Calories must be a number.");
-            return;
-        }
-        if (calories < 0) {
-            JOptionPane.showMessageDialog(this, "Calories cannot be negative.");
-            return;
+        if (manualModeBox.isSelected()) {
+            try {
+                calories = Integer.parseInt(caloriesField.getText().trim());
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Calories must be a number.");
+                return;
+            }
+            if (calories < 0) {
+                JOptionPane.showMessageDialog(this, "Calories cannot be negative.");
+                return;
+            }
+        } else {
+            double weight;
+            double per100;
+            try {
+                weight = Double.parseDouble(weightField.getText().trim());
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Enter the total weight in grams.");
+                return;
+            }
+            try {
+                per100 = Double.parseDouble(caloriesField.getText().trim());
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Enter calories per 100 g.");
+                return;
+            }
+            if (weight <= 0) {
+                JOptionPane.showMessageDialog(this, "Weight must be positive.");
+                return;
+            }
+            if (per100 < 0) {
+                JOptionPane.showMessageDialog(this, "Calories per 100 g cannot be negative.");
+                return;
+            }
+            calories = (int) Math.round(weight / 100.0 * per100);
         }
         repo.addFood(DateUtils.toISO(date), meal, calories);
         AppLogger.info("Nutrition: added '" + meal + "' " + calories + " kcal for " + date);
         mealField.setText("");
         caloriesField.setText("");
+        weightField.setText("");
         refreshTable();
         notifyChanged();
+    }
+
+    private void updateMode() {
+        boolean manual = manualModeBox.isSelected();
+        caloriesLabel.setText(manual ? "Calories:" : "Calories per 100g:");
+        // Hiding is safe here: the columns holding Weight are still sized
+        // by the Meal label/field in the row above
+        weightLabel.setVisible(!manual);
+        weightField.setVisible(!manual);
+        if (manual) weightField.setText("");
     }
 
     private void deleteSelected() {

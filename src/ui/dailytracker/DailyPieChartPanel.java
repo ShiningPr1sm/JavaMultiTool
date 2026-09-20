@@ -11,6 +11,7 @@ public class DailyPieChartPanel extends JPanel {
     private final String title;
     private final Function<Double, String> formatter;
     private final JPanel legendBox;
+    private final JScrollPane legendScroll;
     private final PieCanvas canvas;
     private Map<String, Double> data;
 
@@ -35,6 +36,7 @@ public class DailyPieChartPanel extends JPanel {
         sp.setOpaque(false);
         sp.getViewport().setOpaque(false);
         UIStyle.styleScrollBar(sp);
+        legendScroll = sp;
 
         add(sp, BorderLayout.EAST);
     }
@@ -42,6 +44,7 @@ public class DailyPieChartPanel extends JPanel {
     public void setData(Map<String, Double> data) {
         this.data = data;
         rebuildLegend();
+        legendScroll.setVisible(data != null && !data.isEmpty());
         canvas.repaint();
     }
 

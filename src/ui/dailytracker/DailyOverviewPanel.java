@@ -120,7 +120,7 @@ public class DailyOverviewPanel extends JPanel {
         title.setBorder(BorderFactory.createEmptyBorder(15, 15, 5, 15));
         title.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
-        JPanel rows = new JPanel(new GridLayout(6, 2, 10, 14));
+        JPanel rows = new JPanel(new GridLayout(6, 2, 10, 5));
         rows.setOpaque(false);
         rows.setBorder(BorderFactory.createEmptyBorder(10, 20, 15, 20));
 
