@@ -2,6 +2,7 @@ package db.impl;
 
 import db.UserRepository;
 import util.AppLogger;
+import util.PasswordUtil;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -39,7 +40,7 @@ public class UserRepositoryImpl implements UserRepository {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement("INSERT INTO users (login, password, nickname) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, login);
-            stmt.setString(2, password);
+            stmt.setString(2, PasswordUtil.hash(password));
             stmt.setString(3, login);
             stmt.executeUpdate();
             return true;
@@ -51,14 +52,36 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean checkLogin(String login, String password) {
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE login = ? AND password = ?")) {
+             PreparedStatement stmt = conn.prepareStatement("SELECT password FROM users WHERE login = ?")) {
             stmt.setString(1, login);
-            stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
-            return rs.next();
+            if (!rs.next()) return false;
+            String stored = rs.getString("password");
+            if (stored == null) return false;
+
+            if (PasswordUtil.isHashed(stored)) {
+                return PasswordUtil.verify(password, stored);
+            }
+
+            boolean ok = stored.equals(password);
+            if (ok) {
+                migratePassword(conn, login, password);
+                AppLogger.info("User '" + login + "' password migrated to PBKDF2.");
+            }
+            return ok;
         } catch (SQLException e) {
             AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
             return false;
+        }
+    }
+
+    private void migratePassword(Connection conn, String login, String password) {
+        try (PreparedStatement stmt = conn.prepareStatement("UPDATE users SET password = ? WHERE login = ?")) {
+            stmt.setString(1, PasswordUtil.hash(password));
+            stmt.setString(2, login);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            AppLogger.error("UserRepositoryImpl migration SQL error: " + e.getMessage());
         }
     }
 
@@ -112,7 +135,7 @@ public class UserRepositoryImpl implements UserRepository {
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 String currentPassword = rs.getString("password");
-                return currentPassword.equals(password);
+                return PasswordUtil.verify(password, currentPassword);
             }
         } catch (SQLException e) {
             AppLogger.error("UserRepositoryImpl SQL error: " + e.getMessage());
@@ -124,7 +147,7 @@ public class UserRepositoryImpl implements UserRepository {
     public void updatePassword(String login, String newPassword) {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement("UPDATE users SET password = ? WHERE login = ?")) {
-            stmt.setString(1, newPassword);
+            stmt.setString(1, PasswordUtil.hash(newPassword));
             stmt.setString(2, login);
             stmt.executeUpdate();
         } catch (SQLException e) {

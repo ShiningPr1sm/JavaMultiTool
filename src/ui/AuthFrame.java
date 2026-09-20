@@ -65,13 +65,12 @@ public class AuthFrame extends JFrame {
         loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         UIStyle.styleButton(loginButton);
 
-        JButton registerButton = new JButton("Register");
-        registerButton.setMaximumSize(new Dimension(300, 38));
-        registerButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        UIStyle.styleButton(registerButton);
-        registerButton.setBackground(UIStyle.SECONDARY_BG);
+        JButton toggleButton = new JButton("Don't have an account? Create new one!");
+        toggleButton.setMaximumSize(new Dimension(300, 38));
+        toggleButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        UIStyle.styleButton(toggleButton);
 
-        for (JComponent comp : new JComponent[]{loginField, passwordField, loginButton, registerButton}) {
+        for (JComponent comp : new JComponent[]{loginField, passwordField, loginButton, toggleButton}) {
             comp.setAlignmentX(Component.CENTER_ALIGNMENT);
         }
 
@@ -94,11 +93,7 @@ public class AuthFrame extends JFrame {
             }
         };
 
-        loginButton.addActionListener(e -> doLogin.run());
-
-        passwordField.addActionListener(e -> doLogin.run());
-
-        registerButton.addActionListener(e -> {
+        Runnable doRegister = () -> {
             String login = loginField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
             if (login.isEmpty() || password.isEmpty()) {
@@ -110,6 +105,22 @@ public class AuthFrame extends JFrame {
             } else {
                 StyledDialog.show(this, "Login already taken");
             }
+        };
+
+        boolean[] registerMode = {false};
+
+        Runnable submit = () -> {
+            if (registerMode[0]) doRegister.run();
+            else doLogin.run();
+        };
+
+        loginButton.addActionListener(e -> submit.run());
+        passwordField.addActionListener(e -> submit.run());
+
+        toggleButton.addActionListener(e -> {
+            registerMode[0] = !registerMode[0];
+            loginButton.setText(registerMode[0] ? "Register" : "Login");
+            toggleButton.setText(registerMode[0] ? "Have an account? Log in!" : "Don't have an account? Create new one!");
         });
 
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -129,7 +140,7 @@ public class AuthFrame extends JFrame {
         formPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         formPanel.add(loginButton);
         formPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        formPanel.add(registerButton);
+        formPanel.add(toggleButton);
 
         outerPanel.add(formPanel);
         setContentPane(outerPanel);
