@@ -64,7 +64,7 @@ public class PurchasesPanel extends JPanel {
         c.gridx = 7;
         currencyBox = new JComboBox<>(CURRENCIES);
         UIStyle.styleComboBox(currencyBox);
-        currencyBox.setSelectedItem("RUB");
+        currencyBox.setSelectedItem("EUR");
         form.add(currencyBox, c);
 
         c.gridx = 8;
@@ -72,15 +72,6 @@ public class PurchasesPanel extends JPanel {
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> addPurchase());
         form.add(addBtn, c);
-
-        c.gridx = 9;
-        JButton todayBtn = new JButton("Today");
-        UIStyle.styleButton(todayBtn);
-        todayBtn.addActionListener(e -> {
-            dateField.setText(DateUtils.todayDisplay());
-            refreshTable();
-        });
-        form.add(todayBtn, c);
 
         model = new DefaultTableModel(new String[]{"ID", "Item", "Price", "Currency"}, 0) {
             @Override

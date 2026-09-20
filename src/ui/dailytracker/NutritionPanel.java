@@ -66,14 +66,7 @@ public class NutritionPanel extends JPanel {
         addBtn.addActionListener(e -> addFood());
         form.add(addBtn, c);
 
-        c.gridx = 9;
-        JButton todayBtn = new JButton("Today");
-        UIStyle.styleButton(todayBtn);
-        todayBtn.addActionListener(e -> {
-            dateField.setText(DateUtils.todayDisplay());
-            refreshTable();
-        });
-        form.add(todayBtn, c);
+
 
         model = new DefaultTableModel(new String[]{"ID", "Meal", "Calories"}, 0) {
             @Override

@@ -12,9 +12,11 @@ import java.awt.*;
 
 public class StepsPanel extends JPanel {
     private final StepsRepository repo;
-    private final JTextField dateField, stepsField, weightField, caloriesField;
-    private final JCheckBox weightBox;
-    private final JRadioButton autoBtn, manualBtn;
+    private final JTextField dateField, stepsField;
+    private JTextField weightField, caloriesField;
+    private JCheckBox weightBox;
+    private JRadioButton autoBtn, manualBtn;
+    private JLabel hintLabel;
     private final DefaultTableModel model;
     private final JTable table;
     private final JLabel totalLabel;
@@ -31,84 +33,47 @@ public class StepsPanel extends JPanel {
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
         GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(5, 5, 5, 5);
+
+        // Row 0: Date + Today
         c.gridx = 0;
         c.gridy = 0;
-        c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(4, 5, 4, 5);
-
         form.add(label("Date (dd.MM.yyyy):"), c);
         c.gridx = 1;
-        dateField = new JTextField(10);
+        dateField = new JTextField(12);
         UIStyle.styleTextField(dateField);
         dateField.setText(DateUtils.todayDisplay());
         form.add(dateField, c);
 
-        c.gridx = 2;
+        c.gridx = 0;
+        c.gridy = 1;
         form.add(label("Steps:"), c);
-        c.gridx = 3;
+        c.gridx = 1;
         c.gridwidth = 2;
-        stepsField = new JTextField(10);
+        stepsField = new JTextField(12);
         UIStyle.styleTextField(stepsField);
         form.add(stepsField, c);
-
-        c.gridx = 5;
         c.gridwidth = 1;
-        autoBtn = new JRadioButton("Auto");
-        autoBtn.setFocusPainted(false);
-        autoBtn.setOpaque(false);
-        autoBtn.setForeground(UIStyle.TEXT_COLOR);
-        autoBtn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        manualBtn = new JRadioButton("Manual");
-        manualBtn.setFocusPainted(false);
-        manualBtn.setOpaque(false);
-        manualBtn.setForeground(UIStyle.TEXT_COLOR);
-        manualBtn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        autoBtn.setSelected(true);
-        ButtonGroup modeGroup = new ButtonGroup();
-        modeGroup.add(autoBtn);
-        modeGroup.add(manualBtn);
-        form.add(autoBtn, c);
-        c.gridx = 6;
-        form.add(manualBtn, c);
 
-        c.gridx = 7;
-        form.add(label("Calories:"), c);
-        c.gridx = 8;
-        caloriesField = new JTextField(8);
-        UIStyle.styleTextField(caloriesField);
-        form.add(caloriesField, c);
-
-        c.gridy = 1;
+        // Row 2: Calories calculation group
         c.gridx = 0;
-        form.add(label("Weight (kg):"), c);
+        c.gridy = 2;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        form.add(label("Calories:"), c);
         c.gridx = 1;
-        weightField = new JTextField(8);
-        UIStyle.styleTextField(weightField);
-        form.add(weightField, c);
-        c.gridx = 2;
-        weightBox = new JCheckBox("Use my weight");
-        UIStyle.styleCheckbox(weightBox);
-        form.add(weightBox, c);
+        c.gridwidth = 2;
+        c.anchor = GridBagConstraints.WEST;
+        form.add(buildCaloriesGroup(), c);
+        c.gridwidth = 1;
 
-        c.gridx = 4;
-        JButton addBtn = new JButton("Add");
+        // Row 3: Add
+        c.gridx = 1;
+        c.gridy = 3;
+        JButton addBtn = new JButton("Add Entry");
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> addSteps());
         form.add(addBtn, c);
-
-        c.gridx = 5;
-        JButton todayBtn = new JButton("Today");
-        UIStyle.styleButton(todayBtn);
-        todayBtn.addActionListener(e -> {
-            dateField.setText(DateUtils.todayDisplay());
-            refreshTable();
-        });
-        form.add(todayBtn, c);
-
-        Runnable updateMode = this::updateEnabledState;
-        autoBtn.addActionListener(e -> updateMode.run());
-        manualBtn.addActionListener(e -> updateMode.run());
-        weightBox.addActionListener(e -> updateMode.run());
 
         model = new DefaultTableModel(new String[]{"ID", "Steps", "Calories", "Mode"}, 0) {
             @Override
@@ -162,11 +127,89 @@ public class StepsPanel extends JPanel {
         }
     }
 
+    private JPanel buildCaloriesGroup() {
+        autoBtn = makeRadio("Calculate automatically from steps");
+        manualBtn = makeRadio("Enter calories manually");
+        autoBtn.setSelected(true);
+        ButtonGroup modeGroup = new ButtonGroup();
+        modeGroup.add(autoBtn);
+        modeGroup.add(manualBtn);
+
+        weightBox = new JCheckBox("Use my weight");
+        UIStyle.styleCheckbox(weightBox);
+        weightField = new JTextField(8);
+        UIStyle.styleTextField(weightField);
+        JLabel weightUnit = label("kg");
+        weightUnit.setForeground(new Color(180, 180, 180));
+
+        JPanel weightRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
+        weightRow.setOpaque(false);
+        weightRow.add(weightBox);
+        weightRow.add(weightField);
+        weightRow.add(weightUnit);
+
+        caloriesField = new JTextField(8);
+        UIStyle.styleTextField(caloriesField);
+        JPanel manualRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
+        manualRow.setOpaque(false);
+        JLabel manualLbl = label("Calories:");
+        manualLbl.setForeground(new Color(200, 200, 200));
+        manualRow.add(manualLbl);
+        manualRow.add(caloriesField);
+
+        hintLabel = new JLabel("Calories = steps × 0.04 (fixed coefficient)");
+        hintLabel.setForeground(new Color(150, 150, 150));
+        hintLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+
+        JPanel group = new JPanel();
+        group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+        group.setBackground(new Color(30, 30, 30));
+        group.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UIStyle.BORDER_COLOR),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)));
+
+        group.add(autoBtn);
+        group.add(indent(weightRow));
+        group.add(indent(hintLabel));
+        group.add(Box.createVerticalStrut(6));
+        group.add(manualBtn);
+        group.add(indent(manualRow));
+
+        Runnable updateMode = this::updateEnabledState;
+        autoBtn.addActionListener(e -> updateMode.run());
+        manualBtn.addActionListener(e -> updateMode.run());
+        weightBox.addActionListener(e -> updateMode.run());
+        return group;
+    }
+
+    private JRadioButton makeRadio(String text) {
+        JRadioButton b = new JRadioButton(text);
+        b.setFocusPainted(false);
+        b.setOpaque(false);
+        b.setForeground(UIStyle.TEXT_COLOR);
+        b.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        return b;
+    }
+
+    private JPanel indent(JComponent comp) {
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 1));
+        p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(0, 26, 0, 0));
+        p.add(comp);
+        return p;
+    }
+
     private void updateEnabledState() {
         boolean auto = autoBtn.isSelected();
-        caloriesField.setEnabled(!auto);
-        weightField.setEnabled(auto && weightBox.isSelected());
+        boolean byWeight = weightBox.isSelected();
         weightBox.setEnabled(auto);
+        weightField.setEnabled(auto && byWeight);
+        caloriesField.setEnabled(!auto);
+        if (auto) {
+            hintLabel.setText(byWeight
+                    ? "Calories = steps × weight × 0.0005"
+                    : "Calories = steps × 0.04 (fixed coefficient)");
+        }
     }
 
     private void addSteps() {
