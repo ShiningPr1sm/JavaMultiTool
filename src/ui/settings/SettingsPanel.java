@@ -195,8 +195,6 @@ public class SettingsPanel extends JPanel {
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(dnsLabel);
         infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(archLabel);
-        infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(regDateLabel);
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(lastLoginLabel);
