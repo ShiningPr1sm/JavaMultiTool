@@ -167,8 +167,6 @@ public class SettingsPanel extends JPanel {
         JLabel dnsLabel = toggleLabel("DNS Servers: ***.***.***.***", "DNS Servers: ",
                 systemInfoService::getCachedDnsServers);
 
-        JLabel archLabel = dataLabel("Architecture: " + systemInfoService.getArchitecture());
-
         JLabel regDateLabel = dataLabel("Registered: " + reformatDate(userRepo.getRegistrationDate(login)));
 
         JLabel lastLoginLabel = dataLabel("Last Login: " + reformatDate(userRepo.getLastLoginDate(login)));

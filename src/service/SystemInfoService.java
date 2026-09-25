@@ -66,10 +66,6 @@ public class SystemInfoService {
         return cachedDnsServers;
     }
 
-    public String getArchitecture() {
-        return System.getProperty("os.arch");
-    }
-
     public String getAppUptime() {
         long elapsed = System.currentTimeMillis() - APP_START_TIME;
         return formatUptime(elapsed);
