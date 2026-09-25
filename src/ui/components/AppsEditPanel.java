@@ -49,6 +49,7 @@ public class AppsEditPanel extends JPanel {
                 JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
                 lbl.setBackground(UIStyle.BG_COLOR);
                 lbl.setForeground(Color.GRAY);
+                lbl.setHorizontalAlignment(SwingConstants.CENTER);
                 lbl.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, UIStyle.BORDER_COLOR));
                 return lbl;
             }

@@ -86,6 +86,7 @@ public class PurchasesPanel extends JPanel {
         table.setGridColor(UIStyle.BORDER_COLOR);
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
+        table.setShowVerticalLines(true);
         table.getColumnModel().getColumn(0).setMaxWidth(60);
         table.getColumnModel().getColumn(1).setPreferredWidth(260);
         table.getColumnModel().getColumn(2).setPreferredWidth(100);
