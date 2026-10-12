@@ -2,6 +2,7 @@ package ui.dailytracker;
 
 import db.StepsEntry;
 import db.StepsRepository;
+import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
 import util.DateUtils;
@@ -216,18 +217,18 @@ public class StepsPanel extends JPanel {
     private void addSteps() {
         String dateISO = validDateISO();
         if (dateISO == null) {
-            JOptionPane.showMessageDialog(this, "Invalid date. Use format dd.MM.yyyy.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Invalid date. Use format dd.MM.yyyy.");
             return;
         }
         int steps;
         try {
             steps = Integer.parseInt(stepsField.getText().trim());
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Steps must be a number.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Steps must be a number.");
             return;
         }
         if (steps < 0) {
-            JOptionPane.showMessageDialog(this, "Steps cannot be negative.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Steps cannot be negative.");
             return;
         }
 
@@ -240,11 +241,11 @@ public class StepsPanel extends JPanel {
                 try {
                     weight = Double.parseDouble(weightField.getText().trim());
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Enter your weight to use the weight-based calculation.");
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter your weight to use the weight-based calculation.");
                     return;
                 }
                 if (weight <= 0) {
-                    JOptionPane.showMessageDialog(this, "Weight must be positive.");
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), "Weight must be positive.");
                     return;
                 }
                 weightUsed = weight;
@@ -260,11 +261,11 @@ public class StepsPanel extends JPanel {
             try {
                 calories = Integer.parseInt(caloriesField.getText().trim());
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Enter calories manually.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter calories manually.");
                 return;
             }
             if (calories < 0) {
-                JOptionPane.showMessageDialog(this, "Calories cannot be negative.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories cannot be negative.");
                 return;
             }
         }
@@ -280,7 +281,7 @@ public class StepsPanel extends JPanel {
     private void deleteSelected() {
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Select a row to delete.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a row to delete.");
             return;
         }
         int id = (int) model.getValueAt(row, 0);

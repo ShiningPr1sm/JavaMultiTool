@@ -23,11 +23,22 @@ public class DailyTrackerPanel extends JPanel {
                 SwingUtilities.invokeLater(overviewPanel::refresh);
 
         NutritionPanel nutritionPanel = new NutritionPanel(
-                DatabaseProvider.getNutritionRepository(), refreshOverview);
+                DatabaseProvider.getNutritionRepository(),
+                DatabaseProvider.getProductRepository(),
+                refreshOverview);
         StepsPanel stepsPanel = new StepsPanel(
                 DatabaseProvider.getStepsRepository(), refreshOverview);
         PurchasesPanel purchasesPanel = new PurchasesPanel(
-                DatabaseProvider.getPurchasesRepository(), refreshOverview);
+                DatabaseProvider.getPurchasesRepository(),
+                DatabaseProvider.getProductRepository(),
+                DatabaseProvider.getNutritionRepository(),
+                refreshOverview);
+        ProductCatalogPanel catalogPanel = new ProductCatalogPanel(
+                DatabaseProvider.getProductRepository(),
+                () -> {
+                    nutritionPanel.reloadCatalog();
+                    purchasesPanel.reloadCatalog();
+                });
 
         JTabbedPane tabs = new JTabbedPane();
         UIStyle.styleTabbedPane(tabs);
@@ -35,6 +46,7 @@ public class DailyTrackerPanel extends JPanel {
         tabs.addTab(" Calories ", nutritionPanel);
         tabs.addTab(" Steps ", stepsPanel);
         tabs.addTab(" Purchases ", purchasesPanel);
+        tabs.addTab(" Catalog ", catalogPanel);
 
         tabs.addChangeListener(e -> {
             if (tabs.getSelectedIndex() == 0) {

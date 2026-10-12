@@ -12,6 +12,7 @@ public class DatabaseProvider {
     private static NutritionRepository nutritionRepo;
     private static StepsRepository stepsRepo;
     private static PurchasesRepository purchasesRepo;
+    private static ProductRepository productRepo;
 
     public static void reset() {
         userRepo = null;
@@ -23,6 +24,7 @@ public class DatabaseProvider {
         nutritionRepo = null;
         stepsRepo = null;
         purchasesRepo = null;
+        productRepo = null;
     }
 
     public static UserRepository getUserRepository() {
@@ -95,5 +97,13 @@ public class DatabaseProvider {
             purchasesRepo.initializeDatabase();
         }
         return purchasesRepo;
+    }
+
+    public static ProductRepository getProductRepository() {
+        if (productRepo == null) {
+            productRepo = new ProductRepositoryImpl();
+            productRepo.initializeDatabase();
+        }
+        return productRepo;
     }
 }

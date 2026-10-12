@@ -1,7 +1,11 @@
 package ui.dailytracker;
 
+import db.NutritionRepository;
+import db.ProductEntry;
+import db.ProductRepository;
 import db.PurchaseEntry;
 import db.PurchasesRepository;
+import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
 import util.DateUtils;
@@ -15,15 +19,23 @@ public class PurchasesPanel extends JPanel {
     private static final String[] CURRENCIES = {"RUB", "USD", "EUR", "GBP", "KZT", "UAH", "CNY", "JPY"};
 
     private final PurchasesRepository repo;
+    private final ProductRepository productsRepo;
+    private final NutritionRepository nutritionRepo;
     private final JTextField dateField, itemField, priceField;
     private final JComboBox<String> currencyBox;
+    private final JComboBox<ProductEntry> catalogBox;
+    private final JCheckBox includeCalBox;
     private final DefaultTableModel model;
     private final JTable table;
     private final JLabel totalLabel;
     private final Runnable onDataChanged;
+    private boolean reloadingCatalog;
 
-    public PurchasesPanel(PurchasesRepository repo, Runnable onDataChanged) {
+    public PurchasesPanel(PurchasesRepository repo, ProductRepository productsRepo,
+                          NutritionRepository nutritionRepo, Runnable onDataChanged) {
         this.repo = repo;
+        this.productsRepo = productsRepo;
+        this.nutritionRepo = nutritionRepo;
         this.onDataChanged = onDataChanged;
 
         setLayout(new BorderLayout(0, 10));
@@ -73,6 +85,44 @@ public class PurchasesPanel extends JPanel {
         addBtn.addActionListener(e -> addPurchase());
         form.add(addBtn, c);
 
+        c.gridy = 1;
+        c.gridx = 0;
+        form.add(label("From catalog:"), c);
+        catalogBox = new JComboBox<>();
+        UIStyle.styleComboBox(catalogBox);
+        catalogBox.setPreferredSize(new Dimension(240, 30));
+        catalogBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                Object display = (value instanceof ProductEntry p) ? p.name() : "Select from catalog...";
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, display, index, isSelected, cellHasFocus);
+                lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                lbl.setOpaque(true);
+                if (isSelected) {
+                    lbl.setBackground(UIStyle.BUTTON_HOVER);
+                    lbl.setForeground(UIStyle.ACCENT_COLOR);
+                } else {
+                    lbl.setBackground(UIStyle.BUTTON_BG);
+                    lbl.setForeground(UIStyle.TEXT_COLOR);
+                }
+                lbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+                return lbl;
+            }
+        });
+        catalogBox.addActionListener(e -> onCatalogSelected());
+        c.gridx = 1;
+        c.gridwidth = 8;
+        form.add(catalogBox, c);
+
+        includeCalBox = new JCheckBox("Include calories in today's intake");
+        UIStyle.styleCheckbox(includeCalBox);
+        includeCalBox.setEnabled(false);
+        c.gridy = 2;
+        c.gridx = 1;
+        form.add(includeCalBox, c);
+        c.gridwidth = 1;
+
         model = new DefaultTableModel(new String[]{"ID", "Item", "Price", "Currency"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -113,33 +163,41 @@ public class PurchasesPanel extends JPanel {
         add(scroll, BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
 
+        reloadCatalog();
         refreshTable();
     }
 
     private void addPurchase() {
         String dateISO = validDateISO();
         if (dateISO == null) {
-            JOptionPane.showMessageDialog(this, "Invalid date. Use format dd.MM.yyyy.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Invalid date. Use format dd.MM.yyyy.");
             return;
         }
         String item = itemField.getText().trim();
         if (item.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Enter an item name.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter an item name.");
             return;
         }
         double price;
         try {
             price = Double.parseDouble(priceField.getText().trim());
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Price must be a number.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Price must be a number.");
             return;
         }
         if (price < 0) {
-            JOptionPane.showMessageDialog(this, "Price cannot be negative.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Price cannot be negative.");
             return;
         }
         String currency = (String) currencyBox.getSelectedItem();
-        repo.addPurchase(dateISO, item, price, currency);
+        int purchaseId = repo.addPurchase(dateISO, item, price, currency);
+        if (includeCalBox.isSelected() && purchaseId > 0) {
+            ProductEntry p = (ProductEntry) catalogBox.getSelectedItem();
+            if (p != null && p.calories() != null && p.calories() > 0) {
+                nutritionRepo.addFoodLinked(dateISO, item, p.calories(), purchaseId);
+                AppLogger.info("Purchases: included " + p.calories() + " kcal from '" + item + "' for " + dateISO);
+            }
+        }
         AppLogger.info("Purchases: added '" + item + "' " + price + " " + currency + " for " + dateISO);
         itemField.setText("");
         priceField.setText("");
@@ -150,11 +208,12 @@ public class PurchasesPanel extends JPanel {
     private void deleteSelected() {
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Select a row to delete.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a row to delete.");
             return;
         }
         int id = (int) model.getValueAt(row, 0);
         repo.deletePurchase(id);
+        nutritionRepo.deleteByPurchaseId(id);
         AppLogger.info("Purchases: deleted entry id=" + id);
         refreshTable();
         notifyChanged();
@@ -192,6 +251,41 @@ public class PurchasesPanel extends JPanel {
 
     private void notifyChanged() {
         if (onDataChanged != null) onDataChanged.run();
+    }
+
+    public void reloadCatalog() {
+        ProductEntry selected = (ProductEntry) catalogBox.getSelectedItem();
+        reloadingCatalog = true;
+        catalogBox.removeAllItems();
+        List<ProductEntry> all = productsRepo.listAll();
+        for (ProductEntry p : all) catalogBox.addItem(p);
+        ProductEntry match = null;
+        if (selected != null) {
+            for (ProductEntry p : all) {
+                if (p.id() == selected.id()) {
+                    match = p;
+                    break;
+                }
+            }
+        }
+        if (match != null) catalogBox.setSelectedItem(match);
+        else includeCalBox.setEnabled(false);
+        reloadingCatalog = false;
+    }
+
+    private void onCatalogSelected() {
+        if (reloadingCatalog) return;
+        ProductEntry p = (ProductEntry) catalogBox.getSelectedItem();
+        if (p == null) {
+            includeCalBox.setEnabled(false);
+            return;
+        }
+        itemField.setText(p.name());
+        if (p.price() != null) priceField.setText(String.format("%.2f", p.price()));
+        if (p.currency() != null && !p.currency().isBlank()) currencyBox.setSelectedItem(p.currency());
+        boolean hasCal = p.calories() != null && p.calories() > 0;
+        includeCalBox.setEnabled(hasCal);
+        if (!hasCal) includeCalBox.setSelected(false);
     }
 
     private String validDateISO() {

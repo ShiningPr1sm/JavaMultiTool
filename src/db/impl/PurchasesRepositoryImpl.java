@@ -35,18 +35,22 @@ public class PurchasesRepositoryImpl implements PurchasesRepository {
     }
 
     @Override
-    public void addPurchase(String date, String itemName, double price, String currency) {
+    public int addPurchase(String date, String itemName, double price, String currency) {
         String sql = "INSERT INTO purchases(date, item_name, price, currency) VALUES(?,?,?,?)";
         try (Connection conn = getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
+             PreparedStatement st = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             st.setString(1, date);
             st.setString(2, itemName);
             st.setDouble(3, price);
             st.setString(4, currency);
             st.executeUpdate();
+            try (ResultSet rs = st.getGeneratedKeys()) {
+                if (rs.next()) return rs.getInt(1);
+            }
         } catch (SQLException e) {
             AppLogger.error("PurchasesRepositoryImpl SQL error: " + e.getMessage());
         }
+        return -1;
     }
 
     @Override

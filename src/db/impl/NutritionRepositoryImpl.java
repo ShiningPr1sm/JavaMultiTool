@@ -28,8 +28,24 @@ public class NutritionRepositoryImpl implements NutritionRepository {
         try (Connection conn = getConnection();
              Statement st = conn.createStatement()) {
             st.execute(sql);
+            ensurePurchaseIdColumn(st);
         } catch (SQLException e) {
             AppLogger.error("NutritionRepositoryImpl SQL error: " + e.getMessage());
+        }
+    }
+
+    private void ensurePurchaseIdColumn(Statement st) throws SQLException {
+        try (ResultSet rs = st.executeQuery("PRAGMA table_info(food_entries)")) {
+            boolean has = false;
+            while (rs.next()) {
+                if ("purchase_id".equals(rs.getString("name"))) {
+                    has = true;
+                    break;
+                }
+            }
+            if (!has) {
+                st.execute("ALTER TABLE food_entries ADD COLUMN purchase_id INTEGER");
+            }
         }
     }
 
@@ -41,6 +57,21 @@ public class NutritionRepositoryImpl implements NutritionRepository {
             st.setString(1, date);
             st.setString(2, mealName);
             st.setInt(3, calories);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            AppLogger.error("NutritionRepositoryImpl SQL error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void addFoodLinked(String date, String mealName, int calories, int purchaseId) {
+        String sql = "INSERT INTO food_entries(date, meal_name, calories, purchase_id) VALUES(?,?,?,?)";
+        try (Connection conn = getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setString(1, date);
+            st.setString(2, mealName);
+            st.setInt(3, calories);
+            st.setInt(4, purchaseId);
             st.executeUpdate();
         } catch (SQLException e) {
             AppLogger.error("NutritionRepositoryImpl SQL error: " + e.getMessage());
@@ -74,6 +105,18 @@ public class NutritionRepositoryImpl implements NutritionRepository {
         try (Connection conn = getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
             st.setInt(1, id);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            AppLogger.error("NutritionRepositoryImpl SQL error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteByPurchaseId(int purchaseId) {
+        String sql = "DELETE FROM food_entries WHERE purchase_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setInt(1, purchaseId);
             st.executeUpdate();
         } catch (SQLException e) {
             AppLogger.error("NutritionRepositoryImpl SQL error: " + e.getMessage());

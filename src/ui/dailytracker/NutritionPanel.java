@@ -1,6 +1,9 @@
 package ui.dailytracker;
 
 import db.NutritionRepository;
+import db.ProductEntry;
+import db.ProductRepository;
+import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
 import util.DateUtils;
@@ -11,19 +14,24 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.time.LocalDate;
+import java.util.List;
 
 public class NutritionPanel extends JPanel {
     private final NutritionRepository repo;
+    private final ProductRepository productsRepo;
     private final JTextField dateField, mealField, caloriesField, weightField;
     private final JCheckBox manualModeBox;
+    private final JComboBox<ProductEntry> catalogBox;
     private final JLabel caloriesLabel, weightLabel;
     private final DefaultTableModel model;
     private final JTable table;
     private final JLabel totalLabel;
     private final Runnable onDataChanged;
+    private boolean reloadingCatalog;
 
-    public NutritionPanel(NutritionRepository repo, Runnable onDataChanged) {
+    public NutritionPanel(NutritionRepository repo, ProductRepository productsRepo, Runnable onDataChanged) {
         this.repo = repo;
+        this.productsRepo = productsRepo;
         this.onDataChanged = onDataChanged;
 
         setLayout(new BorderLayout(0, 10));
@@ -69,6 +77,39 @@ public class NutritionPanel extends JPanel {
         manualModeBox.setToolTipText("Checked: enter total calories. Unchecked: enter total weight and calories per 100 g.");
         manualModeBox.addActionListener(e -> updateMode());
 
+        catalogBox = new JComboBox<>();
+        UIStyle.styleComboBox(catalogBox);
+        catalogBox.setPreferredSize(new Dimension(260, 30));
+        catalogBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                Object display = (value instanceof ProductEntry p) ? p.name() : "Select from catalog...";
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, display, index, isSelected, cellHasFocus);
+                lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                lbl.setOpaque(true);
+                if (isSelected) {
+                    lbl.setBackground(UIStyle.BUTTON_HOVER);
+                    lbl.setForeground(UIStyle.ACCENT_COLOR);
+                } else {
+                    lbl.setBackground(UIStyle.BUTTON_BG);
+                    lbl.setForeground(UIStyle.TEXT_COLOR);
+                }
+                lbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+                return lbl;
+            }
+        });
+        catalogBox.addActionListener(e -> {
+            if (reloadingCatalog) return;
+            ProductEntry p = (ProductEntry) catalogBox.getSelectedItem();
+            if (p == null) return;
+            mealField.setText(p.name());
+            if (p.calories() != null) {
+                manualModeBox.setSelected(true);
+                caloriesField.setText(String.valueOf(p.calories()));
+            }
+        });
+
         // ---------- Form layout ----------
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
@@ -100,6 +141,15 @@ public class NutritionPanel extends JPanel {
         form.add(manualModeBox, c);
         c.gridwidth = 1;
 
+        // Row 3: catalog selection
+        c.gridy = 3;
+        c.gridx = 0;
+        form.add(label("From catalog:"), c);
+        c.gridx = 1;
+        c.gridwidth = 4;
+        form.add(catalogBox, c);
+        c.gridwidth = 1;
+
         // Filler column: absorbs extra width so the form stays left-aligned
         // and doesn't get re-centered when the window is resized
         JPanel filler = new JPanel();
@@ -111,6 +161,7 @@ public class NutritionPanel extends JPanel {
         form.add(filler, c);
 
         updateMode();
+        reloadCatalog();
 
         // ---------- Table ----------
         model = new DefaultTableModel(new String[]{"ID", "Meal", "Calories"}, 0) {
@@ -168,7 +219,7 @@ public class NutritionPanel extends JPanel {
         if (date == null) return;
         String meal = mealField.getText().trim();
         if (meal.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Enter a date and a meal name.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter a date and a meal name.");
             return;
         }
         int calories;
@@ -176,11 +227,11 @@ public class NutritionPanel extends JPanel {
             try {
                 calories = Integer.parseInt(caloriesField.getText().trim());
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Calories must be a number.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories must be a number.");
                 return;
             }
             if (calories < 0) {
-                JOptionPane.showMessageDialog(this, "Calories cannot be negative.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories cannot be negative.");
                 return;
             }
         } else {
@@ -189,21 +240,21 @@ public class NutritionPanel extends JPanel {
             try {
                 weight = Double.parseDouble(weightField.getText().trim());
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Enter the total weight in grams.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter the total weight in grams.");
                 return;
             }
             try {
                 per100 = Double.parseDouble(caloriesField.getText().trim());
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Enter calories per 100 g.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter calories per 100 g.");
                 return;
             }
             if (weight <= 0) {
-                JOptionPane.showMessageDialog(this, "Weight must be positive.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), "Weight must be positive.");
                 return;
             }
             if (per100 < 0) {
-                JOptionPane.showMessageDialog(this, "Calories per 100 g cannot be negative.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories per 100 g cannot be negative.");
                 return;
             }
             calories = (int) Math.round(weight / 100.0 * per100);
@@ -227,10 +278,27 @@ public class NutritionPanel extends JPanel {
         if (manual) weightField.setText("");
     }
 
+    public void reloadCatalog() {
+        ProductEntry selected = (ProductEntry) catalogBox.getSelectedItem();
+        reloadingCatalog = true;
+        catalogBox.removeAllItems();
+        List<ProductEntry> all = productsRepo.listAll();
+        for (ProductEntry p : all) catalogBox.addItem(p);
+        if (selected != null) {
+            for (ProductEntry p : all) {
+                if (p.id() == selected.id()) {
+                    catalogBox.setSelectedItem(p);
+                    break;
+                }
+            }
+        }
+        reloadingCatalog = false;
+    }
+
     private void deleteSelected() {
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Select a row to delete.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a row to delete.");
             return;
         }
         int id = (int) model.getValueAt(row, 0);
@@ -260,13 +328,13 @@ public class NutritionPanel extends JPanel {
     private LocalDate parseDateField() {
         String text = dateField.getText().trim();
         if (text.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Enter a date (dd.MM.yyyy).");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter a date (dd.MM.yyyy).");
             return null;
         }
         try {
             return DateUtils.parseDisplay(text);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date. Use format dd.MM.yyyy.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), "Invalid date. Use format dd.MM.yyyy.");
             return null;
         }
     }

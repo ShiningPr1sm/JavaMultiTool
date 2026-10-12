@@ -241,14 +241,19 @@ public class DailyOverviewPanel extends JPanel {
                 }
 
                 int balance = consumed - burned;
-                int purchaseCount = purchasesRepo.listByDate(iso).size();
                 Double weight = stepsRepo.getWeight();
+
+                StringBuilder purchaseTotals = new StringBuilder();
+                for (Map.Entry<String, Double> e : sortedCurs.entrySet()) {
+                    if (purchaseTotals.length() > 0) purchaseTotals.append("  ");
+                    purchaseTotals.append(String.format("%.2f %s", e.getValue(), e.getKey()));
+                }
 
                 final int fConsumed = consumed;
                 final int fBurned = burned;
                 final int fBalance = balance;
                 final int fSteps = stepsTotal;
-                final int fCount = purchaseCount;
+                final String fPurchases = purchaseTotals.length() == 0 ? "0.00" : purchaseTotals.toString();
                 final Double fWeight = weight;
 
                 SwingUtilities.invokeLater(() -> {
@@ -261,7 +266,7 @@ public class DailyOverviewPanel extends JPanel {
                     burnedVal.setText(fBurned + " kcal");
                     balanceVal.setText((fBalance >= 0 ? "+" : "-") + Math.abs(fBalance) + " kcal");
                     stepsVal.setText(fSteps + " steps");
-                    purchasesVal.setText(fCount + " item(s)");
+                    purchasesVal.setText(fPurchases);
                     weightVal.setText(fWeight != null ? String.format("%.1f kg", fWeight) : "—");
                 });
             } catch (Exception e) {

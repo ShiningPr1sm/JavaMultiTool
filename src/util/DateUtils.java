@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 
 public final class DateUtils {
-    public static final DateTimeFormatter DISPLAY_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    public static final DateTimeFormatter DISPLAY_FORMAT = DateTimeFormatter.ofPattern("dd.MM.uuuu")
             .withResolverStyle(ResolverStyle.STRICT);
 
     private DateUtils() {
