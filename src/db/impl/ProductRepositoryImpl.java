@@ -36,21 +36,36 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public int addProduct(String name, Double price, Integer calories, String currency) {
-        String sql = "INSERT INTO products(name, price, calories, currency) VALUES(?,?,?,?)";
-        try (Connection conn = getConnection();
-             PreparedStatement st = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            st.setString(1, name);
-            setNullableDouble(st, 2, price);
-            setNullableInt(st, 3, calories);
-            st.setString(4, currency);
-            st.executeUpdate();
-            try (ResultSet rs = st.getGeneratedKeys()) {
-                if (rs.next()) return rs.getInt(1);
+        String sql = "INSERT INTO products(id, name, price, calories, currency) VALUES(?,?,?,?,?)";
+        try (Connection conn = getConnection()) {
+            int nextId = nextFreeId(conn);
+            try (PreparedStatement st = conn.prepareStatement(sql)) {
+                st.setInt(1, nextId);
+                st.setString(2, name);
+                setNullableDouble(st, 3, price);
+                setNullableInt(st, 4, calories);
+                st.setString(5, currency);
+                st.executeUpdate();
             }
+            return nextId;
         } catch (SQLException e) {
             AppLogger.error("ProductRepositoryImpl SQL error: " + e.getMessage());
         }
         return -1;
+    }
+
+    private int nextFreeId(Connection conn) throws SQLException {
+        String sql = """
+            SELECT CASE
+              WHEN NOT EXISTS (SELECT 1 FROM products WHERE id = 1) THEN 1
+              ELSE (SELECT MIN(t.id + 1) FROM products t WHERE t.id + 1 NOT IN (SELECT id FROM products))
+            END
+            """;
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 1;
     }
 
     @Override
@@ -83,7 +98,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<ProductEntry> listAll() {
-        String sql = "SELECT id, name, price, calories, currency FROM products ORDER BY name COLLATE NOCASE ASC";
+        String sql = "SELECT id, name, price, calories, currency FROM products ORDER BY id ASC";
         try (Connection conn = getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {

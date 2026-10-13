@@ -49,9 +49,12 @@ public class ProductCatalogPanel extends JPanel {
         form.add(currencyBox, c);
 
         caloriesLabel = label("Calories:");
-        Dimension calLabelSize = new Dimension(140, caloriesLabel.getPreferredSize().height);
+        FontMetrics calMetrics = caloriesLabel.getFontMetrics(caloriesLabel.getFont());
+        int calWidth = Math.max(calMetrics.stringWidth("Calories:"), calMetrics.stringWidth("Calories per 100g:"));
+        Dimension calLabelSize = new Dimension(calWidth, caloriesLabel.getPreferredSize().height);
         caloriesLabel.setPreferredSize(calLabelSize);
         caloriesLabel.setMinimumSize(calLabelSize);
+        caloriesLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         c.gridx = 5; form.add(caloriesLabel, c);
         c.gridx = 6; caloriesField = field(6); form.add(caloriesField, c);
 
@@ -84,7 +87,7 @@ public class ProductCatalogPanel extends JPanel {
         UIStyle.styleCheckbox(manualModeBox);
         manualModeBox.setSelected(true);
         manualModeBox.setToolTipText("Checked: enter total calories. Unchecked: enter total weight and calories per 100 g.");
-        manualModeBox.addActionListener(e -> updateMode());
+        manualModeBox.addItemListener(e -> updateMode());
         c.gridy = 1;
         c.gridx = 0;
         c.gridwidth = 2;
@@ -226,28 +229,39 @@ public class ProductCatalogPanel extends JPanel {
     private void onRowSelected() {
         int row = table.getSelectedRow();
         if (row < 0) return;
+        if (nameField.hasFocus()) return;
         editingId = (int) model.getValueAt(row, 0);
-        nameField.setText((String) model.getValueAt(row, 1));
-        priceField.setText((String) model.getValueAt(row, 2));
-        currencyBox.setSelectedItem(model.getValueAt(row, 3));
-        caloriesField.setText((String) model.getValueAt(row, 4));
+        fill(nameField, (String) model.getValueAt(row, 1));
+        fill(priceField, (String) model.getValueAt(row, 2));
+        if (!currencyBox.isPopupVisible()) currencyBox.setSelectedItem(model.getValueAt(row, 3));
+        fill(caloriesField, (String) model.getValueAt(row, 4));
         manualModeBox.setSelected(true);
         weightField.setText("");
         addBtn.setText("Save");
         cancelEditBtn.setVisible(true);
+        updateMode();
     }
 
     private void clearForm() {
         editingId = null;
-        nameField.setText("");
-        priceField.setText("");
-        caloriesField.setText("");
-        weightField.setText("");
-        currencyBox.setSelectedItem("EUR");
+        fill(nameField, "");
+        fill(priceField, "");
+        fill(caloriesField, "");
+        fill(weightField, "");
+        if (!currencyBox.isPopupVisible()) currencyBox.setSelectedItem("EUR");
         manualModeBox.setSelected(true);
         addBtn.setText("Add");
         cancelEditBtn.setVisible(false);
         table.clearSelection();
+        updateMode();
+    }
+
+    /** Fills a field only when the user is not actively editing it, so typing is never hijacked. */
+    private void fill(JTextField field, String text) {
+        if (field.hasFocus()) return;
+        if (field.getText().equals(text)) return;
+        field.setText(text);
+        field.setCaretPosition(field.getText().length());
     }
 
     private void updateMode() {
