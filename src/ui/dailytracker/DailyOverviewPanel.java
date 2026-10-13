@@ -6,6 +6,7 @@ import db.PurchasesRepository;
 import db.StepsEntry;
 import db.StepsRepository;
 import ui.UIStyle;
+import ui.components.PieChartPanel;
 import util.AppLogger;
 import util.DateUtils;
 
@@ -28,8 +29,9 @@ public class DailyOverviewPanel extends JPanel {
     private final PurchasesRepository purchasesRepo;
     private final JComboBox<LocalDate> dateSelector;
     private final ActionListener dateListener;
-    private final DailyPieChartPanel mealPie =
-            new DailyPieChartPanel("Calories by Meal", v -> String.format("%.0f kcal", v));
+    private final PieChartPanel mealPie =
+            new PieChartPanel("Calories by Meal", "No data recorded for this date",
+                    v -> String.format("%.0f kcal", v), 230, 10);
     private final DailyBarChartPanel stepsBar = new DailyBarChartPanel();
     private final DailyBarChartPanel currencyBar = new DailyBarChartPanel();
     private final JLabel consumedVal = new JLabel("—");

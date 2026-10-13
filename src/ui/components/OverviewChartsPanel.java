@@ -21,7 +21,9 @@ public class OverviewChartsPanel extends JPanel {
     private final WorkflowRepository workflowRepo;
     private final JComboBox<String> dateSelector = new JComboBox<>();
     private final JComboBox<String> appFilter = new JComboBox<>();
-    private final PieChartPanel pieChart = new PieChartPanel();
+    private final PieChartPanel pieChart =
+            new PieChartPanel("Application Usage Distribution", "No data recorded for this day!",
+                    PieChartPanel::formatFullTime, 280, 40);
     private final BarChartPanel hourChart = new BarChartPanel();
     private final BarChartPanel weekChart = new BarChartPanel();
     private final BarChartPanel monthChart = new BarChartPanel();
