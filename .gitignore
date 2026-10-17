@@ -10,6 +10,7 @@ build/
 .github/workflows/qodana_code_quality.yml
 qodana.yaml
 inst.md
+AGENTS.md
 
 ### DB ####
 *.sqlite
