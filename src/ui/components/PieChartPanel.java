@@ -77,7 +77,7 @@ public class PieChartPanel extends JPanel {
                 Color color = colorFor(idx++, entry.getKey());
                 double pct = value * 100.0 / total;
 
-                JPanel row = new JPanel(new BorderLayout(6, 0));
+                JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
                 row.setOpaque(false);
                 row.setMaximumSize(new Dimension(legendScroll.getPreferredSize().width, Integer.MAX_VALUE));
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -85,7 +85,6 @@ public class PieChartPanel extends JPanel {
                 JLabel marker = new JLabel(" ■ ");
                 marker.setForeground(color);
                 marker.setFont(new Font("Arial", Font.BOLD, 16));
-                marker.setVerticalAlignment(SwingConstants.TOP);
 
                 int labelWidth = legendScroll.getPreferredSize().width - 30;
                 if (labelWidth < 60) labelWidth = 60;
@@ -95,8 +94,8 @@ public class PieChartPanel extends JPanel {
                 label.setForeground(new Color(220, 220, 220));
                 label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
-                row.add(marker, BorderLayout.WEST);
-                row.add(label, BorderLayout.CENTER);
+                row.add(marker);
+                row.add(label);
                 legendContainer.add(row);
             }
         }
@@ -105,11 +104,7 @@ public class PieChartPanel extends JPanel {
     }
 
     private static Color colorFor(int index, String name) {
-        if (name != null) {
-            float hue = ((name.hashCode() & Integer.MAX_VALUE) % 1000000) / 1000000.0f;
-            return Color.getHSBColor(hue, 0.65f, 0.85f);
-        }
-        return Color.getHSBColor((index * 0.61803398875f) % 1.0f, 0.65f, 0.85f);
+        return Color.getHSBColor((index * 0.361734f) % 1.0f, 0.75f, 0.9f);
     }
 
     private class PieCanvas extends JComponent {
