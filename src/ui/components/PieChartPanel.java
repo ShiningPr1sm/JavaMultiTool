@@ -77,25 +77,26 @@ public class PieChartPanel extends JPanel {
                 Color color = colorFor(idx++, entry.getKey());
                 double pct = value * 100.0 / total;
 
-                JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+                JPanel row = new JPanel();
+                row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
                 row.setOpaque(false);
-                row.setMaximumSize(new Dimension(legendScroll.getPreferredSize().width, Integer.MAX_VALUE));
+                row.setMaximumSize(new Dimension(legendScroll.getPreferredSize().width, 24));
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
 
                 JLabel marker = new JLabel(" ■ ");
                 marker.setForeground(color);
                 marker.setFont(new Font("Arial", Font.BOLD, 16));
+                marker.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-                int labelWidth = legendScroll.getPreferredSize().width - 30;
-                if (labelWidth < 60) labelWidth = 60;
-                JLabel label = new JLabel(String.format("<html><div style='width:%dpx'>%s (%.1f%% / %s)</div></html>",
-                        labelWidth,
-                        entry.getKey(), pct, formatter.apply(value)));
+                JLabel label = new JLabel(String.format("%s (%.1f%% / %s)", entry.getKey(), pct, formatter.apply(value)));
                 label.setForeground(new Color(220, 220, 220));
                 label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                label.setAlignmentY(Component.CENTER_ALIGNMENT);
 
                 row.add(marker);
+                row.add(Box.createHorizontalStrut(6));
                 row.add(label);
+                row.add(Box.createHorizontalGlue());
                 legendContainer.add(row);
             }
         }
@@ -104,7 +105,11 @@ public class PieChartPanel extends JPanel {
     }
 
     private static Color colorFor(int index, String name) {
-        return Color.getHSBColor((index * 0.361734f) % 1.0f, 0.75f, 0.9f);
+        if (name != null) {
+            float hue = ((name.hashCode() & Integer.MAX_VALUE) % 1000000) / 1000000.0f;
+            return Color.getHSBColor(hue, 0.65f, 0.85f);
+        }
+        return Color.getHSBColor((index * 0.61803398875f) % 1.0f, 0.65f, 0.85f);
     }
 
     private class PieCanvas extends JComponent {
