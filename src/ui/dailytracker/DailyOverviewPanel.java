@@ -166,6 +166,26 @@ public class DailyOverviewPanel extends JPanel {
 
     public void refresh() {
         LocalDate selected = (LocalDate) dateSelector.getSelectedItem();
+        TreeSet<LocalDate> dates = new TreeSet<>(collectRecordedDates());
+
+        LocalDate rebuiltSelection = null;
+        if (selected == null || !dates.contains(selected)) {
+            rebuiltSelection = LocalDate.now();
+        }
+
+        if (rebuiltSelection != null || dateSelector.getItemCount() != dates.size()) {
+            dateSelector.removeActionListener(dateListener);
+            dateSelector.removeAllItems();
+            for (LocalDate d : dates) dateSelector.addItem(d);
+            dateSelector.setSelectedItem(rebuiltSelection != null ? rebuiltSelection : selected);
+            dateSelector.addActionListener(dateListener);
+        }
+
+        LocalDate current = (LocalDate) dateSelector.getSelectedItem();
+        if (current != null) updateCharts(current);
+    }
+
+    private TreeSet<LocalDate> collectRecordedDates() {
         TreeSet<LocalDate> dates = new TreeSet<>();
         dates.add(LocalDate.now());
         for (String iso : queryDates("SELECT DISTINCT date FROM food_entries")) {
@@ -186,26 +206,14 @@ public class DailyOverviewPanel extends JPanel {
             } catch (Exception ignored) {
             }
         }
-
-        LocalDate rebuiltSelection = null;
-        if (selected == null || !dates.contains(selected)) {
-            rebuiltSelection = LocalDate.now();
-        }
-
-        if (rebuiltSelection != null || dateSelector.getItemCount() != dates.size()) {
-            dateSelector.removeActionListener(dateListener);
-            dateSelector.removeAllItems();
-            for (LocalDate d : dates) dateSelector.addItem(d);
-            dateSelector.setSelectedItem(rebuiltSelection != null ? rebuiltSelection : selected);
-            dateSelector.addActionListener(dateListener);
-        }
-
-        LocalDate current = (LocalDate) dateSelector.getSelectedItem();
-        if (current != null) updateCharts(current);
+        return dates;
     }
 
     private void exportJson() {
-        LocalDate[] range = promptRange();
+        TreeSet<LocalDate> known = collectRecordedDates();
+        LocalDate[] range = ExportDateRangeDialog.show(
+                SwingUtilities.getWindowAncestor(this), known,
+                known.isEmpty() ? LocalDate.now() : known.first(), LocalDate.now());
         if (range == null) return;
 
         File target = JavaFxFileChooser.saveFile(
@@ -231,47 +239,6 @@ public class DailyOverviewPanel extends JPanel {
                         StyledDialog.show(parent, "Export failed: " + ex.getMessage(), "Export JSON"));
             }
         }, "daily-export").start();
-    }
-
-    private LocalDate[] promptRange() {
-        LocalDate defaultFrom = dateSelector.getItemCount() > 0 ? dateSelector.getItemAt(0) : LocalDate.now();
-
-        JTextField fromField = new JTextField(DateUtils.toDisplay(defaultFrom));
-        JTextField toField = new JTextField(DateUtils.todayDisplay());
-        UIStyle.styleTextField(fromField);
-        UIStyle.styleTextField(toField);
-
-        JPanel panel = new JPanel(new GridLayout(0, 1, 0, 6));
-        panel.setBackground(UIStyle.SIDE_BOX);
-
-        JLabel fromLabel = new JLabel("From (dd.MM.yyyy):");
-        fromLabel.setForeground(UIStyle.TEXT_COLOR);
-        JLabel toLabel = new JLabel("To (dd.MM.yyyy):");
-        toLabel.setForeground(UIStyle.TEXT_COLOR);
-
-        panel.add(fromLabel);
-        panel.add(fromField);
-        panel.add(toLabel);
-        panel.add(toField);
-
-        boolean confirmed = StyledDialog.confirm(SwingUtilities.getWindowAncestor(this), panel, "Export date range");
-        if (!confirmed) return null;
-
-        LocalDate from;
-        LocalDate to;
-        try {
-            from = DateUtils.parseDisplay(fromField.getText().trim());
-            to = DateUtils.parseDisplay(toField.getText().trim());
-        } catch (Exception e) {
-            StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Invalid date. Use format dd.MM.yyyy.");
-            return null;
-        }
-        if (from.isAfter(to)) {
-            StyledDialog.show(SwingUtilities.getWindowAncestor(this),
-                    "'From' date must be before or equal to 'To' date.");
-            return null;
-        }
-        return new LocalDate[]{from, to};
     }
 
     private List<String> queryDates(String sql) {
