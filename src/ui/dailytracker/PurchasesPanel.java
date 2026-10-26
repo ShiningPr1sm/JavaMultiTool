@@ -13,10 +13,12 @@ import util.DateUtils;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.text.Collator;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PurchasesPanel extends JPanel {
-    private static final String[] CURRENCIES = {"RUB", "USD", "EUR", "GBP", "KZT", "UAH", "CNY", "JPY"};
+    private static final String[] CURRENCIES = {"CNY", "EUR", "GBP", "JPY", "KZT", "RUB", "UAH", "USD"};
 
     private final PurchasesRepository repo;
     private final ProductRepository productsRepo;
@@ -27,6 +29,7 @@ public class PurchasesPanel extends JPanel {
     private final JCheckBox includeCalBox;
     private final DefaultTableModel model;
     private final JTable table;
+    private final List<Integer> rowIds = new ArrayList<>();
     private final JLabel totalLabel;
     private final Runnable onDataChanged;
     private boolean reloadingCatalog;
@@ -123,7 +126,7 @@ public class PurchasesPanel extends JPanel {
         form.add(includeCalBox, c);
         c.gridwidth = 1;
 
-        model = new DefaultTableModel(new String[]{"ID", "Item", "Price", "Currency"}, 0) {
+        model = new DefaultTableModel(new String[]{"Item", "Price", "Currency"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -137,10 +140,9 @@ public class PurchasesPanel extends JPanel {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
         table.setShowVerticalLines(true);
-        table.getColumnModel().getColumn(0).setMaxWidth(60);
-        table.getColumnModel().getColumn(1).setPreferredWidth(260);
-        table.getColumnModel().getColumn(2).setPreferredWidth(100);
-        table.getColumnModel().getColumn(3).setPreferredWidth(90);
+        table.getColumnModel().getColumn(0).setPreferredWidth(260);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100);
+        table.getColumnModel().getColumn(2).setPreferredWidth(90);
         NutritionPanel.styleTable(table);
 
         JScrollPane scroll = new JScrollPane(table);
@@ -211,7 +213,7 @@ public class PurchasesPanel extends JPanel {
             StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a row to delete.");
             return;
         }
-        int id = (int) model.getValueAt(row, 0);
+        int id = rowIds.get(row);
         repo.deletePurchase(id);
         nutritionRepo.deleteByPurchaseId(id);
         AppLogger.info("Purchases: deleted entry id=" + id);
@@ -221,6 +223,7 @@ public class PurchasesPanel extends JPanel {
 
     private void refreshTable() {
         model.setRowCount(0);
+        rowIds.clear();
         String date = validDateISO();
         if (date == null) {
             totalLabel.setText("Total: -");
@@ -228,7 +231,8 @@ public class PurchasesPanel extends JPanel {
         }
         try {
             for (PurchaseEntry entry : repo.listByDate(date)) {
-                model.addRow(new Object[]{entry.id(), entry.itemName(), String.format("%.2f", entry.price()), entry.currency()});
+                rowIds.add(entry.id());
+                model.addRow(new Object[]{entry.itemName(), String.format("%.2f", entry.price()), entry.currency()});
             }
         } catch (Exception e) {
             AppLogger.error("PurchasesPanel: failed to load entries - " + e.getMessage());
@@ -257,7 +261,10 @@ public class PurchasesPanel extends JPanel {
         ProductEntry selected = (ProductEntry) catalogBox.getSelectedItem();
         reloadingCatalog = true;
         catalogBox.removeAllItems();
-        List<ProductEntry> all = productsRepo.listAll();
+        List<ProductEntry> all = new ArrayList<>(productsRepo.listAll());
+        Collator col = Collator.getInstance();
+        col.setStrength(Collator.SECONDARY);
+        all.sort((a, b) -> col.compare(a.name(), b.name()));
         for (ProductEntry p : all) catalogBox.addItem(p);
         ProductEntry match = null;
         if (selected != null) {

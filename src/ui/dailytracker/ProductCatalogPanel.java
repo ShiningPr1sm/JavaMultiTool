@@ -9,9 +9,12 @@ import util.AppLogger;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProductCatalogPanel extends JPanel {
-    private static final String[] CURRENCIES = {"", "RUB", "USD", "EUR", "GBP", "KZT", "UAH", "CNY", "JPY"};
+    private static final String[] CURRENCIES = {"", "CNY", "EUR", "GBP", "JPY", "KZT", "RUB", "UAH", "USD"};
 
     private final ProductRepository repo;
     private final Runnable onCatalogChanged;
@@ -22,6 +25,7 @@ public class ProductCatalogPanel extends JPanel {
     private final JButton addBtn, cancelEditBtn;
     private final DefaultTableModel model;
     private final JTable table;
+    private final List<Integer> rowIds = new ArrayList<>();
     private Integer editingId;
 
     public ProductCatalogPanel(ProductRepository repo, Runnable onCatalogChanged) {
@@ -98,7 +102,7 @@ public class ProductCatalogPanel extends JPanel {
 
         add(form, BorderLayout.NORTH);
 
-        model = new DefaultTableModel(new String[]{"ID", "Name", "Price", "Currency", "Calories"}, 0) {
+        model = new DefaultTableModel(new String[]{"Name", "Price", "Currency", "Calories"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -112,11 +116,10 @@ public class ProductCatalogPanel extends JPanel {
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getColumnModel().getColumn(0).setMaxWidth(60);
-        table.getColumnModel().getColumn(1).setPreferredWidth(220);
-        table.getColumnModel().getColumn(2).setPreferredWidth(90);
+        table.getColumnModel().getColumn(0).setPreferredWidth(220);
+        table.getColumnModel().getColumn(1).setPreferredWidth(90);
+        table.getColumnModel().getColumn(2).setPreferredWidth(80);
         table.getColumnModel().getColumn(3).setPreferredWidth(80);
-        table.getColumnModel().getColumn(4).setPreferredWidth(80);
         NutritionPanel.styleTable(table);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) onRowSelected();
@@ -230,11 +233,11 @@ public class ProductCatalogPanel extends JPanel {
         int row = table.getSelectedRow();
         if (row < 0) return;
         if (nameField.hasFocus()) return;
-        editingId = (int) model.getValueAt(row, 0);
-        fill(nameField, (String) model.getValueAt(row, 1));
-        fill(priceField, (String) model.getValueAt(row, 2));
-        if (!currencyBox.isPopupVisible()) currencyBox.setSelectedItem(model.getValueAt(row, 3));
-        fill(caloriesField, (String) model.getValueAt(row, 4));
+        editingId = rowIds.get(row);
+        fill(nameField, (String) model.getValueAt(row, 0));
+        fill(priceField, (String) model.getValueAt(row, 1));
+        if (!currencyBox.isPopupVisible()) currencyBox.setSelectedItem(model.getValueAt(row, 2));
+        fill(caloriesField, (String) model.getValueAt(row, 3));
         manualModeBox.setSelected(true);
         weightField.setText("");
         addBtn.setText("Save");
@@ -278,7 +281,7 @@ public class ProductCatalogPanel extends JPanel {
             StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a product to delete.");
             return;
         }
-        int id = (int) model.getValueAt(row, 0);
+        int id = rowIds.get(row);
         repo.deleteProduct(id);
         AppLogger.info("Catalog: deleted product id=" + id);
         refreshTable();
@@ -287,9 +290,14 @@ public class ProductCatalogPanel extends JPanel {
 
     private void refreshTable() {
         model.setRowCount(0);
-        for (ProductEntry p : repo.listAll()) {
+        rowIds.clear();
+        List<ProductEntry> all = new ArrayList<>(repo.listAll());
+        Collator col = Collator.getInstance();
+        col.setStrength(Collator.SECONDARY);
+        all.sort((a, b) -> col.compare(a.name(), b.name()));
+        for (ProductEntry p : all) {
+            rowIds.add(p.id());
             model.addRow(new Object[]{
-                    p.id(),
                     p.name(),
                     p.price() != null ? String.format("%.2f", p.price()) : "",
                     p.currency() != null ? p.currency() : "",

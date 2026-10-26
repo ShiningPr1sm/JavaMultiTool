@@ -14,6 +14,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.time.LocalDate;
+import java.text.Collator;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NutritionPanel extends JPanel {
@@ -25,6 +27,7 @@ public class NutritionPanel extends JPanel {
     private final JLabel caloriesLabel, weightLabel;
     private final DefaultTableModel model;
     private final JTable table;
+    private final List<Integer> rowIds = new ArrayList<>();
     private final JLabel totalLabel;
     private final Runnable onDataChanged;
     private boolean reloadingCatalog;
@@ -164,7 +167,7 @@ public class NutritionPanel extends JPanel {
         reloadCatalog();
 
         // ---------- Table ----------
-        model = new DefaultTableModel(new String[]{"ID", "Meal", "Calories"}, 0) {
+        model = new DefaultTableModel(new String[]{"Meal", "Calories"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -177,9 +180,8 @@ public class NutritionPanel extends JPanel {
         table.setGridColor(UIStyle.BORDER_COLOR);
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
-        table.getColumnModel().getColumn(0).setMaxWidth(60);
-        table.getColumnModel().getColumn(1).setPreferredWidth(280);
-        table.getColumnModel().getColumn(2).setPreferredWidth(100);
+        table.getColumnModel().getColumn(0).setPreferredWidth(280);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100);
         styleTable(table);
 
         JScrollPane scroll = new JScrollPane(table);
@@ -282,7 +284,10 @@ public class NutritionPanel extends JPanel {
         ProductEntry selected = (ProductEntry) catalogBox.getSelectedItem();
         reloadingCatalog = true;
         catalogBox.removeAllItems();
-        List<ProductEntry> all = productsRepo.listAll();
+        List<ProductEntry> all = new ArrayList<>(productsRepo.listAll());
+        Collator col = Collator.getInstance();
+        col.setStrength(Collator.SECONDARY);
+        all.sort((a, b) -> col.compare(a.name(), b.name()));
         for (ProductEntry p : all) catalogBox.addItem(p);
         if (selected != null) {
             for (ProductEntry p : all) {
@@ -301,7 +306,7 @@ public class NutritionPanel extends JPanel {
             StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a row to delete.");
             return;
         }
-        int id = (int) model.getValueAt(row, 0);
+        int id = rowIds.get(row);
         repo.deleteFood(id);
         AppLogger.info("Nutrition: deleted food entry id=" + id);
         refreshTable();
@@ -310,6 +315,7 @@ public class NutritionPanel extends JPanel {
 
     private void refreshTable() {
         model.setRowCount(0);
+        rowIds.clear();
         String date = validDateISO();
         if (date == null) {
             totalLabel.setText("Total: 0 kcal");
@@ -317,7 +323,8 @@ public class NutritionPanel extends JPanel {
         }
         try {
             for (db.FoodEntry entry : repo.listByDate(date)) {
-                model.addRow(new Object[]{entry.id(), entry.mealName(), entry.calories()});
+                rowIds.add(entry.id());
+                model.addRow(new Object[]{entry.mealName(), entry.calories()});
             }
         } catch (Exception e) {
             AppLogger.error("NutritionPanel: failed to load entries - " + e.getMessage());

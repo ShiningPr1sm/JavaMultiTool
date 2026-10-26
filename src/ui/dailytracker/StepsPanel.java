@@ -10,6 +10,8 @@ import util.DateUtils;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StepsPanel extends JPanel {
     private final StepsRepository repo;
@@ -20,6 +22,7 @@ public class StepsPanel extends JPanel {
     private JLabel hintLabel;
     private final DefaultTableModel model;
     private final JTable table;
+    private final List<Integer> rowIds = new ArrayList<>();
     private final JLabel totalLabel;
     private final Runnable onDataChanged;
 
@@ -73,7 +76,7 @@ public class StepsPanel extends JPanel {
         form.add(buildCaloriesGroup(), c);
         c.gridwidth = 1;
 
-        model = new DefaultTableModel(new String[]{"ID", "Steps", "Calories", "Mode"}, 0) {
+        model = new DefaultTableModel(new String[]{"Steps", "Calories", "Mode"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -86,10 +89,9 @@ public class StepsPanel extends JPanel {
         table.setGridColor(UIStyle.BORDER_COLOR);
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
-        table.getColumnModel().getColumn(0).setMaxWidth(60);
+        table.getColumnModel().getColumn(0).setPreferredWidth(120);
         table.getColumnModel().getColumn(1).setPreferredWidth(120);
-        table.getColumnModel().getColumn(2).setPreferredWidth(120);
-        table.getColumnModel().getColumn(3).setPreferredWidth(140);
+        table.getColumnModel().getColumn(2).setPreferredWidth(140);
         NutritionPanel.styleTable(table);
 
         JScrollPane scroll = new JScrollPane(table);
@@ -284,7 +286,7 @@ public class StepsPanel extends JPanel {
             StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a row to delete.");
             return;
         }
-        int id = (int) model.getValueAt(row, 0);
+        int id = rowIds.get(row);
         repo.deleteSteps(id);
         AppLogger.info("Steps: deleted entry id=" + id);
         refreshTable();
@@ -293,6 +295,7 @@ public class StepsPanel extends JPanel {
 
     private void refreshTable() {
         model.setRowCount(0);
+        rowIds.clear();
         String date = validDateISO();
         if (date == null) {
             totalLabel.setText("Steps: 0 | Calories: 0 kcal");
@@ -300,7 +303,8 @@ public class StepsPanel extends JPanel {
         }
         try {
             for (StepsEntry entry : repo.listByDate(date)) {
-                model.addRow(new Object[]{entry.id(), entry.steps(), entry.calories(), modeLabel(entry.calcMode())});
+                rowIds.add(entry.id());
+                model.addRow(new Object[]{entry.steps(), entry.calories(), modeLabel(entry.calcMode())});
             }
         } catch (Exception e) {
             AppLogger.error("StepsPanel: failed to load entries - " + e.getMessage());
