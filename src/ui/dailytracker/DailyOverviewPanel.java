@@ -2,6 +2,7 @@ package ui.dailytracker;
 
 import db.FoodEntry;
 import db.NutritionRepository;
+import db.PurchaseEntry;
 import db.PurchasesRepository;
 import db.StepsEntry;
 import db.StepsRepository;
@@ -22,9 +23,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -39,7 +43,7 @@ public class DailyOverviewPanel extends JPanel {
             new PieChartPanel("Calories by Meal", "No data recorded for this date",
                     v -> String.format("%.0f kcal", v), 280, 40);
     private final DailyBarChartPanel stepsBar = new DailyBarChartPanel();
-    private final DailyBarChartPanel currencyBar = new DailyBarChartPanel();
+    private final DailyBarChartPanel spentBar = new DailyBarChartPanel();
     private final JLabel consumedVal = new JLabel("—");
     private final JLabel burnedVal = new JLabel("—");
     private final JLabel balanceVal = new JLabel("—");
@@ -115,8 +119,11 @@ public class DailyOverviewPanel extends JPanel {
         chartsPanel.setBackground(UIStyle.BG_COLOR);
         chartsPanel.add(mealPie);
         chartsPanel.add(stepsBar);
-        chartsPanel.add(currencyBar);
+        chartsPanel.add(spentBar);
         chartsPanel.add(buildStatsPanel());
+
+        stepsBar.setEmptyMessage("No steps recorded in this month");
+        spentBar.setEmptyMessage("No spending recorded in this month");
 
         add(top, BorderLayout.NORTH);
         add(chartsPanel, BorderLayout.CENTER);
@@ -266,14 +273,8 @@ public class DailyOverviewPanel extends JPanel {
                 Map<String, Double> sortedMeals = sortByValueDesc(mealMap);
 
                 List<StepsEntry> stepEntries = stepsRepo.listByDate(iso);
-                double[] stepVals = new double[stepEntries.size()];
-                String[] stepLabels = new String[stepEntries.size()];
                 int stepsTotal = 0;
-                for (int i = 0; i < stepEntries.size(); i++) {
-                    stepVals[i] = stepEntries.get(i).steps();
-                    stepLabels[i] = String.valueOf(i + 1);
-                    stepsTotal += stepEntries.get(i).steps();
-                }
+                for (StepsEntry s : stepEntries) stepsTotal += s.steps();
                 int burned = stepsRepo.totalCalories(iso);
 
                 Map<String, Double> curMap = new LinkedHashMap<>();
@@ -282,14 +283,20 @@ public class DailyOverviewPanel extends JPanel {
                     curMap.merge(cur, purchasesRepo.totalForCurrency(iso, cur), Double::sum);
                 }
                 Map<String, Double> sortedCurs = sortByValueDesc(curMap);
-                double[] curVals = new double[sortedCurs.size()];
-                String[] curLabels = new String[sortedCurs.size()];
-                int i = 0;
-                for (Map.Entry<String, Double> e : sortedCurs.entrySet()) {
-                    curVals[i] = e.getValue();
-                    curLabels[i] = e.getKey();
-                    i++;
+
+                // Per-day totals for every day of the selected month.
+                YearMonth month = YearMonth.from(date);
+                int days = month.lengthOfMonth();
+                double[] stepVals = new double[days];
+                double[] spentVals = new double[days];
+                String[] dayLabels = new String[days];
+                for (int d = 0; d < days; d++) {
+                    String dayIso = DateUtils.toISO(month.atDay(d + 1));
+                    dayLabels[d] = String.valueOf(d + 1);
+                    for (StepsEntry s : stepsRepo.listByDate(dayIso)) stepVals[d] += s.steps();
+                    for (PurchaseEntry p : purchasesRepo.listByDate(dayIso)) spentVals[d] += p.price();
                 }
+                String monthTitle = month.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH));
 
                 int balance = consumed - burned;
                 Double weight = stepsRepo.getWeight();
@@ -309,10 +316,10 @@ public class DailyOverviewPanel extends JPanel {
 
                 SwingUtilities.invokeLater(() -> {
                     mealPie.setData(sortedMeals);
-                    stepsBar.setData("Steps per Record (" + DateUtils.toDisplay(date) + ")",
-                            stepVals, stepLabels, v -> String.format("%.0f", v));
-                    currencyBar.setData("Spending by Currency", curVals, curLabels,
-                            v -> String.format("%.2f", v));
+                    stepsBar.setData("Steps per Day (" + monthTitle + ")",
+                            orNull(stepVals), dayLabels, v -> String.format("%.0f", v));
+                    spentBar.setData("Spending per Day (" + monthTitle + ")",
+                            orNull(spentVals), dayLabels, v -> String.format("%.2f", v));
                     consumedVal.setText(fConsumed + " kcal");
                     burnedVal.setText(fBurned + " kcal");
                     balanceVal.setText((fBalance >= 0 ? "+" : "-") + Math.abs(fBalance) + " kcal");
@@ -332,5 +339,11 @@ public class DailyOverviewPanel extends JPanel {
                 .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
                 .forEach(e -> sorted.put(e.getKey(), e.getValue()));
         return sorted;
+    }
+
+    /** Returns the array, or null when every value is zero (the chart then shows its empty state). */
+    private static double[] orNull(double[] values) {
+        for (double v : values) if (v != 0) return values;
+        return null;
     }
 }

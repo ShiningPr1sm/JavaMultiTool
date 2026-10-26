@@ -4,10 +4,12 @@ import ui.UIStyle;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.function.Function;
 
 public class DailyBarChartPanel extends JPanel {
     private String title = "";
+    private String emptyMessage = "No data recorded for this date";
     private double[] values;
     private String[] labels;
     private Function<Double, String> formatter = v -> String.format("%.0f", v);
@@ -19,6 +21,8 @@ public class DailyBarChartPanel extends JPanel {
 
     public DailyBarChartPanel() {
         setBackground(UIStyle.SECONDARY_BG);
+        // Enables the TooltipManager so the getToolTipText(MouseEvent) override works.
+        setToolTipText("");
     }
 
     public void setData(String title, double[] values, String[] labels, Function<Double, String> formatter) {
@@ -27,6 +31,10 @@ public class DailyBarChartPanel extends JPanel {
         this.labels = labels;
         if (formatter != null) this.formatter = formatter;
         repaint();
+    }
+
+    public void setEmptyMessage(String message) {
+        this.emptyMessage = message == null ? "" : message;
     }
 
     @Override
@@ -76,13 +84,18 @@ public class DailyBarChartPanel extends JPanel {
             g2.drawRect(x + 2, y, (int) barW - 4, bh);
 
             if (bh > 8) {
-                g2.setColor(new Color(230, 230, 230));
                 String valStr = formatter.apply(v);
-                int vx = x + (int) (barW / 2) - fm.stringWidth(valStr) / 2;
-                g2.drawString(valStr, Math.max(0, vx), y - 5);
+                // Draw the value only when it actually fits into its own slot,
+                // otherwise it collides with neighboring bars' labels.
+                if (fm.stringWidth(valStr) <= (int) barW - 4) {
+                    g2.setColor(new Color(230, 230, 230));
+                    int vx = x + (int) (barW / 2) - fm.stringWidth(valStr) / 2;
+                    g2.drawString(valStr, Math.max(0, vx), y - 5);
+                }
             }
 
-            if (labels != null && labels.length > 0 && i < labels.length) {
+            if (labels != null && labels.length > 0 && i < labels.length
+                    && fm.stringWidth(labels[i]) <= (int) barW) {
                 g2.setColor(new Color(180, 180, 180));
                 String lab = labels[i];
                 int lx = x + (int) (barW / 2) - fm.stringWidth(lab) / 2;
@@ -91,11 +104,19 @@ public class DailyBarChartPanel extends JPanel {
         }
     }
 
+    @Override
+    public String getToolTipText(MouseEvent event) {
+        if (values == null || labels == null || values.length == 0) return null;
+        double slotW = (double) (getWidth() - PAD_LEFT - PAD_RIGHT) / values.length;
+        int i = (int) ((event.getX() - PAD_LEFT) / slotW);
+        if (i < 0 || i >= values.length) return null;
+        return labels[i] + ": " + formatter.apply(values[i]);
+    }
+
     private void drawEmpty(Graphics2D g2) {
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        String msg = "No data recorded for this date";
         FontMetrics fm = g2.getFontMetrics();
-        g2.drawString(msg, (getWidth() - fm.stringWidth(msg)) / 2, getHeight() / 2);
+        g2.drawString(emptyMessage, (getWidth() - fm.stringWidth(emptyMessage)) / 2, getHeight() / 2);
     }
 }
