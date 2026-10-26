@@ -9,6 +9,9 @@ import java.util.function.Function;
 
 public class PieChartPanel extends JPanel {
 
+    /** Legend text wraps every N characters of the entry name (inserts a <br>). */
+    private static final int WRAP_CHARS = 35;
+
     public static String formatFullTime(double totalSec) {
         int ss = (int) Math.round(totalSec);
         int h = ss / 3600;
@@ -80,7 +83,7 @@ public class PieChartPanel extends JPanel {
                 JPanel row = new JPanel();
                 row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
                 row.setOpaque(false);
-                row.setMaximumSize(new Dimension(legendScroll.getPreferredSize().width, 24));
+                row.setMaximumSize(new Dimension(legendScroll.getPreferredSize().width, Integer.MAX_VALUE));
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
 
                 JLabel marker = new JLabel(" ■ ");
@@ -88,10 +91,17 @@ public class PieChartPanel extends JPanel {
                 marker.setFont(new Font("Arial", Font.BOLD, 16));
                 marker.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-                JLabel label = new JLabel(String.format("%s (%.1f%% / %s)", entry.getKey(), pct, formatter.apply(value)));
+                // The name is split every WRAP_CHARS characters; the stats part
+                // always stays on its own line so "kcal" can never be cut off.
+                String nameHtml = wrapByChars(entry.getKey(), WRAP_CHARS);
+                JLabel label = new JLabel(String.format(
+                        "<html><div style='text-align:left'>%s<br>%.1f%% / %s</div></html>",
+                        nameHtml, pct, formatter.apply(value)));
                 label.setForeground(new Color(220, 220, 220));
                 label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
                 label.setAlignmentY(Component.CENTER_ALIGNMENT);
+                label.setToolTipText(String.format("%s (%.1f%% / %s)",
+                        entry.getKey(), pct, formatter.apply(value)));
 
                 row.add(marker);
                 row.add(Box.createHorizontalStrut(6));
@@ -102,6 +112,19 @@ public class PieChartPanel extends JPanel {
         }
         legendContainer.revalidate();
         legendContainer.repaint();
+    }
+
+    /** Splits text into chunks of at most n characters, joining them with <br>. */
+    private static String wrapByChars(String text, int n) {
+        if (n <= 0 || text.length() <= n) return text;
+        StringBuilder sb = new StringBuilder();
+        int pos = 0;
+        while (pos < text.length()) {
+            if (pos > 0) sb.append("<br>");
+            sb.append(text, pos, Math.min(text.length(), pos + n));
+            pos += n;
+        }
+        return sb.toString();
     }
 
     private static Color colorFor(int index, String name) {
