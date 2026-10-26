@@ -313,6 +313,22 @@ public class ComponentStyler {
 
             }
         });
+
+        // Highlight the selected tab: accent-colored title vs plain white for the rest.
+        Runnable restyle = () -> {
+            int sel = tabs.getSelectedIndex();
+            for (int i = 0; i < tabs.getTabCount(); i++) {
+                tabs.setForegroundAt(i, i == sel ? UIStyle.ACCENT_COLOR : UIStyle.TEXT_COLOR);
+            }
+        };
+        tabs.addChangeListener(e -> restyle.run());
+        tabs.addContainerListener(new java.awt.event.ContainerAdapter() {
+            @Override
+            public void componentAdded(java.awt.event.ContainerEvent e) {
+                restyle.run();
+            }
+        });
+        restyle.run();
     }
 
     public static void styleCheckbox(JCheckBox cb) {
