@@ -9,7 +9,6 @@ import java.util.function.Function;
 
 public class PieChartPanel extends JPanel {
 
-    /** Legend text wraps every N characters of the entry name (inserts a <br>). */
     private static final int WRAP_CHARS = 35;
 
     public static String formatFullTime(double totalSec) {
@@ -114,7 +113,6 @@ public class PieChartPanel extends JPanel {
         legendContainer.repaint();
     }
 
-    /** Splits text into chunks of at most n characters, joining them with <br>. */
     private static String wrapByChars(String text, int n) {
         if (n <= 0 || text.length() <= n) return text;
         StringBuilder sb = new StringBuilder();
