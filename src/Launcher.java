@@ -1,11 +1,15 @@
 import service.*;
 import service.UpdateManager.ReleaseInfo;
 import ui.SwingUpdatePrompt;
+import ui.StyledDialog;
 import util.AppLogger;
 import util.AppPaths;
 import util.ConfigManager;
+import util.SingleInstanceGuard;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -29,6 +33,18 @@ public class Launcher {
 
         AppPaths.init();
         AppLogger.init();
+
+        // Single instance: a second launch (jar or IDE) exits here before any
+        // service/DB is created; the running instance shows the error dialog.
+        if (!SingleInstanceGuard.acquire(() -> {
+            Window parent = null;
+            for (Window w : Window.getWindows()) {
+                if (w.isShowing()) { parent = w; break; }
+            }
+            StyledDialog.show(parent, SingleInstanceGuard.DUPLICATE_MESSAGE, SingleInstanceGuard.DUPLICATE_TITLE);
+        })) {
+            return;
+        }
 
         AuthService authService = new AuthService();
         AchievementService achievementService = new AchievementService();

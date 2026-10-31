@@ -10,6 +10,11 @@ public class AppPaths {
     private static final String SHINING_PR1SM = ROAMING + "/ShiningPr1sm";
     private static final String APP_DIR = SHINING_PR1SM + "/JavaMultiTool";
 
+    /** App data folder (read-only use by e.g. SingleInstanceGuard). */
+    public static String appDir() {
+        return APP_DIR;
+    }
+
     public static final String COMMON_DIR = SHINING_PR1SM;
     public static final String LOGS_DIR = APP_DIR + "/logs";
     public static final String RIGHTS_FILE = APP_DIR + "/rights.ini";
