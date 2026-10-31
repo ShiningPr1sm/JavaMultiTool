@@ -1,6 +1,7 @@
 package ui.components;
 
 import ui.UIStyle;
+import util.ColorGenerator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -127,8 +128,8 @@ public class PieChartPanel extends JPanel {
 
     private static Color colorFor(int index, String name) {
         if (name != null) {
-            float hue = ((name.hashCode() & Integer.MAX_VALUE) % 1000000) / 1000000.0f;
-            return Color.getHSBColor(hue, 0.65f, 0.85f);
+            // Deterministic golden-angle color per name (fixed saturation/lightness).
+            return ColorGenerator.colorFor(name);
         }
         return Color.getHSBColor((index * 0.61803398875f) % 1.0f, 0.65f, 0.85f);
     }

@@ -24,6 +24,14 @@ public class UIStyle {
     public static Color XP_LABEL_COLOR = new Color(180, 255, 180);
     public static Color TEXT_COLOR = Color.WHITE;
 
+    /**
+     * Scrollbar thumb color, recomputed per theme in {@link #applyTheme}:
+     * a bit darker than BUTTON_BG, but still lighter than the track (BG_COLOR).
+     * Knob: SCROLL_THUMB_FACTOR below (1.0 = old thumb = BUTTON_BG, 0.0 = track).
+     */
+    public static Color SCROLL_THUMB = new Color(34, 34, 34);
+    public static final float SCROLL_THUMB_FACTOR = 0.6f;
+
     public static void applyTheme(String themeName) {
         switch (themeName) {
             case "Original Dark" -> {
@@ -147,6 +155,15 @@ public class UIStyle {
         }
         BORDER_COLOR = SECONDARY_BG.brighter();
         BUTTON_HOVER = BUTTON_BG.brighter();
+        SCROLL_THUMB = mix(BG_COLOR, BUTTON_BG, SCROLL_THUMB_FACTOR);
+    }
+
+    /** Linear interpolation between two colors; t=0 → a, t=1 → b. */
+    private static Color mix(Color a, Color b, float t) {
+        return new Color(
+                Math.round(a.getRed()   + (b.getRed()   - a.getRed())   * t),
+                Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t),
+                Math.round(a.getBlue()  + (b.getBlue()  - a.getBlue())  * t));
     }
 
 

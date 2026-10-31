@@ -70,7 +70,7 @@ public class ComponentStyler {
         sp.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
             @Override
             protected void configureScrollBarColors() {
-                this.thumbColor = UIStyle.BUTTON_BG;
+                this.thumbColor = UIStyle.SCROLL_THUMB;
                 this.trackColor = UIStyle.BG_COLOR;
             }
             @Override protected JButton createDecreaseButton(int orientation) {
