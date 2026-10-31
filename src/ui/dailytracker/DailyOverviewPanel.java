@@ -139,15 +139,15 @@ public class DailyOverviewPanel extends JPanel {
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Segoe UI", Font.BOLD, 14));
         title.setBorder(BorderFactory.createEmptyBorder(15, 15, 5, 15));
-        title.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        title.setHorizontalAlignment(SwingConstants.LEFT);
 
         JPanel rows = new JPanel(new GridLayout(6, 2, 10, 5));
         rows.setOpaque(false);
         rows.setBorder(BorderFactory.createEmptyBorder(10, 20, 15, 20));
 
         List<String> names = List.of("Consumed:", "Burned (steps):", "Net balance:",
-                "Steps:", "Purchases:", "Weight:");
-        List<JLabel> values = List.of(consumedVal, burnedVal, balanceVal, stepsVal, purchasesVal, weightVal);
+                "Steps:", "Purchases:");
+        List<JLabel> values = List.of(consumedVal, burnedVal, balanceVal, stepsVal, purchasesVal);
 
         for (int i = 0; i < names.size(); i++) {
             JLabel n = new JLabel(names.get(i));
@@ -163,10 +163,10 @@ public class DailyOverviewPanel extends JPanel {
         Box box = Box.createVerticalBox();
         box.setBackground(UIStyle.SECONDARY_BG);
         box.setOpaque(true);
-        box.add(title);
         box.add(rows);
         box.add(Box.createVerticalGlue());
 
+        panel.add(title, BorderLayout.NORTH);
         panel.add(box, BorderLayout.CENTER);
         return panel;
     }
