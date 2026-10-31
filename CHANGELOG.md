@@ -2,18 +2,46 @@
 
 All notable changes to JMT project will be documented in this file.
 
-## [Unreleased]
-### Added
-**Photo & Video Panel:**
-- File Organizer
+## 🧩 [0.1.7] - 2026-09-20
 
-**Math Panel:**
-- Unit Converter
+# Added
+### Core:
+- Action logging has been added to all classes to facilitate debugging in case bugs occur.
+- An advanced settings feature has been added.
+  - The settings for auto-login when the app starts and for minimizing the app to the system tray upon exit have been moved there as well.
+- A new logging system has been added. Now, each time the application starts, a separate `.txt` file will be created to log the current session.
+  - If any errors occur, a notification will appear in the lower-right corner of the user’s screen indicating that a problem has occurred. Clicking on the notification will open the current session file, where you can see the error itself the [ERR] line as well as a link to create an issue on the GitHub page.
 
-**Text Panel:**
-- Find & Replace
+### Photo & Video panel:
+- A test tab called “Uniquify” has been added to Image Tools. _(It's not working very well yet 😢)_
 
+### Time:
+- A new tab has been added - "Daily Tracker”. It lets you track calories, steps, and purchases all in one place.
+- In Workflow - Overview, the ALL parameter was replaced with JavaMultiTool. This was because the ALL metric calculated the total time spent in all programs throughout the day, which didn't make any sense.
 
+# Fixed
+### Core:
+- WinChooser has been updated to a more modern version.
+- The “Skip Version” button now works correctly.
+- Unused methods and exports were removed from all classes.
+- Now you can zoom in on the avatar to adjust it to the correct size for different input image sizes.
+- All components in the Settings Panel are now displayed in the same relative positions to one another.
+- In Settings, the design of the menu item following the Change Password button has been updated to match the rest of the program.
+- The registration/login window has been fixed. (#5)
+- Now, when logging in manually again, all registered accounts specifically their passwords will be automatically hashed in the database.
+
+### Utils panel:
+- The UI in Password Generator has been updated.
+- The UI in Network Tools has been slightly updated. (#11)
+- When copying an RGB color, it is pasted into the clipboard without parentheses. Also, when selecting a color on the screen, the crosshair was slightly offset toward the center of the color, so now it’s easy to see which color will be selected when you copy it.
+
+## What's Changed
+* Fixed issue #8 by @georgiyasdemovich in https://github.com/ShiningPr1sm/JavaMultiTool/pull/9
+
+## New Contributors
+* @georgiyasdemovich made their first contribution in https://github.com/ShiningPr1sm/JavaMultiTool/pull/9
+
+**Full Changelog**: https://github.com/ShiningPr1sm/JavaMultiTool/compare/v0.1.6...v0.1.7
 
 ## 🧩 [0.1.6] - 2026-07-26
 ### HOTFIX v0.1.6
@@ -21,6 +49,8 @@ All notable changes to JMT project will be documented in this file.
 - Fixed problem with user_data.db, when u can not login into account.
 If u have this problem after 0.1.6 update, please reinstall program. All your data will be saved.
 Make sure u not delete `%appdata%/ShiningPr1sm/JavaMultiTool` folder. It contain all data that program save as your info.
+
+**Full Changelog**: https://github.com/ShiningPr1sm/JavaMultiTool/compare/v0.1.5...v0.1.6
 
 ## 🧩 [0.1.5] - 2026-07-24
 # Added
