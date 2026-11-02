@@ -5,6 +5,7 @@ import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
 import util.FFmpegUtils;
+import util.I18n;
 import util.JavaFxFileChooser;
 
 import javax.swing.*;
@@ -38,7 +39,7 @@ public class ImageConverterPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(4, 5, 4, 5);
 
-        selectBtn = new JButton("Select Images");
+        selectBtn = new JButton(I18n.t("imgs.selectImages"));
         UIStyle.styleButton(selectBtn);
         selectBtn.addActionListener(e -> selectFiles());
         top.add(selectBtn, c);
@@ -49,10 +50,11 @@ public class ImageConverterPanel extends JPanel {
         qualitySlider = new JSlider(1, 100, 85);
         UIStyle.styleSlider(qualitySlider);
         qualitySlider.setPreferredSize(new Dimension(200, 22));
-        qualityLabel = new JLabel("Quality: 85%");
+        qualityLabel = new JLabel(I18n.t("conv.quality", "85"));
         qualityLabel.setForeground(UIStyle.TEXT_COLOR);
         qualityLabel.setPreferredSize(new Dimension(110, 22));
-        qualitySlider.addChangeListener(e -> qualityLabel.setText("Quality: " + qualitySlider.getValue() + "%"));
+        qualitySlider.addChangeListener(e -> qualityLabel.setText(
+                I18n.t("conv.quality", String.valueOf(qualitySlider.getValue()))));
         formatBox.addActionListener(e -> {
             boolean lossy = !"PNG".equals(formatBox.getSelectedItem());
             qualitySlider.setEnabled(lossy);
@@ -61,7 +63,7 @@ public class ImageConverterPanel extends JPanel {
 
         JPanel formatRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         formatRow.setOpaque(false);
-        JLabel fmtLbl = new JLabel("Target Format:");
+        JLabel fmtLbl = new JLabel(I18n.t("conv.targetFormat"));
         fmtLbl.setForeground(UIStyle.TEXT_COLOR);
         formatRow.add(fmtLbl);
         formatRow.add(formatBox);
@@ -75,16 +77,16 @@ public class ImageConverterPanel extends JPanel {
 
         JPanel outRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         outRow.setOpaque(false);
-        JButton outDirBtn = new JButton("Output Folder");
+        JButton outDirBtn = new JButton(I18n.t("imgs.outputFolder"));
         UIStyle.styleButton(outDirBtn);
         outDirBtn.addActionListener(e -> chooseOutputDir());
-        outDirLabel = new JLabel("Not selected");
+        outDirLabel = new JLabel(I18n.t("imgs.notSelected"));
         outDirLabel.setForeground(UIStyle.TEXT_COLOR);
         outRow.add(outDirBtn);
         outRow.add(outDirLabel);
         top.add(outRow, c);
 
-        convertBtn = new JButton("Convert All");
+        convertBtn = new JButton(I18n.t("conv.convertAll"));
         UIStyle.styleButton(convertBtn);
         convertBtn.setEnabled(false);
         convertBtn.addActionListener(e -> convertAll());
@@ -105,25 +107,25 @@ public class ImageConverterPanel extends JPanel {
     }
 
     private void selectFiles() {
-        List<File> files = JavaFxFileChooser.openFiles("Select Images",
+        List<File> files = JavaFxFileChooser.openFiles(I18n.t("imgs.selectImages"),
                 new javafx.stage.FileChooser.ExtensionFilter(
-                        "Images (PNG, JPG, JPEG, BMP, WEBP, AVIF)",
+                        I18n.t("imgs.filterExt"),
                         "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.avif"));
         if (files == null || files.isEmpty()) return;
         selectedFiles = files;
         AppLogger.info("Converter: selected " + selectedFiles.size() + " file(s)");
-        log("Selected " + selectedFiles.size() + " file(s)");
+        log(I18n.t("imgs.selected", String.valueOf(selectedFiles.size())));
         convertBtn.setEnabled(outputDir != null);
-        selectBtn.setText("Select Images (" + selectedFiles.size() + ")");
+        selectBtn.setText(I18n.t("imgs.selectImages") + " (" + selectedFiles.size() + ")");
     }
 
     private void chooseOutputDir() {
-        File dir = JavaFxFileChooser.chooseDirectory("Choose Output Folder");
+        File dir = JavaFxFileChooser.chooseDirectory(I18n.t("imgs.chooseDir"));
         if (dir == null) return;
         outputDir = dir;
         outDirLabel.setText(outputDir.getName());
         AppLogger.info("Converter: output dir - " + outputDir);
-        log("Output: " + outputDir);
+        log(I18n.t("imgs.outputLog", outputDir.getAbsolutePath()));
         convertBtn.setEnabled(selectedFiles != null && !selectedFiles.isEmpty());
     }
 
@@ -132,16 +134,15 @@ public class ImageConverterPanel extends JPanel {
 
         Window parent = SwingUtilities.getWindowAncestor(this);
         boolean download = StyledDialog.confirmYesNo(parent,
-                "FFmpeg is required for format conversion.\nDownload it to " +
-                        MediaDownloadService.FFMPEG_EXE.getAbsolutePath() + "?",
-                "FFmpeg not found");
+                I18n.t("conv.ffmpegMissing", MediaDownloadService.FFMPEG_EXE.getAbsolutePath()),
+                I18n.t("conv.ffmpegTitle"));
         if (!download) return false;
 
         try {
             new MediaDownloadService().checkAndDownloadFFMPEG();
         } catch (IOException ex) {
             AppLogger.error("Converter: failed to download ffmpeg - " + ex.getMessage());
-            StyledDialog.show(parent, "Failed to download FFmpeg:\n" + ex.getMessage());
+            StyledDialog.show(parent, I18n.t("conv.ffmpegFail", ex.getMessage()));
             return false;
         }
         return FFmpegUtils.isAvailable();
@@ -151,7 +152,7 @@ public class ImageConverterPanel extends JPanel {
         if (selectedFiles == null || selectedFiles.isEmpty() || outputDir == null) return;
 
         if (!ensureFfmpeg()) {
-            log("Conversion cancelled: FFmpeg is not available.");
+            log(I18n.t("conv.cancelled"));
             return;
         }
 
@@ -182,11 +183,11 @@ public class ImageConverterPanel extends JPanel {
                             publish("[" + n + "/" + total + "] " + outFile.getName());
                         } else {
                             AppLogger.error("Converter: FAILED - " + outFile.getName());
-                            publish("[" + n + "/" + total + "] FAILED: " + outFile.getName());
+                            publish(I18n.t("conv.failed", String.valueOf(n), String.valueOf(total), outFile.getName()));
                         }
                     } catch (Exception ex) {
                         AppLogger.error("Converter failed: " + f.getName() + " - " + ex.getMessage());
-                        publish("Error: " + f.getName() + " - " + ex.getMessage());
+                        publish(I18n.t("common.error") + ": " + f.getName() + " - " + ex.getMessage());
                     }
                 }
                 return null;
@@ -200,7 +201,7 @@ public class ImageConverterPanel extends JPanel {
             @Override
             protected void done() {
                 AppLogger.info("Converter: done! " + processed.get() + "/" + total + " converted.");
-                log("Done! " + processed.get() + "/" + total + " converted.");
+                log(I18n.t("conv.done", String.valueOf(processed.get()), String.valueOf(total)));
                 convertBtn.setEnabled(true);
                 selectBtn.setEnabled(true);
             }

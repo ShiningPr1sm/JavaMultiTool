@@ -2,6 +2,7 @@ package ui;
 
 import db.DatabaseProvider;
 import service.Services;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +15,7 @@ public class AuthFrame extends JFrame {
 
     public AuthFrame(Services services) {
         this.services = services;
-        setTitle("MultiTool - Authentication");
+        setTitle(I18n.t("auth.frame.title"));
         UIStyle.setAppIcon(this);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -32,7 +33,7 @@ public class AuthFrame extends JFrame {
         titleLabel.setForeground(UIStyle.ACCENT_COLOR);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
 
-        JLabel subtitleLabel = new JLabel("Sign in or create an account");
+        JLabel subtitleLabel = new JLabel(I18n.t("auth.subtitle"));
         subtitleLabel.setForeground(UIStyle.TEXT_COLOR);
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
@@ -42,7 +43,7 @@ public class AuthFrame extends JFrame {
         formPanel.setPreferredSize(new Dimension(320, 340));
         formPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
-        JLabel loginLabel = new JLabel("Login:");
+        JLabel loginLabel = new JLabel(I18n.t("auth.login"));
         loginLabel.setForeground(UIStyle.TEXT_COLOR);
         loginLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         loginLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -51,7 +52,7 @@ public class AuthFrame extends JFrame {
         loginField.setMaximumSize(new Dimension(300, 35));
         UIStyle.styleTextField(loginField);
 
-        JLabel passwordLabel = new JLabel("Password:");
+        JLabel passwordLabel = new JLabel(I18n.t("auth.password"));
         passwordLabel.setForeground(UIStyle.TEXT_COLOR);
         passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -60,12 +61,12 @@ public class AuthFrame extends JFrame {
         passwordField.setMaximumSize(new Dimension(300, 35));
         UIStyle.styleTextField(passwordField);
 
-        JButton loginButton = new JButton("Login");
+        JButton loginButton = new JButton(I18n.t("auth.loginBtn"));
         loginButton.setMaximumSize(new Dimension(300, 38));
         loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         UIStyle.styleButton(loginButton);
 
-        JButton toggleButton = new JButton("Don't have an account? Create new one!");
+        JButton toggleButton = new JButton(I18n.t("auth.noAccount"));
         toggleButton.setMaximumSize(new Dimension(300, 38));
         toggleButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
         UIStyle.styleButton(toggleButton);
@@ -78,7 +79,7 @@ public class AuthFrame extends JFrame {
             String login = loginField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
             if (login.isEmpty() || password.isEmpty()) {
-                StyledDialog.show(this, "Fields cannot be empty");
+                StyledDialog.show(this, I18n.t("common.fieldsEmpty"));
                 return;
             }
             var userRepo = DatabaseProvider.getUserRepository();
@@ -89,7 +90,7 @@ public class AuthFrame extends JFrame {
                 userRepo.updateLastLoginDate(login);
                 this.dispose();
             } else {
-                StyledDialog.show(this, "Invalid login or password");
+                StyledDialog.show(this, I18n.t("auth.invalidCredentials"));
             }
         };
 
@@ -97,13 +98,13 @@ public class AuthFrame extends JFrame {
             String login = loginField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
             if (login.isEmpty() || password.isEmpty()) {
-                StyledDialog.show(this, "Fields cannot be empty");
+                StyledDialog.show(this, I18n.t("common.fieldsEmpty"));
                 return;
             }
             if (DatabaseProvider.getUserRepository().register(login, password)) {
-                StyledDialog.show(this, "Registration successful! You can now log in.");
+                StyledDialog.show(this, I18n.t("auth.registerSuccess"));
             } else {
-                StyledDialog.show(this, "Login already taken");
+                StyledDialog.show(this, I18n.t("auth.loginTaken"));
             }
         };
 
@@ -119,8 +120,8 @@ public class AuthFrame extends JFrame {
 
         toggleButton.addActionListener(e -> {
             registerMode[0] = !registerMode[0];
-            loginButton.setText(registerMode[0] ? "Register" : "Login");
-            toggleButton.setText(registerMode[0] ? "Have an account? Log in!" : "Don't have an account? Create new one!");
+            loginButton.setText(registerMode[0] ? I18n.t("auth.register") : I18n.t("auth.loginBtn"));
+            toggleButton.setText(registerMode[0] ? I18n.t("auth.haveAccount") : I18n.t("auth.noAccount"));
         });
 
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);

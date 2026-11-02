@@ -2,6 +2,7 @@ package service;
 
 import util.AppLogger;
 import util.ConfigManager;
+import util.I18n;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -72,8 +73,8 @@ public class SystemInfoService {
     }
 
     public String getSystemUptime() {
-        if (!systemBootFetched) return "Loading...";
-        if (systemBootMillis <= 0) return "Unavailable";
+        if (!systemBootFetched) return I18n.t("status.loading");
+        if (systemBootMillis <= 0) return I18n.t("status.unavailable");
         return formatUptime(System.currentTimeMillis() - systemBootMillis);
     }
 
@@ -101,7 +102,7 @@ public class SystemInfoService {
         try (Scanner s = new Scanner(new URL("https://api.ipify.org").openStream(), StandardCharsets.UTF_8)) {
             return s.useDelimiter("\\A").next();
         } catch (Exception e) {
-            return "Unavailable";
+            return I18n.t("status.unavailable");
         }
     }
 
@@ -109,7 +110,7 @@ public class SystemInfoService {
         try {
             return InetAddress.getLocalHost().getHostAddress();
         } catch (Exception e) {
-            return "Unavailable";
+            return I18n.t("status.unavailable");
         }
     }
 
@@ -128,9 +129,9 @@ public class SystemInfoService {
                 }
             }
         } catch (Exception e) {
-            return "Unavailable";
+            return I18n.t("status.unavailable");
         }
-        return "Unavailable";
+        return I18n.t("status.unavailable");
     }
 
     private String fetchGatewayIp() {
@@ -148,7 +149,7 @@ public class SystemInfoService {
         } catch (Exception e) {
             AppLogger.error("SystemInfoService: failed to fetch gateway IP - " + e.getMessage());
         }
-        return "Unavailable";
+        return I18n.t("status.unavailable");
     }
 
     private String fetchDnsServers() {
@@ -166,7 +167,7 @@ public class SystemInfoService {
         } catch (Exception e) {
             AppLogger.error("SystemInfoService: failed to fetch DNS servers - " + e.getMessage());
         }
-        return "Unavailable";
+        return I18n.t("status.unavailable");
     }
 
     private String formatUptime(long millis) {
@@ -174,11 +175,11 @@ public class SystemInfoService {
         long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60;
         long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60;
         if (hours > 0) {
-            return String.format("%dh %dm %ds", hours, minutes, seconds);
+            return I18n.t("settings.uptime.hms", String.valueOf(hours), String.valueOf(minutes), String.valueOf(seconds));
         } else if (minutes > 0) {
-            return String.format("%dm %ds", minutes, seconds);
+            return I18n.t("settings.uptime.ms", String.valueOf(minutes), String.valueOf(seconds));
         } else {
-            return String.format("%ds", seconds);
+            return I18n.t("settings.uptime.s", String.valueOf(seconds));
         }
     }
 }

@@ -6,6 +6,7 @@ import service.AuthService;
 import service.LevelService;
 import util.AppLogger;
 import util.AppPaths;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -193,14 +194,14 @@ public class HeaderPanel extends JPanel {
     private String buildLevelText() {
         int lvl = levelService.getLevel(login);
         int xp = levelService.getXP(login);
-        return String.format("Level: %d (%d XP)", lvl, xp);
+        return I18n.t("header.level", lvl, xp);
     }
 
     private String buildAchievementsText() {
         int total = achievementService.getTotalLevels();
         int user = achievementService.getUserLevels(login);
         int pct = total == 0 ? 0 : (user * 100) / total;
-        return String.format("Achievements: %d/%d (%d%%)", user, total, pct);
+        return I18n.t("header.achievements", user, total, pct);
     }
 
     private void updateLoginLabel(String nickname) {
@@ -208,10 +209,10 @@ public class HeaderPanel extends JPanel {
         String prefix = "";
         if (authService.isAdmin()) {
             roleColor = "#c200ff";
-            prefix = "Admin";
+            prefix = I18n.t("header.role.admin");
         } else if (authService.isTester()) {
             roleColor = "#64c864";
-            prefix = "Tester";
+            prefix = I18n.t("header.role.tester");
         }
 
         if (prefix.isEmpty()) {

@@ -3,6 +3,7 @@ package ui.components;
 import db.WorkflowRepository;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -24,11 +25,11 @@ public class AppsEditPanel extends JPanel {
         setLayout(new BorderLayout(0, 10));
         setBackground(UIStyle.BG_COLOR);
 
-        JLabel title = new JLabel("Edit Apps");
+        JLabel title = new JLabel(I18n.t("apps.title"));
         title.setForeground(UIStyle.ACCENT_COLOR);
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
-        String[] columns = {"EXE Name", "Display Name", "ID"};
+        String[] columns = {I18n.t("apps.col.exe"), I18n.t("apps.col.displayName"), I18n.t("apps.col.id")};
         model = new DefaultTableModel(columns, 0) {
             @Override public boolean isCellEditable(int r, int c) { return c == 1; }
         };
@@ -38,7 +39,7 @@ public class AppsEditPanel extends JPanel {
         editTable.setForeground(Color.WHITE);
         editTable.setGridColor(UIStyle.BORDER_COLOR);
         editTable.setRowHeight(30);
-        editTable.setToolTipText("Double-click on 'Display Name' to rename an application.");
+        editTable.setToolTipText(I18n.t("apps.tip.rename"));
 
         JTableHeader header = editTable.getTableHeader();
         header.setBackground(UIStyle.BG_COLOR);
@@ -67,7 +68,7 @@ public class AppsEditPanel extends JPanel {
             }
         });
 
-        JButton deleteBtn = new JButton("Delete Selected");
+        JButton deleteBtn = new JButton(I18n.t("common.deleteSelected"));
         UIStyle.styleButton(deleteBtn);
         deleteBtn.setForeground(new Color(255, 100, 100));
         deleteBtn.addActionListener(e -> {
@@ -81,7 +82,7 @@ public class AppsEditPanel extends JPanel {
             }
         });
 
-        JButton refreshBtn = new JButton("Refresh List");
+        JButton refreshBtn = new JButton(I18n.t("apps.refreshList"));
         UIStyle.styleButton(refreshBtn);
         refreshBtn.addActionListener(e -> refreshTable());
 

@@ -4,6 +4,7 @@ import db.WorkflowRepository;
 import service.RunningProcessService;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +15,7 @@ public class RunningAppsSelector {
     public static void show(Component parent, WorkflowRepository workflowRepo, Runnable onAppAdded, RunningProcessService runningProcessService) {
         JDialog dialog = new JDialog(
                 (Frame) SwingUtilities.getWindowAncestor(parent),
-                "Select Running App", true);
+                I18n.t("apps.selectRunning"), true);
         dialog.getContentPane().setBackground(UIStyle.BG_COLOR);
         dialog.setLayout(new BorderLayout());
 
@@ -29,7 +30,7 @@ public class RunningAppsSelector {
         sp.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
         UIStyle.styleScrollBar(sp);
 
-        JButton addBtn = new JButton("Add to Tracking");
+        JButton addBtn = new JButton(I18n.t("apps.addToTracking"));
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> {
             String sel = list.getSelectedValue();
@@ -44,7 +45,7 @@ public class RunningAppsSelector {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBackground(UIStyle.BG_COLOR);
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        p.add(new JLabel("<html><b style='color:gray'>Select an application:</b></html>"), BorderLayout.NORTH);
+        p.add(new JLabel("<html><b style='color:gray'>" + I18n.t("apps.selectPrompt") + "</b></html>"), BorderLayout.NORTH);
         p.add(sp, BorderLayout.CENTER);
         p.add(addBtn, BorderLayout.SOUTH);
 

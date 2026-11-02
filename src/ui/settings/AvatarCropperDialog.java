@@ -1,6 +1,7 @@
 package ui.settings;
 
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +26,7 @@ public class AvatarCropperDialog extends JDialog {
     private final int displayHeight;
 
     public AvatarCropperDialog(Frame owner, BufferedImage image) {
-        super(owner, "Crop Avatar", true);
+        super(owner, I18n.t("settings.cropTitle"), true);
         this.originalImage = image;
 
         int maxSize = 500;
@@ -47,7 +48,7 @@ public class AvatarCropperDialog extends JDialog {
 
         JLabel imageLabel = getJLabel();
 
-        JButton cropButton = new JButton("Crop and Save");
+        JButton cropButton = new JButton(I18n.t("settings.cropSave"));
         cropButton.addActionListener(e -> {
             try {
                 int sx = (int) ((selection.x - offsetX()) / effectiveScale());
@@ -67,7 +68,7 @@ public class AvatarCropperDialog extends JDialog {
                 dispose();
             } catch (RasterFormatException ex) {
                 AppLogger.error("Avatar cropper: invalid crop area - " + ex.getMessage());
-                JOptionPane.showMessageDialog(this, "Invalid crop area.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, I18n.t("settings.cropBadArea"), I18n.t("common.error"), JOptionPane.ERROR_MESSAGE);
             }
         });
 

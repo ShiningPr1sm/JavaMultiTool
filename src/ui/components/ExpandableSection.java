@@ -1,6 +1,7 @@
 package ui.components;
 
 import ui.UIStyle;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,7 +24,7 @@ public class ExpandableSection extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(UIStyle.SIDE_BOX);
 
-        mainButton = new JButton(title + "  \u25BC");
+        mainButton = new JButton(I18n.t(title) + "  \u25BC");
         UIStyle.styleSidebarMainButton(mainButton, sidebarWidth);
         mainButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainButton.setMaximumSize(new Dimension(sidebarWidth - 20, 40));
@@ -38,7 +39,7 @@ public class ExpandableSection extends JPanel {
         subPanel.setVisible(false);
 
         for (String item : items) {
-            JButton subBtn = new JButton(item);
+            JButton subBtn = new JButton(I18n.t(item));
             UIStyle.styleSidebarSubButton(subBtn, sidebarWidth);
             subBtn.addActionListener(e -> onItemClick.accept(item));
             subPanel.add(Box.createVerticalStrut(2));
@@ -55,7 +56,7 @@ public class ExpandableSection extends JPanel {
     private void toggle(int itemCount) {
         boolean isExpanding = !expanded.get();
         expanded.set(isExpanding);
-        mainButton.setText(sectionTitle + "  " + (isExpanding ? "\u25B2" : "\u25BC"));
+        mainButton.setText(I18n.t(sectionTitle) + "  " + (isExpanding ? "\u25B2" : "\u25BC"));
 
         subPanel.setVisible(true);
         int targetHeight = isExpanding ? (itemCount * 35) : 0;

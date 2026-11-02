@@ -5,6 +5,7 @@ import service.AchievementService;
 import service.BDaysService;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -34,11 +35,11 @@ public class BDaysEditPanel extends JPanel {
         setLayout(new BorderLayout(0, 10));
         setBackground(UIStyle.BG_COLOR);
 
-        JLabel title = new JLabel(" Edit Birthdays");
+        JLabel title = new JLabel(" " + I18n.t("bday.edit.title"));
         title.setForeground(UIStyle.ACCENT_COLOR);
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
-        model = new DefaultTableModel(new String[]{"ID", "Name", "Birthday"}, 0) {
+        model = new DefaultTableModel(new String[]{"ID", I18n.t("bday.col.name"), I18n.t("bday.col.birthday")}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column != 0;
@@ -56,7 +57,7 @@ public class BDaysEditPanel extends JPanel {
                     notifyDataChanged();
                 } catch (Exception ex) {
                     AppLogger.error("BDaysEditPanel: invalid birthday format: " + ex.getMessage());
-                    JOptionPane.showMessageDialog(this, "Invalid format. Use DD.MM.YYYY or DD.MM.xxxx");
+                    JOptionPane.showMessageDialog(this, I18n.t("bday.err.format"));
                     refreshTable();
                 }
             }
@@ -112,20 +113,20 @@ public class BDaysEditPanel extends JPanel {
         JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         form.setBackground(UIStyle.BG_COLOR);
 
-        JLabel nameLabel = new JLabel("Name:");
+        JLabel nameLabel = new JLabel(I18n.t("bday.col.name") + ":");
         nameLabel.setForeground(UIStyle.TEXT_COLOR);
         JTextField nameField = new JTextField(12);
         UIStyle.styleTextField(nameField);
 
-        JLabel dateLabel = new JLabel("Date (dd.MM.yyyy):");
+        JLabel dateLabel = new JLabel(I18n.t("daily.date"));
         dateLabel.setForeground(UIStyle.TEXT_COLOR);
         JTextField dateField = new JTextField(10);
-        dateField.setToolTipText("Format: dd.MM.yyyy or dd.MM.xxxx");
+        dateField.setToolTipText(I18n.t("bday.tip.format"));
         UIStyle.styleTextField(dateField);
 
-        JButton addBtn = new JButton("Add");
+        JButton addBtn = new JButton(I18n.t("common.add"));
         addBtn.setForeground(new Color(150, 255, 150));
-        JButton removeBtn = new JButton("Remove");
+        JButton removeBtn = new JButton(I18n.t("bday.remove"));
         removeBtn.setForeground(new Color(255, 150, 150));
         UIStyle.styleButton(addBtn);
         UIStyle.styleButton(removeBtn);
@@ -136,7 +137,7 @@ public class BDaysEditPanel extends JPanel {
                 String name = nameField.getText().trim();
 
                 if (name.isEmpty() || inputDate.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Please fill all fields");
+                    JOptionPane.showMessageDialog(this, I18n.t("bday.err.fill"));
                     return;
                 }
                 repo.addBirthday(name, bdaysService.uiToDb(inputDate));
@@ -148,7 +149,7 @@ public class BDaysEditPanel extends JPanel {
                 dateField.setText("");
                 nameField.setText("");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Invalid format. Use dd.MM.yyyy or dd.MM.xxxx", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, I18n.t("bday.err.format"), I18n.t("common.error"), JOptionPane.ERROR_MESSAGE);
             }
         });
         removeBtn.addActionListener(e -> {

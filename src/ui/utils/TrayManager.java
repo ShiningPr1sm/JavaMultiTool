@@ -3,6 +3,7 @@ package ui.utils;
 import ui.MainFrame;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -45,13 +46,13 @@ public class TrayManager {
             }
         });
 
-        addMenuItem("  Open MultiTool", "/icons/menu/home_icon.png", e -> showFrame());
+        addMenuItem(I18n.t("tray.open"), "/icons/menu/home_icon.png", e -> showFrame());
         swingMenu.add(createSeparator());
-        addMenuItem("  Media Downloader", "/icons/menu/download_icon.png", e -> { showFrame(); frame.openTab("Media Downloader"); });
-        addMenuItem("  Birthday Tracker", "/icons/menu/bdays_icon.png", e -> { showFrame(); frame.openTab("Birthday Tracker"); });
-        addMenuItem("  Settings", "/icons/menu/settings_icon.png", e -> { showFrame(); frame.openSettings(); });
+        addMenuItem(I18n.t("sidebar.mediaDownloader"), "/icons/menu/download_icon.png", e -> { showFrame(); frame.openTab("sidebar.mediaDownloader"); });
+        addMenuItem(I18n.t("sidebar.birthdayTracker"), "/icons/menu/bdays_icon.png", e -> { showFrame(); frame.openTab("sidebar.birthdayTracker"); });
+        addMenuItem(I18n.t("main.settings"), "/icons/menu/settings_icon.png", e -> { showFrame(); frame.openSettings(); });
         swingMenu.add(createSeparator());
-        addMenuItem("  Exit", "/icons/menu/exit_icon.png", e -> {
+        addMenuItem(I18n.t("tray.exit"), "/icons/menu/exit_icon.png", e -> {
             AppLogger.info("Tray: exit clicked, closing application.");
             System.exit(0);
         });

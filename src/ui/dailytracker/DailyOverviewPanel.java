@@ -12,6 +12,7 @@ import ui.UIStyle;
 import ui.components.PieChartPanel;
 import util.AppLogger;
 import util.DateUtils;
+import util.I18n;
 import util.JavaFxFileChooser;
 
 import javax.swing.*;
@@ -40,8 +41,8 @@ public class DailyOverviewPanel extends JPanel {
     private final JComboBox<LocalDate> dateSelector;
     private final ActionListener dateListener;
     private final PieChartPanel mealPie =
-            new PieChartPanel("Calories by Meal", "No data recorded for this date",
-                    v -> String.format("%.0f kcal", v), 280, 40);
+            new PieChartPanel(I18n.t("daily.overview.caloriesByMeal"), I18n.t("daily.overview.noData"),
+                    v -> (long) Math.round(v) + " " + I18n.t("unit.kcal"), 280, 40);
     private final DailyBarChartPanel stepsBar = new DailyBarChartPanel();
     private final DailyBarChartPanel spentBar = new DailyBarChartPanel();
     private final JLabel consumedVal = new JLabel("—");
@@ -99,11 +100,11 @@ public class DailyOverviewPanel extends JPanel {
         dateSelector.addActionListener(dateListener);
         filterPanel.add(dateSelector);
 
-        JButton exportBtn = new JButton("Export JSON");
+        JButton exportBtn = new JButton(I18n.t("daily.overview.exportJson"));
         UIStyle.styleButton(exportBtn);
         exportBtn.addActionListener(e -> exportJson());
 
-        JButton refreshBtn = new JButton("Refresh");
+        JButton refreshBtn = new JButton(I18n.t("common.refresh"));
         UIStyle.styleButton(refreshBtn);
         refreshBtn.addActionListener(e -> refresh());
 
@@ -122,8 +123,8 @@ public class DailyOverviewPanel extends JPanel {
         chartsPanel.add(spentBar);
         chartsPanel.add(buildStatsPanel());
 
-        stepsBar.setEmptyMessage("No steps recorded in this month");
-        spentBar.setEmptyMessage("No spending recorded in this month");
+        stepsBar.setEmptyMessage(I18n.t("daily.overview.noSteps"));
+        spentBar.setEmptyMessage(I18n.t("daily.overview.noSpending"));
 
         add(top, BorderLayout.NORTH);
         add(chartsPanel, BorderLayout.CENTER);
@@ -135,7 +136,7 @@ public class DailyOverviewPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(UIStyle.SECONDARY_BG);
 
-        JLabel title = new JLabel("Day Summary");
+        JLabel title = new JLabel(I18n.t("daily.overview.daySummary"));
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Segoe UI", Font.BOLD, 14));
         title.setBorder(BorderFactory.createEmptyBorder(15, 15, 5, 15));
@@ -145,8 +146,8 @@ public class DailyOverviewPanel extends JPanel {
         rows.setOpaque(false);
         rows.setBorder(BorderFactory.createEmptyBorder(10, 20, 15, 20));
 
-        List<String> names = List.of("Consumed:", "Burned (steps):", "Net balance:",
-                "Steps:", "Purchases:");
+        List<String> names = List.of(I18n.t("daily.overview.consumed"), I18n.t("daily.overview.burned"), I18n.t("daily.overview.balance"),
+                I18n.t("daily.overview.steps"), I18n.t("daily.overview.purchases"));
         List<JLabel> values = List.of(consumedVal, burnedVal, balanceVal, stepsVal, purchasesVal);
 
         for (int i = 0; i < names.size(); i++) {
@@ -224,9 +225,9 @@ public class DailyOverviewPanel extends JPanel {
         if (range == null) return;
 
         File target = JavaFxFileChooser.saveFile(
-                "Export Daily Tracker to JSON",
+                I18n.t("daily.overview.saveTitle"),
                 "dailytracker_" + DateUtils.toISO(range[0]) + "_" + DateUtils.toISO(range[1]) + ".json",
-                new javafx.stage.FileChooser.ExtensionFilter("JSON file (*.json)", "*.json"));
+                new javafx.stage.FileChooser.ExtensionFilter(I18n.t("daily.overview.jsonFile"), "*.json"));
         if (target == null) return;
 
         String selectedPath = target.getAbsolutePath();
@@ -239,11 +240,11 @@ public class DailyOverviewPanel extends JPanel {
                 Files.writeString(new File(path).toPath(), json);
                 AppLogger.info("DailyOverviewPanel: exported data to " + path);
                 SwingUtilities.invokeLater(() ->
-                        StyledDialog.show(parent, "Export completed:\n" + path, "Export JSON"));
+                        StyledDialog.show(parent, I18n.t("daily.overview.exportDone", path), I18n.t("daily.overview.exportJson")));
             } catch (Exception ex) {
                 AppLogger.error("DailyOverviewPanel: export failed - " + ex.getMessage());
                 SwingUtilities.invokeLater(() ->
-                        StyledDialog.show(parent, "Export failed: " + ex.getMessage(), "Export JSON"));
+                        StyledDialog.show(parent, I18n.t("daily.overview.exportFailed", ex.getMessage()), I18n.t("daily.overview.exportJson")));
             }
         }, "daily-export").start();
     }
@@ -296,7 +297,7 @@ public class DailyOverviewPanel extends JPanel {
                     for (StepsEntry s : stepsRepo.listByDate(dayIso)) stepVals[d] += s.steps();
                     for (PurchaseEntry p : purchasesRepo.listByDate(dayIso)) spentVals[d] += p.price();
                 }
-                String monthTitle = month.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH));
+                String monthTitle = month.format(DateTimeFormatter.ofPattern("LLLL yyyy", I18n.locale()));
 
                 int balance = consumed - burned;
                 Double weight = stepsRepo.getWeight();
@@ -316,16 +317,16 @@ public class DailyOverviewPanel extends JPanel {
 
                 SwingUtilities.invokeLater(() -> {
                     mealPie.setData(sortedMeals);
-                    stepsBar.setData("Steps per Day (" + monthTitle + ")",
+                    stepsBar.setData(I18n.t("daily.overview.stepsPerDay", monthTitle),
                             orNull(stepVals), dayLabels, v -> String.format("%.0f", v));
-                    spentBar.setData("Spending per Day (" + monthTitle + ")",
+                    spentBar.setData(I18n.t("daily.overview.spendingPerDay", monthTitle),
                             orNull(spentVals), dayLabels, v -> String.format("%.2f", v));
-                    consumedVal.setText(fConsumed + " kcal");
-                    burnedVal.setText(fBurned + " kcal");
-                    balanceVal.setText((fBalance >= 0 ? "+" : "-") + Math.abs(fBalance) + " kcal");
-                    stepsVal.setText(fSteps + " steps");
+                    consumedVal.setText(fConsumed + " " + I18n.t("unit.kcal"));
+                    burnedVal.setText(fBurned + " " + I18n.t("unit.kcal"));
+                    balanceVal.setText((fBalance >= 0 ? "+" : "-") + Math.abs(fBalance) + " " + I18n.t("unit.kcal"));
+                    stepsVal.setText(fSteps + " " + I18n.t("unit.steps"));
                     purchasesVal.setText(fPurchases);
-                    weightVal.setText(fWeight != null ? String.format("%.1f kg", fWeight) : "—");
+                    weightVal.setText(fWeight != null ? String.format("%.1f " + I18n.t("unit.kg"), fWeight) : "—");
                 });
             } catch (Exception e) {
                 AppLogger.error("DailyOverviewPanel: failed to update charts - " + e.getMessage());

@@ -4,6 +4,7 @@ import db.WorkflowRepository;
 import service.WorkflowService;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +21,7 @@ public class TaskTrackerPanel extends JPanel {
         setLayout(new BorderLayout(0, 10));
         setBackground(UIStyle.BG_COLOR);
 
-        JLabel title = new JLabel("Task Worklog | Manual");
+        JLabel title = new JLabel(I18n.t("task.title"));
         title.setForeground(UIStyle.ACCENT_COLOR);
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
@@ -50,7 +51,7 @@ public class TaskTrackerPanel extends JPanel {
         descInp.setCaretColor(Color.WHITE);
         descInp.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
 
-        JButton addBtn = new JButton("ADD NEW TASK");
+        JButton addBtn = new JButton(I18n.t("task.addNew"));
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> {
             if (!nameInp.getText().trim().isEmpty()) {
@@ -65,11 +66,11 @@ public class TaskTrackerPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
-        addForm.add(new JLabel("<html><b style='color:gray'>Task Name:</b></html>"), gbc);
+        addForm.add(new JLabel("<html><b style='color:gray'>" + I18n.t("task.name") + "</b></html>"), gbc);
         gbc.gridy = 1;
         addForm.add(nameInp, gbc);
         gbc.gridy = 2;
-        addForm.add(new JLabel("<html><b style='color:gray'>Description:</b></html>"), gbc);
+        addForm.add(new JLabel("<html><b style='color:gray'>" + I18n.t("task.desc") + "</b></html>"), gbc);
         gbc.gridy = 3;
         addForm.add(descInp, gbc);
         gbc.gridy = 4;

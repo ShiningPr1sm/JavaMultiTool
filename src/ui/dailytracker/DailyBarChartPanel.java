@@ -1,6 +1,7 @@
 package ui.dailytracker;
 
 import ui.UIStyle;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +10,7 @@ import java.util.function.Function;
 
 public class DailyBarChartPanel extends JPanel {
     private String title = "";
-    private String emptyMessage = "No data recorded for this date";
+    private String emptyMessage;
     private double[] values;
     private String[] labels;
     private Function<Double, String> formatter = v -> String.format("%.0f", v);
@@ -21,6 +22,7 @@ public class DailyBarChartPanel extends JPanel {
 
     public DailyBarChartPanel() {
         setBackground(UIStyle.SECONDARY_BG);
+        setEmptyMessage(I18n.t("daily.overview.noData"));
         // Enables the TooltipManager so the getToolTipText(MouseEvent) override works.
         setToolTipText("");
     }

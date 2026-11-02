@@ -5,6 +5,7 @@ import ui.StyledDialog;
 import util.AppLogger;
 import util.AppPaths;
 import util.ConfigManager;
+import util.I18n;
 import util.SingleInstanceGuard;
 
 import javax.swing.*;
@@ -45,6 +46,8 @@ public class Launcher {
         })) {
             return;
         }
+
+        I18n.setLanguage(ConfigManager.loadProperty("language", "en"));
 
         AuthService authService = new AuthService();
         AchievementService achievementService = new AchievementService();

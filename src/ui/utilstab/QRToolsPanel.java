@@ -10,6 +10,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import service.Services;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 import util.JavaFxFileChooser;
 
 import javax.imageio.ImageIO;
@@ -64,13 +65,13 @@ public class QRToolsPanel extends JPanel {
         ));
         inputArea.setText("https://github.com/ShiningPr1sm/JavaMultiTool");
 
-        generateBtn = new JButton("Generate QR");
+        generateBtn = new JButton(I18n.t("qr.generate"));
         UIStyle.styleButton(generateBtn);
         generateBtn.addActionListener(e -> generateQR());
 
         JPanel inputPanel = new JPanel(new BorderLayout(5, 5));
         inputPanel.setOpaque(false);
-        JLabel textAndUrl = new JLabel("Text / URL: ");
+        JLabel textAndUrl = new JLabel(I18n.t("qr.textUrl"));
         textAndUrl.setForeground(Color.white);
         inputPanel.add(textAndUrl, BorderLayout.NORTH);
         JScrollPane inputScroll = new JScrollPane(inputArea);
@@ -84,7 +85,7 @@ public class QRToolsPanel extends JPanel {
         decodePanel.setOpaque(false);
         decodePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
-        decodeBtn = new JButton("Decode QR from Image");
+        decodeBtn = new JButton(I18n.t("qr.decode"));
         UIStyle.styleButton(decodeBtn);
         decodeBtn.addActionListener(e -> decodeQR());
 
@@ -103,7 +104,7 @@ public class QRToolsPanel extends JPanel {
         qrPreview.setPreferredSize(new Dimension(250, 250));
         qrPreview.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
 
-        downloadBtn = new JButton("Download");
+        downloadBtn = new JButton(I18n.t("common.download"));
         UIStyle.styleButton(downloadBtn);
         downloadBtn.setEnabled(false);
         downloadBtn.addActionListener(e -> downloadQR());
@@ -138,15 +139,15 @@ public class QRToolsPanel extends JPanel {
     }
 
     private void decodeQR() {
-        java.io.File selectedFile = JavaFxFileChooser.openFile("Select QR Image",
-                new javafx.stage.FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp"));
+        java.io.File selectedFile = JavaFxFileChooser.openFile(I18n.t("qr.selectImage"),
+                new javafx.stage.FileChooser.ExtensionFilter(I18n.t("qr.images"), "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp"));
         if (selectedFile == null) return;
 
         new Thread(() -> {
             try {
                 BufferedImage original = ImageIO.read(selectedFile);
                 if (original == null) {
-                    SwingUtilities.invokeLater(() -> decodeResult.setText("Invalid image"));
+                    SwingUtilities.invokeLater(() -> decodeResult.setText(I18n.t("qr.invalidImage")));
                     return;
                 }
 
@@ -161,7 +162,7 @@ public class QRToolsPanel extends JPanel {
 
                 final String finalText = text;
                 SwingUtilities.invokeLater(() -> decodeResult.setText(
-                        finalText != null ? finalText : "Failed to decode QR"));
+                        finalText != null ? finalText : I18n.t("qr.decodeFail")));
                 if (finalText != null) {
                     AppLogger.info("QR decoded from " + selectedFile.getName());
                 } else {
@@ -169,7 +170,7 @@ public class QRToolsPanel extends JPanel {
                 }
             } catch (Exception ex) {
                 AppLogger.error("QR decoding failed: " + ex.getMessage());
-                SwingUtilities.invokeLater(() -> decodeResult.setText("Failed to decode QR"));
+                SwingUtilities.invokeLater(() -> decodeResult.setText(I18n.t("qr.decodeFail")));
             }
         }).start();
     }
@@ -227,7 +228,7 @@ public class QRToolsPanel extends JPanel {
             AppLogger.info("QR saved to " + file.getAbsolutePath());
         } catch (Exception ex) {
             AppLogger.error("QR download failed: " + ex.getMessage());
-            JOptionPane.showMessageDialog(this, "Failed to save QR", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, I18n.t("qr.saveFail"), I18n.t("common.error"), JOptionPane.ERROR_MESSAGE);
         }
     }
 

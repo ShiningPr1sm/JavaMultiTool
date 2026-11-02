@@ -4,6 +4,7 @@ import db.WorkflowRepository;
 import service.RunningProcessService;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,7 +28,8 @@ public class AppTrackerPanel extends JPanel {
         setLayout(new BorderLayout(0, 10));
         setBackground(UIStyle.BG_COLOR);
 
-        JLabel title = new JLabel("App Tracker | " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        JLabel title = new JLabel(I18n.t("apps.trackerTitle",
+                LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))));
         title.setForeground(UIStyle.ACCENT_COLOR);
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
@@ -42,12 +44,12 @@ public class AppTrackerPanel extends JPanel {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         btnPanel.setBackground(UIStyle.BG_COLOR);
 
-        JButton addManualBtn = new JButton("Browse EXE");
+        JButton addManualBtn = new JButton(I18n.t("apps.browseExe"));
         UIStyle.styleButton(addManualBtn);
         addManualBtn.addActionListener(e -> {
             FileDialog fd = new FileDialog(
                     (Frame) SwingUtilities.getWindowAncestor(parent),
-                    "Select EXE", FileDialog.LOAD);
+                    I18n.t("apps.selectExe"), FileDialog.LOAD);
             fd.setFile("*.exe");
             fd.setVisible(true);
             if (fd.getFile() != null) {
@@ -58,7 +60,7 @@ public class AppTrackerPanel extends JPanel {
             }
         });
 
-        JButton addRunningBtn = new JButton("Add Running");
+        JButton addRunningBtn = new JButton(I18n.t("apps.addRunning"));
         UIStyle.styleButton(addRunningBtn);
         addRunningBtn.addActionListener(e -> RunningAppsSelector.show(this, workflowRepo, onDataChanged, runningProcessService));
 

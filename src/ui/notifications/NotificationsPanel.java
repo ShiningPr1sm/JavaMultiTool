@@ -8,6 +8,7 @@ import service.NotificationService;
 import ui.HeaderPanel;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +19,6 @@ public class NotificationsPanel extends JPanel {
     private final HeaderPanel headerPanel;
     private final JPanel listPanel;
     private static final String FONT_LABEL = "Segoe UI";
-    private static final String UNKNOWN_LABEL = "Unknown";
 
     public NotificationsPanel(NotificationService notificationService, HeaderPanel headerPanel) {
         this.notificationService = notificationService;
@@ -26,7 +26,7 @@ public class NotificationsPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(UIStyle.BG_COLOR);
 
-        JLabel title = new JLabel("Notifications", SwingConstants.CENTER);
+        JLabel title = new JLabel(I18n.t("sidebar.notifications"), SwingConstants.CENTER);
         title.setForeground(UIStyle.TEXT_COLOR);
         title.setFont(new Font(FONT_LABEL, Font.BOLD, 28));
         title.setBorder(BorderFactory.createEmptyBorder(30, 0, 10, 0));
@@ -51,7 +51,7 @@ public class NotificationsPanel extends JPanel {
         List<NotificationRecord> notifications = notificationService.getActiveNotifications();
 
         if (notifications.isEmpty()) {
-            JLabel empty = new JLabel("No new notifications", SwingConstants.CENTER);
+            JLabel empty = new JLabel(I18n.t("notifications.empty"), SwingConstants.CENTER);
             empty.setForeground(Color.GRAY);
             empty.setFont(new Font(FONT_LABEL, Font.PLAIN, 16));
             empty.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -81,17 +81,15 @@ public class NotificationsPanel extends JPanel {
 
         String name = resolveName(rec);
         String text = switch (rec.getType()) {
-            case "bday_reminder" ->
-                    "<html><b>" + name + "</b> — birthday in <b>" + rec.getDaysBefore() + "</b> day" + (rec.getDaysBefore() > 1 ? "s" : "") + "</html>";
-            default ->
-                    "<html>Notification #" + rec.getId() + "</html>";
+            case "bday_reminder" -> I18n.t("notifications.bday", name, rec.getDaysBefore());
+            default -> I18n.t("notifications.generic", rec.getId());
         };
 
         JLabel textLabel = new JLabel(text);
         textLabel.setForeground(UIStyle.TEXT_COLOR);
         textLabel.setFont(new Font(FONT_LABEL, Font.PLAIN, 14));
 
-        JButton dismissBtn = new JButton("Dismiss");
+        JButton dismissBtn = new JButton(I18n.t("notifications.dismiss"));
         UIStyle.styleButton(dismissBtn);
         dismissBtn.addActionListener(e -> {
             notificationService.dismissNotification(rec.getId());
@@ -104,7 +102,7 @@ public class NotificationsPanel extends JPanel {
     }
 
     private String resolveName(NotificationRecord rec) {
-        if (!"bday_reminder".equals(rec.getType())) return UNKNOWN_LABEL;
+        if (!"bday_reminder".equals(rec.getType())) return I18n.t("notifications.unknown");
         try {
             BDaysRepository repo = DatabaseProvider.getBDaysRepository();
             var all = repo.getAllBirthdays();
@@ -112,10 +110,10 @@ public class NotificationsPanel extends JPanel {
                     .filter(b -> b.getId() == rec.getReferenceId())
                     .map(BirthdayRecord::getName)
                     .findFirst()
-                    .orElse(UNKNOWN_LABEL);
+                    .orElse(I18n.t("notifications.unknown"));
         } catch (Exception e) {
             AppLogger.error("NotificationsPanel: failed to resolve name: " + e.getMessage());
-            return UNKNOWN_LABEL;
+            return I18n.t("notifications.unknown");
         }
     }
 }

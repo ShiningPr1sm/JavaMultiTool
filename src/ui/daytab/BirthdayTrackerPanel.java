@@ -8,6 +8,7 @@ import service.UserSession;
 import ui.UIStyle;
 import ui.components.BDaysEditPanel;
 import ui.components.BDaysOverviewPanel;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,8 +27,8 @@ public class BirthdayTrackerPanel extends JPanel {
         BDaysOverviewPanel overview = new BDaysOverviewPanel(repo, bdaysService);
         BDaysEditPanel edit = new BDaysEditPanel(repo, bdaysService, achievementService, login, overview::refresh);
 
-        tabs.addTab(" Overview ", overview);
-        tabs.addTab(" Edit ", edit);
+        tabs.addTab(" " + I18n.t("bday.tab.overview") + " ", overview);
+        tabs.addTab(" " + I18n.t("bday.tab.edit") + " ", edit);
 
         add(tabs, BorderLayout.CENTER);
     }

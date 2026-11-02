@@ -3,6 +3,7 @@ package ui.achievements;
 import service.AchievementService;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -129,7 +130,7 @@ public class AchievementsPanel extends JPanel {
         xpLabel.setFont(xpLabel.getFont().deriveFont(12f));
 
         if (completed) {
-            xpLabel.setText("COMPLETED");
+            xpLabel.setText(I18n.t("ach.completed"));
             xpLabel.setForeground(UIStyle.XP_LABEL_COLOR.darker());
         } else {
             xpLabel.setText("+" + xpReward + " XP");

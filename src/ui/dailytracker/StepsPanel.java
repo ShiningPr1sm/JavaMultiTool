@@ -6,6 +6,7 @@ import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
 import util.DateUtils;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -43,7 +44,7 @@ public class StepsPanel extends JPanel {
         // Row 0: Date, Steps, Add (one row)
         c.gridx = 0;
         c.gridy = 0;
-        form.add(label("Date (dd.MM.yyyy):"), c);
+        form.add(label(I18n.t("daily.date")), c);
         c.gridx = 1;
         dateField = new JTextField(11);
         UIStyle.styleTextField(dateField);
@@ -52,7 +53,7 @@ public class StepsPanel extends JPanel {
 
         c.gridx = 3;
         c.insets = new Insets(5, 20, 5, 5);
-        form.add(label("Steps:"), c);
+        form.add(label(I18n.t("daily.steps")), c);
         c.gridx = 4;
         c.insets = new Insets(5, 5, 5, 5);
         stepsField = new JTextField(9);
@@ -60,7 +61,7 @@ public class StepsPanel extends JPanel {
         form.add(stepsField, c);
 
         c.gridx = 5;
-        JButton addBtn = new JButton("Add Entry");
+        JButton addBtn = new JButton(I18n.t("steps.addEntry"));
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> addSteps());
         form.add(addBtn, c);
@@ -69,14 +70,14 @@ public class StepsPanel extends JPanel {
         c.gridx = 0;
         c.gridy = 1;
         c.anchor = GridBagConstraints.NORTHWEST;
-        form.add(label("Calories:"), c);
+        form.add(label(I18n.t("nutrition.calories")), c);
         c.gridx = 1;
         c.gridwidth = 5;
         c.anchor = GridBagConstraints.WEST;
         form.add(buildCaloriesGroup(), c);
         c.gridwidth = 1;
 
-        model = new DefaultTableModel(new String[]{"Steps", "Calories", "Mode"}, 0) {
+        model = new DefaultTableModel(new String[]{I18n.t("daily.steps"), I18n.t("nutrition.col.calories"), I18n.t("steps.col.mode")}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -101,10 +102,10 @@ public class StepsPanel extends JPanel {
 
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setOpaque(false);
-        JButton deleteBtn = new JButton("Delete Selected");
+        JButton deleteBtn = new JButton(I18n.t("common.deleteSelected"));
         UIStyle.styleButton(deleteBtn);
         deleteBtn.addActionListener(e -> deleteSelected());
-        totalLabel = new JLabel("Steps: 0 | Calories: 0 kcal");
+        totalLabel = new JLabel(I18n.t("steps.total", "0", "0"));
         totalLabel.setForeground(UIStyle.ACCENT_COLOR);
         totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         bottom.add(deleteBtn, BorderLayout.WEST);
@@ -128,18 +129,18 @@ public class StepsPanel extends JPanel {
     }
 
     private JPanel buildCaloriesGroup() {
-        autoBtn = makeRadio("Calculate automatically from steps");
-        manualBtn = makeRadio("Enter calories manually");
+        autoBtn = makeRadio(I18n.t("steps.auto"));
+        manualBtn = makeRadio(I18n.t("steps.manual"));
         autoBtn.setSelected(true);
         ButtonGroup modeGroup = new ButtonGroup();
         modeGroup.add(autoBtn);
         modeGroup.add(manualBtn);
 
-        weightBox = new JCheckBox("Use my weight");
+        weightBox = new JCheckBox(I18n.t("steps.useWeight"));
         UIStyle.styleCheckbox(weightBox);
         weightField = new JTextField(8);
         UIStyle.styleTextField(weightField);
-        JLabel weightUnit = label("kg");
+        JLabel weightUnit = label(I18n.t("unit.kg"));
         weightUnit.setForeground(new Color(180, 180, 180));
 
         JPanel weightRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
@@ -157,7 +158,7 @@ public class StepsPanel extends JPanel {
         manualRow.add(manualLbl);
         manualRow.add(caloriesField);
 
-        hintLabel = new JLabel("Calories = steps × 0.04 (fixed coefficient)");
+        hintLabel = new JLabel(I18n.t("steps.hintFixed"));
         hintLabel.setForeground(new Color(150, 150, 150));
         hintLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         hintLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -211,26 +212,26 @@ public class StepsPanel extends JPanel {
         caloriesField.setEnabled(!auto);
         if (auto) {
             hintLabel.setText(byWeight
-                    ? "Calories = steps × weight × 0.0005"
-                    : "Calories = steps × 0.04 (fixed coefficient)");
+                    ? I18n.t("steps.hintWeight")
+                    : I18n.t("steps.hintFixed"));
         }
     }
 
     private void addSteps() {
         String dateISO = validDateISO();
         if (dateISO == null) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Invalid date. Use format dd.MM.yyyy.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.dateFormat"));
             return;
         }
         int steps;
         try {
             steps = Integer.parseInt(stepsField.getText().trim());
         } catch (NumberFormatException ex) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Steps must be a number.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.stepsNumber"));
             return;
         }
         if (steps < 0) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Steps cannot be negative.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.stepsNegative"));
             return;
         }
 
@@ -243,11 +244,11 @@ public class StepsPanel extends JPanel {
                 try {
                     weight = Double.parseDouble(weightField.getText().trim());
                 } catch (NumberFormatException ex) {
-                    StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter your weight to use the weight-based calculation.");
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("steps.err.enterWeight"));
                     return;
                 }
                 if (weight <= 0) {
-                    StyledDialog.show(SwingUtilities.windowForComponent(this), "Weight must be positive.");
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.weightPositive"));
                     return;
                 }
                 weightUsed = weight;
@@ -263,11 +264,11 @@ public class StepsPanel extends JPanel {
             try {
                 calories = Integer.parseInt(caloriesField.getText().trim());
             } catch (NumberFormatException ex) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter calories manually.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("steps.err.enterCalories"));
                 return;
             }
             if (calories < 0) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories cannot be negative.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.caloriesNegative"));
                 return;
             }
         }
@@ -283,7 +284,7 @@ public class StepsPanel extends JPanel {
     private void deleteSelected() {
         int row = table.getSelectedRow();
         if (row < 0) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a row to delete.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("steps.err.selectDelete"));
             return;
         }
         int id = rowIds.get(row);
@@ -298,7 +299,7 @@ public class StepsPanel extends JPanel {
         rowIds.clear();
         String date = validDateISO();
         if (date == null) {
-            totalLabel.setText("Steps: 0 | Calories: 0 kcal");
+            totalLabel.setText(I18n.t("steps.total", "0", "0"));
             return;
         }
         try {
@@ -309,14 +310,15 @@ public class StepsPanel extends JPanel {
         } catch (Exception e) {
             AppLogger.error("StepsPanel: failed to load entries - " + e.getMessage());
         }
-        totalLabel.setText("Steps: " + repo.totalSteps(date) + " | Calories: " + repo.totalCalories(date) + " kcal");
+        totalLabel.setText(I18n.t("steps.total",
+                String.valueOf(repo.totalSteps(date)), String.valueOf(repo.totalCalories(date))));
     }
 
     private static String modeLabel(String mode) {
         return switch (mode) {
-            case "weight" -> "By weight";
-            case "manual" -> "Manual";
-            default -> "Fixed coef.";
+            case "weight" -> I18n.t("steps.mode.weight");
+            case "manual" -> I18n.t("steps.mode.manual");
+            default -> I18n.t("steps.mode.fixed");
         };
     }
 

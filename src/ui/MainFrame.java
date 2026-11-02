@@ -20,6 +20,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
 import util.AppLogger;
 import util.AppPaths;
 import util.ConfigManager;
+import util.I18n;
 import util.VersionInfo;
 
 import javax.swing.*;
@@ -109,9 +110,9 @@ public class MainFrame extends JFrame implements AchievementCallback {
                     if (percent < 100) {
                         downloadProgress.setActive(true);
                         if (percent < 0) {
-                            downloadProgress.setProgress(0, -1, "DL " + stage);
+                            downloadProgress.setProgress(0, -1, I18n.t("update.progress", stage));
                         } else {
-                            downloadProgress.setProgress(percent, 100, "DL " + stage);
+                            downloadProgress.setProgress(percent, 100, I18n.t("update.progress", stage));
                         }
                     } else {
                         downloadProgress.setActive(false);
@@ -192,24 +193,24 @@ public class MainFrame extends JFrame implements AchievementCallback {
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
 
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(new ExpandableSection("Photo & Video",
-                new String[]{"Media Downloader", "File Organizer", "Image Tools"},
+        sidebar.add(new ExpandableSection("sidebar.photoVideo",
+                new String[]{"sidebar.mediaDownloader", "sidebar.fileOrganizer", "sidebar.imageTools"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(new ExpandableSection("Math", new String[]{"Unit Converter"},
+        sidebar.add(new ExpandableSection("sidebar.math", new String[]{"sidebar.unitConverter"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(new ExpandableSection("Text", new String[]{"Find & Replace"},
+        sidebar.add(new ExpandableSection("sidebar.text", new String[]{"sidebar.findReplace"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(new ExpandableSection("Time", new String[]{"Workflow", "Birthday Tracker", "Daily Tracker"},
+        sidebar.add(new ExpandableSection("sidebar.time", new String[]{"sidebar.workflow", "sidebar.birthdayTracker", "sidebar.dailyTracker"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebar.add(new ExpandableSection("Utils", new String[]{"Color Picker & Converter", "Password Generator", "QR Generator & Decoder", "Network Tools"},
+        sidebar.add(new ExpandableSection("sidebar.utils", new String[]{"sidebar.colorPicker", "sidebar.passwordGenerator", "sidebar.qrGenerator", "sidebar.networkTools"},
                 SIDEBAR_WIDTH, this::openTab));
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         if (services.authService().isTester()) {
-            sidebar.add(new ExpandableSection("Admin Panel", new String[]{"Admin CMD"},
+            sidebar.add(new ExpandableSection("sidebar.adminPanel", new String[]{"sidebar.adminCmd"},
                     SIDEBAR_WIDTH, this::openTab));
             sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         }
@@ -277,7 +278,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
     }
 
     private void openNotifications() {
-        openTab("Notifications");
+        openTab("sidebar.notifications");
     }
 
     public void openTab(String itemName) {
@@ -286,13 +287,13 @@ public class MainFrame extends JFrame implements AchievementCallback {
         contentPanel.removeAll();
 
         switch (itemName) {
-            case "Media Downloader" ->
+            case "sidebar.mediaDownloader" ->
                     contentPanel.add(new MediaDownloaderPanel(), BorderLayout.CENTER);
-            case "Birthday Tracker" ->
+            case "sidebar.birthdayTracker" ->
                     contentPanel.add(new BirthdayTrackerPanel(login, services.bdaysService(), services.achievementService(), services.userSession()), BorderLayout.CENTER);
-            case "Daily Tracker" ->
+            case "sidebar.dailyTracker" ->
                     contentPanel.add(new DailyTrackerPanel(), BorderLayout.CENTER);
-            case "Workflow" -> {
+            case "sidebar.workflow" -> {
                     if (workflowPanel == null) {
                         workflowPanel = new WorkflowPanel(services.workflowService(), services.runningProcessService());
                         workflowPanel.setOnPomodoroStartCallback(() ->
@@ -300,21 +301,21 @@ public class MainFrame extends JFrame implements AchievementCallback {
                     }
                     contentPanel.add(workflowPanel, BorderLayout.CENTER);
                 }
-            case "Admin CMD" ->
+            case "sidebar.adminCmd" ->
                     contentPanel.add(new AdminLogPanel(), BorderLayout.CENTER);
             case "Settings" ->
                     openSettings();
-            case "Image Tools" ->
+            case "sidebar.imageTools" ->
                     contentPanel.add(new ImageToolsPanel(services, login), BorderLayout.CENTER);
-            case "Color Picker & Converter" ->
+            case "sidebar.colorPicker" ->
                     contentPanel.add(new ui.utilstab.ColorPickerPanel(), BorderLayout.CENTER);
-            case "Password Generator" ->
+            case "sidebar.passwordGenerator" ->
                     contentPanel.add(new ui.utilstab.PasswordGeneratorPanel(services, login), BorderLayout.CENTER);
-            case "QR Generator & Decoder" ->
+            case "sidebar.qrGenerator" ->
                     contentPanel.add(new ui.utilstab.QRToolsPanel(services, login), BorderLayout.CENTER);
-            case "Network Tools" ->
+            case "sidebar.networkTools" ->
                     contentPanel.add(new ui.utilstab.NetworkToolsPanel(), BorderLayout.CENTER);
-            case "Notifications" ->
+            case "sidebar.notifications" ->
                     contentPanel.add(new ui.notifications.NotificationsPanel(services.notificationService(), headerPanel), BorderLayout.CENTER);
             default ->
                     AppLogger.error("Attempted to open unknown tab: " + itemName);
@@ -370,7 +371,19 @@ public class MainFrame extends JFrame implements AchievementCallback {
     }
 
     private void updateTitle(String location) {
-        setTitle("JMT / JavaMultiTool/" + location);
+        setTitle("JMT / JavaMultiTool/" + tabTitle(location));
+    }
+
+    /** Display name of a tab: identity strings ("Welcome"/"Settings") map to their own
+     *  keys, sidebar keys ("sidebar.xxx") translate directly. */
+    private String tabTitle(String identity) {
+        return switch (identity) {
+            case "Welcome" -> I18n.t("main.welcome");
+            case "Achievements" -> I18n.t("main.achievements");
+            case "Settings" -> I18n.t("main.settings");
+            case "sidebar.notifications" -> I18n.t(identity);
+            default -> identity.startsWith("sidebar.") ? I18n.t(identity) : identity;
+        };
     }
 
     private JPanel createFooter() {
@@ -380,7 +393,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
         footer.setPreferredSize(new Dimension(getWidth(), 40));
         footer.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
 
-        JLabel currentVerLabel = new JLabel("Current version: " + VersionInfo.getVersion());
+        JLabel currentVerLabel = new JLabel(I18n.t("main.currentVersion", VersionInfo.getVersion()));
         currentVerLabel.setForeground(Color.LIGHT_GRAY);
         currentVerLabel.setFont(currentVerLabel.getFont().deriveFont(11f));
 
@@ -405,7 +418,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
             }
         });
 
-        actualVerLabel = new JLabel("Actual version: checking...");
+        actualVerLabel = new JLabel(I18n.t("main.actualChecking"));
         actualVerLabel.setForeground(Color.LIGHT_GRAY);
         actualVerLabel.setFont(actualVerLabel.getFont().deriveFont(11f));
 
@@ -428,7 +441,7 @@ public class MainFrame extends JFrame implements AchievementCallback {
 
     private void fetchActualVersion() {
         if (!util.ConfigManager.isInternetEnabled()) {
-            actualVerLabel.setText("Actual version: unavailable");
+            actualVerLabel.setText(I18n.t("main.unavailable"));
             return;
         }
         new SwingWorker<String, Void>() {
@@ -442,9 +455,11 @@ public class MainFrame extends JFrame implements AchievementCallback {
             protected void done() {
                 try {
                     String ver = get();
-                    actualVerLabel.setText("Actual version: " + (ver != null ? ver : "unavailable"));
+                    actualVerLabel.setText(ver != null
+                            ? I18n.t("main.actualVersion", ver)
+                            : I18n.t("main.unavailable"));
                 } catch (Exception e) {
-                    actualVerLabel.setText("Actual version: unavailable");
+                    actualVerLabel.setText(I18n.t("main.unavailable"));
                 }
             }
         }.execute();

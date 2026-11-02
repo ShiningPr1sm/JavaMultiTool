@@ -4,6 +4,7 @@ import service.MediaDownloadService;
 import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,7 +16,27 @@ import java.util.List;
 import java.util.Objects;
 
 public class MediaDownloaderPanel extends JPanel {
-    private static final String PLACEHOLDER = "Paste or Enter links to social media here...";
+
+    /** Rendered placeholder (translated once; identity only for "empty?" checks). */
+    private final String placeholderText = I18n.t("media.placeholder");
+
+    /** Translates mapped keys; values without a mapping (browser names, yt-dlp formats)
+     *  render as-is and are never passed to {@link I18n#t} (which logs missing keys). */
+    private static String identityOrT(String value) {
+        String key = comboKey(value);
+        return key.equals(value) ? value : I18n.t(key);
+    }
+
+    /** Identity combo values -> i18n key (modes and "None"; browser names stay as-is). */
+    private static String comboKey(String value) {
+        return switch (value) {
+            case "Video + Audio" -> "media.mode.both";
+            case "Video only (muted)" -> "media.mode.videoOnly";
+            case "Audio only (mp3)" -> "media.mode.audioOnly";
+            case "None" -> "media.none";
+            default -> value;
+        };
+    }
 
     private JTextArea textArea;
     private JProgressBar progressBar;
@@ -57,10 +78,10 @@ public class MediaDownloaderPanel extends JPanel {
         textArea.setForeground(Color.GRAY);
         textArea.setCaretColor(Color.WHITE);
         textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textArea.setText(PLACEHOLDER);
+        textArea.setText(placeholderText);
         textArea.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
-                if (textArea.getText().equals(PLACEHOLDER)) {
+                if (textArea.getText().equals(placeholderText)) {
                     textArea.setText("");
                     textArea.setForeground(Color.WHITE);
                 }
@@ -69,7 +90,7 @@ public class MediaDownloaderPanel extends JPanel {
             public void focusLost(FocusEvent e) {
                 if (textArea.getText().isEmpty()) {
                     textArea.setForeground(Color.GRAY);
-                    textArea.setText(PLACEHOLDER);
+                    textArea.setText(placeholderText);
                 }
             }
         });
@@ -93,9 +114,18 @@ public class MediaDownloaderPanel extends JPanel {
                 "Audio only (mp3)"
         });
         UIStyle.styleComboBox(formatBox);
+        // identity values are passed to yt-dlp; only display is translated
+        formatBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, identityOrT((String) value), index, isSelected, cellHasFocus);
+                return this;
+            }
+        });
         formatBox.setPreferredSize(new Dimension(160, 30));
 
-        downloadButton = new JButton("Download");
+        downloadButton = new JButton(I18n.t("common.download"));
         UIStyle.styleButton(downloadButton);
         downloadButton.setPreferredSize(new Dimension(120, 30));
         downloadButton.addActionListener(e -> startDownloadTask());
@@ -103,11 +133,20 @@ public class MediaDownloaderPanel extends JPanel {
         thumbnailButton = new JButton(new ImageIcon(scaled));
         UIStyle.styleButton(thumbnailButton);
         thumbnailButton.setPreferredSize(new Dimension(30, 30));
-        thumbnailButton.setToolTipText("Download thumbnail");
+        thumbnailButton.setToolTipText(I18n.t("media.thumbTip"));
         thumbnailButton.addActionListener(e -> startThumbnailTask());
 
         browserComboBox = new JComboBox<>(new String[]{"None", "Firefox", "Chrome", "Edge", "Opera", "Brave"});
         UIStyle.styleComboBox(browserComboBox);
+        // "None" is translated at render; value stays EN for the browser profile lookup
+        browserComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, identityOrT((String) value), index, isSelected, cellHasFocus);
+                return this;
+            }
+        });
         browserComboBox.setPreferredSize(new Dimension(100, 30));
 
         controls.add(formatBox);
@@ -121,8 +160,8 @@ public class MediaDownloaderPanel extends JPanel {
 
     private void startDownloadTask() {
         String input = textArea.getText().trim();
-        if (input.isEmpty() || input.equals(PLACEHOLDER)) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Please enter at least one video URL!");
+        if (input.isEmpty() || input.equals(placeholderText)) {
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errUrl"));
             AppLogger.error("No URL entered.");
             return;
         }
@@ -133,14 +172,14 @@ public class MediaDownloaderPanel extends JPanel {
             if (!url.trim().isEmpty()) videoUrls.add(url.trim());
         }
         if (videoUrls.isEmpty()) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "No valid URLs found!");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errNoValid"));
             AppLogger.info("Download aborted: no valid URLs found.");
             return;
         }
 
         downloadButton.setEnabled(false);
         progressBar.setValue(0);
-        progressBar.setString("Starting download...");
+        progressBar.setString(I18n.t("media.starting"));
 
         String format = (String) formatBox.getSelectedItem();
         String browser = Objects.requireNonNull(browserComboBox.getSelectedItem()).toString().toLowerCase();
@@ -160,9 +199,12 @@ public class MediaDownloaderPanel extends JPanel {
                                 if (percent != null) {
                                     int totalProgress = (int) (((videoIndex - 1 + percent / 100.0) / videoUrls.size()) * 100);
                                     progressBar.setValue(totalProgress);
-                                    progressBar.setString("Video " + videoIndex + "/" + videoUrls.size() + " - " + percent + "%");
+                                    progressBar.setString(I18n.t("media.videoProgress",
+                                            String.valueOf(videoIndex), String.valueOf(videoUrls.size()),
+                                            String.valueOf(percent)));
                                 } else {
-                                    progressBar.setString("Video " + videoIndex + "/" + videoUrls.size() + " - " + message);
+                                    progressBar.setString(I18n.t("media.videoMsg",
+                                            String.valueOf(videoIndex), String.valueOf(videoUrls.size()), message));
                                 }
                             }));
 
@@ -170,22 +212,22 @@ public class MediaDownloaderPanel extends JPanel {
                         int finalI = i;
                         SwingUtilities.invokeLater(() ->
                                 StyledDialog.show(SwingUtilities.windowForComponent(this),
-                                        "Error downloading " + videoUrls.get(finalI) + ". Check logs for details."));
+                                        I18n.t("media.errDl", videoUrls.get(finalI))));
                     }
                 }
 
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setValue(100);
-                    progressBar.setString("All downloads completed!");
+                    progressBar.setString(I18n.t("media.allDone"));
                     downloadButton.setEnabled(true);
                     AppLogger.info("All downloads completed.");
                 });
             } catch (Exception ex) {
                 AppLogger.error("Download error: " + ex.getMessage());
                 SwingUtilities.invokeLater(() -> {
-                    progressBar.setString("Error: " + ex.getMessage());
+                    progressBar.setString(I18n.t("common.error") + ": " + ex.getMessage());
                     downloadButton.setEnabled(true);
-                    StyledDialog.show(SwingUtilities.windowForComponent(this), "An error occurred: " + ex.getMessage());
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errOccurred", ex.getMessage()));
                 });
             }
         }).start();
@@ -193,8 +235,8 @@ public class MediaDownloaderPanel extends JPanel {
 
     private void startThumbnailTask() {
         String input = textArea.getText().trim();
-        if (input.isEmpty() || input.equals(PLACEHOLDER)) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Please enter at least one video URL!");
+        if (input.isEmpty() || input.equals(placeholderText)) {
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errUrl"));
             return;
         }
 
@@ -204,14 +246,14 @@ public class MediaDownloaderPanel extends JPanel {
             if (!url.trim().isEmpty()) videoUrls.add(url.trim());
         }
         if (videoUrls.isEmpty()) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "No valid URLs found!");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errNoValid"));
             AppLogger.info("Thumbnail download aborted: no valid URLs found.");
             return;
         }
 
         thumbnailButton.setEnabled(false);
         progressBar.setValue(0);
-        progressBar.setString("Starting thumbnail download...");
+        progressBar.setString(I18n.t("media.thumbStart"));
 
         String browser = Objects.requireNonNull(browserComboBox.getSelectedItem()).toString().toLowerCase();
 
@@ -226,7 +268,8 @@ public class MediaDownloaderPanel extends JPanel {
 
                     downloadService.downloadThumbnail(videoUrl, browser, downloadFolder,
                             (message, percent) -> SwingUtilities.invokeLater(() ->
-                                    progressBar.setString("Thumbnail " + videoIndex + "/" + videoUrls.size() + " - " + message)));
+                                    progressBar.setString(I18n.t("media.thumbMsg",
+                                            String.valueOf(videoIndex), String.valueOf(videoUrls.size()), message))));
 
                     int totalProgress = (int) (((double) (i + 1) / videoUrls.size()) * 100);
                     SwingUtilities.invokeLater(() -> progressBar.setValue(totalProgress));
@@ -234,16 +277,16 @@ public class MediaDownloaderPanel extends JPanel {
 
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setValue(100);
-                    progressBar.setString("All thumbnails downloaded!");
+                    progressBar.setString(I18n.t("media.thumbDone"));
                     thumbnailButton.setEnabled(true);
                     AppLogger.info("All thumbnails downloaded.");
                 });
             } catch (Exception ex) {
                 AppLogger.error("Thumbnail download error: " + ex.getMessage());
                 SwingUtilities.invokeLater(() -> {
-                    progressBar.setString("Error: " + ex.getMessage());
+                    progressBar.setString(I18n.t("common.error") + ": " + ex.getMessage());
                     thumbnailButton.setEnabled(true);
-                    StyledDialog.show(SwingUtilities.windowForComponent(this), "An error occurred: " + ex.getMessage());
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errOccurred", ex.getMessage()));
                 });
             }
         }).start();

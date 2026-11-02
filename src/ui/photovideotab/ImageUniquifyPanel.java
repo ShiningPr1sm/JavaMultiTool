@@ -2,6 +2,7 @@ package ui.photovideotab;
 
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 import util.JavaFxFileChooser;
 
 import javax.imageio.ImageIO;
@@ -36,7 +37,7 @@ public class ImageUniquifyPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(4, 5, 4, 5);
 
-        selectBtn = new JButton("Select Image");
+        selectBtn = new JButton(I18n.t("imgs.selectImage"));
         UIStyle.styleButton(selectBtn);
         selectBtn.addActionListener(e -> selectFile());
         top.add(selectBtn, c);
@@ -44,10 +45,11 @@ public class ImageUniquifyPanel extends JPanel {
         noiseSlider = new JSlider(0, 100, 15);
         UIStyle.styleSlider(noiseSlider);
         noiseSlider.setPreferredSize(new Dimension(200, 22));
-        noiseLabel = new JLabel("Noise Intensity: 15");
+        noiseLabel = new JLabel(I18n.t("uniq.noise", "15"));
         noiseLabel.setForeground(UIStyle.TEXT_COLOR);
         noiseLabel.setPreferredSize(new Dimension(160, 22));
-        noiseSlider.addChangeListener(e -> noiseLabel.setText("Noise Intensity: " + noiseSlider.getValue()));
+        noiseSlider.addChangeListener(e -> noiseLabel.setText(
+                I18n.t("uniq.noise", String.valueOf(noiseSlider.getValue()))));
         JPanel noiseRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         noiseRow.setOpaque(false);
         noiseRow.add(noiseLabel);
@@ -56,16 +58,16 @@ public class ImageUniquifyPanel extends JPanel {
 
         JPanel outRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         outRow.setOpaque(false);
-        JButton outDirBtn = new JButton("Output Folder");
+        JButton outDirBtn = new JButton(I18n.t("imgs.outputFolder"));
         UIStyle.styleButton(outDirBtn);
         outDirBtn.addActionListener(e -> chooseOutputDir());
-        outDirLabel = new JLabel("Not selected");
+        outDirLabel = new JLabel(I18n.t("imgs.notSelected"));
         outDirLabel.setForeground(UIStyle.TEXT_COLOR);
         outRow.add(outDirBtn);
         outRow.add(outDirLabel);
         top.add(outRow, c);
 
-        processBtn = new JButton("Process");
+        processBtn = new JButton(I18n.t("uniq.process"));
         UIStyle.styleButton(processBtn);
         processBtn.setEnabled(false);
         processBtn.addActionListener(e -> process());
@@ -86,25 +88,25 @@ public class ImageUniquifyPanel extends JPanel {
     }
 
     private void selectFile() {
-        File file = JavaFxFileChooser.openFile("Select Image",
+        File file = JavaFxFileChooser.openFile(I18n.t("imgs.selectImage"),
                 new javafx.stage.FileChooser.ExtensionFilter(
-                        "Images (PNG, JPG, JPEG, BMP, WEBP)",
+                        I18n.t("imgs.filter"),
                         "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp"));
         if (file == null) return;
         selectedFile = file;
         AppLogger.info("ImageUniquify: selected - " + selectedFile.getAbsolutePath());
-        log("Selected: " + selectedFile.getName());
+        log(I18n.t("imgs.selectedOne", selectedFile.getName()));
         selectBtn.setText(selectedFile.getName());
         processBtn.setEnabled(outputDir != null);
     }
 
     private void chooseOutputDir() {
-        File dir = JavaFxFileChooser.chooseDirectory("Choose Output Folder");
+        File dir = JavaFxFileChooser.chooseDirectory(I18n.t("imgs.chooseDir"));
         if (dir == null) return;
         outputDir = dir;
         outDirLabel.setText(outputDir.getName());
         AppLogger.info("ImageUniquify: output dir - " + outputDir);
-        log("Output: " + outputDir);
+        log(I18n.t("imgs.outputLog", outputDir.getAbsolutePath()));
         processBtn.setEnabled(selectedFile != null);
     }
 

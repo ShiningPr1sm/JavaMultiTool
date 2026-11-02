@@ -2,6 +2,7 @@ package ui;
 
 import util.AppLogger;
 import util.ConfigManager;
+import util.I18n;
 
 import javax.swing.border.LineBorder;
 import javax.swing.*;
@@ -48,7 +49,7 @@ public class ErrorToast {
         JPanel topRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         topRow.setOpaque(false);
 
-        titleLabel = new JLabel("An error occurred");
+        titleLabel = new JLabel(I18n.t("toast.occurred"));
         titleLabel.setForeground(ERR_COLOR);
         titleLabel.setFont(new Font(FONT_LABEL, Font.BOLD, 13));
         topRow.add(titleLabel);

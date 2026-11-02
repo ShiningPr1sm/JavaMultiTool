@@ -1,6 +1,7 @@
 package ui;
 
 import util.MarkdownUtil;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,7 +16,7 @@ public class SwingUpdatePrompt {
 
         JDialog dialog = new JDialog();
         dialog.setUndecorated(false);
-        dialog.setTitle("New version is here!");
+        dialog.setTitle(I18n.t("update.title"));
         dialog.setModal(true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setResizable(false);
@@ -33,7 +34,7 @@ public class SwingUpdatePrompt {
         versionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         versionLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, versionLabel.getPreferredSize().height));
 
-        JLabel whatsNewLabel = new JLabel("What's new?");
+        JLabel whatsNewLabel = new JLabel(I18n.t("update.whatsNew"));
         whatsNewLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         whatsNewLabel.setForeground(UIStyle.TEXT_COLOR);
         whatsNewLabel.setBorder(new EmptyBorder(12, 0, 6, 0));
@@ -70,8 +71,8 @@ public class SwingUpdatePrompt {
         scrollPane.getViewport().setBackground(new Color(40, 40, 45));
         UIStyle.styleScrollBar(scrollPane);
 
-        JButton updateButton = new JButton("Update");
-        JButton keepButton = new JButton("Keep old version");
+        JButton updateButton = new JButton(I18n.t("update.apply"));
+        JButton keepButton = new JButton(I18n.t("update.keep"));
         UIStyle.styleButton(updateButton);
         UIStyle.styleButton(keepButton);
 

@@ -2,6 +2,7 @@ package ui.photovideotab;
 
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 import util.JavaFxFileChooser;
 
 import javax.imageio.ImageIO;
@@ -41,7 +42,7 @@ public class ResizerPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(4, 5, 4, 5);
 
-        selectBtn = new JButton("Select Images");
+        selectBtn = new JButton(I18n.t("imgs.selectImages"));
         UIStyle.styleButton(selectBtn);
         selectBtn.addActionListener(e -> selectFiles());
         top.add(selectBtn, c);
@@ -58,7 +59,7 @@ public class ResizerPanel extends JPanel {
         UIStyle.styleTextField(heightField);
         heightField.setText("600");
         dims.add(heightField);
-        keepAspectBox = new JCheckBox("Keep Aspect Ratio");
+        keepAspectBox = new JCheckBox(I18n.t("resz.keepAspect"));
         UIStyle.styleCheckbox(keepAspectBox);
         keepAspectBox.setSelected(true);
         dims.add(keepAspectBox);
@@ -67,10 +68,11 @@ public class ResizerPanel extends JPanel {
         qualitySlider = new JSlider(1, 100, 85);
         UIStyle.styleSlider(qualitySlider);
         qualitySlider.setPreferredSize(new Dimension(200, 22));
-        qualityLabel = new JLabel("Quality: 85%");
+        qualityLabel = new JLabel(I18n.t("conv.quality", "85"));
         qualityLabel.setForeground(UIStyle.TEXT_COLOR);
         qualityLabel.setPreferredSize(new Dimension(110, 22));
-        qualitySlider.addChangeListener(e -> qualityLabel.setText("Quality: " + qualitySlider.getValue() + "%"));
+        qualitySlider.addChangeListener(e -> qualityLabel.setText(
+                I18n.t("conv.quality", String.valueOf(qualitySlider.getValue()))));
         JPanel qualRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         qualRow.setOpaque(false);
         qualRow.add(qualityLabel);
@@ -79,20 +81,20 @@ public class ResizerPanel extends JPanel {
 
         JPanel outRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         outRow.setOpaque(false);
-        JButton outDirBtn = new JButton("Output Folder");
+        JButton outDirBtn = new JButton(I18n.t("imgs.outputFolder"));
         UIStyle.styleButton(outDirBtn);
         outDirBtn.addActionListener(e -> chooseOutputDir());
-        outDirLabel = new JLabel("Not selected");
+        outDirLabel = new JLabel(I18n.t("imgs.notSelected"));
         outDirLabel.setForeground(UIStyle.TEXT_COLOR);
         outRow.add(outDirBtn);
         outRow.add(outDirLabel);
         top.add(outRow, c);
 
-        jpgOutputBox = new JCheckBox("Save as JPEG");
+        jpgOutputBox = new JCheckBox(I18n.t("resz.saveJpeg"));
         UIStyle.styleCheckbox(jpgOutputBox);
         top.add(jpgOutputBox, c);
 
-        processBtn = new JButton("Process All");
+        processBtn = new JButton(I18n.t("resz.processAll"));
         UIStyle.styleButton(processBtn);
         processBtn.setEnabled(false);
         processBtn.addActionListener(e -> processAll());
@@ -113,24 +115,24 @@ public class ResizerPanel extends JPanel {
     }
 
     private void selectFiles() {
-        List<File> files = JavaFxFileChooser.openFiles("Select Images",
+        List<File> files = JavaFxFileChooser.openFiles(I18n.t("imgs.selectImages"),
                 new javafx.stage.FileChooser.ExtensionFilter(
-                        "Images (PNG, JPG, JPEG, BMP, WEBP)", "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp"));
+                        I18n.t("imgs.filter"), "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp"));
         if (files == null || files.isEmpty()) return;
         selectedFiles = files;
         AppLogger.info("Resizer: selected " + selectedFiles.size() + " file(s)");
-        log("Selected " + selectedFiles.size() + " file(s)");
+        log(I18n.t("imgs.selected", String.valueOf(selectedFiles.size())));
         processBtn.setEnabled(outputDir != null);
-        selectBtn.setText("Select Images (" + selectedFiles.size() + ")");
+        selectBtn.setText(I18n.t("imgs.selectImages") + " (" + selectedFiles.size() + ")");
     }
 
     private void chooseOutputDir() {
-        File dir = JavaFxFileChooser.chooseDirectory("Choose Output Folder");
+        File dir = JavaFxFileChooser.chooseDirectory(I18n.t("imgs.chooseDir"));
         if (dir == null) return;
         outputDir = dir;
         outDirLabel.setText(outputDir.getName());
         AppLogger.info("Resizer: output dir - " + outputDir);
-        log("Output: " + outputDir);
+        log(I18n.t("imgs.outputLog", outputDir.getAbsolutePath()));
         processBtn.setEnabled(selectedFiles != null && !selectedFiles.isEmpty());
     }
 
@@ -157,7 +159,7 @@ public class ResizerPanel extends JPanel {
                         BufferedImage img = ImageIO.read(f);
                         if (img == null) {
                             AppLogger.error("Resizer: unsupported format - " + f.getName());
-                            publish("Skipped (unsupported): " + f.getName());
+                            publish(I18n.t("resz.skipped", f.getName()));
                             continue;
                         }
 
@@ -189,7 +191,7 @@ public class ResizerPanel extends JPanel {
                         publish("[" + n + "/" + total + "] " + outFile.getName());
                     } catch (IOException ex) {
                         AppLogger.error("Resizer failed: " + f.getName() + " - " + ex.getMessage());
-                        publish("Error: " + f.getName() + " - " + ex.getMessage());
+                        publish(I18n.t("common.error") + ": " + f.getName() + " - " + ex.getMessage());
                     }
                 }
                 return null;
@@ -203,7 +205,7 @@ public class ResizerPanel extends JPanel {
             @Override
             protected void done() {
                 AppLogger.info("Resizer: done! " + processed.get() + "/" + total + " processed.");
-                log("Done! " + processed.get() + "/" + total + " processed.");
+                log(I18n.t("resz.done", String.valueOf(processed.get()), String.valueOf(total)));
                 processBtn.setEnabled(true);
                 selectBtn.setEnabled(true);
             }

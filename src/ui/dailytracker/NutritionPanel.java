@@ -7,6 +7,7 @@ import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
 import util.DateUtils;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -50,19 +51,19 @@ public class NutritionPanel extends JPanel {
         caloriesField = field(10);
         weightField = field(12);
 
-        caloriesLabel = label("Calories:");
+        caloriesLabel = label(I18n.t("nutrition.calories"));
         // Fixed width so the column doesn't jump when the text changes
         // between "Calories:" and "Calories per 100g:"
         Dimension calLabelSize = new Dimension(140, caloriesLabel.getPreferredSize().height);
         caloriesLabel.setPreferredSize(calLabelSize);
         caloriesLabel.setMinimumSize(calLabelSize);
 
-        weightLabel = label("Weight (g):");
+        weightLabel = label(I18n.t("nutrition.weight"));
 
         // "Meal:" and "Weight (g):" share column 2. Give both labels the same
         // fixed width so the column doesn't grow when Weight becomes visible
         // (that growth was pushing the Meal field and Add button to the right).
-        JLabel mealLabel = label("Meal:");
+        JLabel mealLabel = label(I18n.t("nutrition.meal"));
         int sharedLabelWidth = Math.max(mealLabel.getPreferredSize().width, weightLabel.getPreferredSize().width);
         Dimension sharedLabelSize = new Dimension(sharedLabelWidth, mealLabel.getPreferredSize().height);
         mealLabel.setPreferredSize(sharedLabelSize);
@@ -70,14 +71,14 @@ public class NutritionPanel extends JPanel {
         weightLabel.setPreferredSize(sharedLabelSize);
         weightLabel.setMinimumSize(sharedLabelSize);
 
-        JButton addBtn = new JButton("Add");
+        JButton addBtn = new JButton(I18n.t("common.add"));
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> addFood());
 
-        manualModeBox = new JCheckBox("Manual mode");
+        manualModeBox = new JCheckBox(I18n.t("nutrition.manualMode"));
         UIStyle.styleCheckbox(manualModeBox);
         manualModeBox.setSelected(true);
-        manualModeBox.setToolTipText("Checked: enter total calories. Unchecked: enter total weight and calories per 100 g.");
+        manualModeBox.setToolTipText(I18n.t("nutrition.manualModeTip"));
         manualModeBox.addActionListener(e -> updateMode());
 
         catalogBox = new JComboBox<>();
@@ -87,7 +88,7 @@ public class NutritionPanel extends JPanel {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                           boolean isSelected, boolean cellHasFocus) {
-                Object display = (value instanceof ProductEntry p) ? p.name() : "Select from catalog...";
+                Object display = (value instanceof ProductEntry p) ? p.name() : I18n.t("nutrition.selectCatalog");
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, display, index, isSelected, cellHasFocus);
                 lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                 lbl.setOpaque(true);
@@ -122,7 +123,7 @@ public class NutritionPanel extends JPanel {
 
         // Row 0: Date, Meal, Add
         c.gridy = 0;
-        c.gridx = 0; form.add(label("Date (dd.MM.yyyy):"), c);
+        c.gridx = 0; form.add(label(I18n.t("daily.date")), c);
         c.gridx = 1; form.add(dateField, c);
         c.gridx = 2; form.add(mealLabel, c);
         c.gridx = 3; form.add(mealField, c);
@@ -147,7 +148,7 @@ public class NutritionPanel extends JPanel {
         // Row 3: catalog selection
         c.gridy = 3;
         c.gridx = 0;
-        form.add(label("From catalog:"), c);
+        form.add(label(I18n.t("nutrition.fromCatalog")), c);
         c.gridx = 1;
         c.gridwidth = 4;
         form.add(catalogBox, c);
@@ -167,7 +168,7 @@ public class NutritionPanel extends JPanel {
         reloadCatalog();
 
         // ---------- Table ----------
-        model = new DefaultTableModel(new String[]{"Meal", "Calories"}, 0) {
+        model = new DefaultTableModel(new String[]{I18n.t("nutrition.col.meal"), I18n.t("nutrition.col.calories")}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -192,10 +193,10 @@ public class NutritionPanel extends JPanel {
         // ---------- Bottom bar ----------
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setOpaque(false);
-        JButton deleteBtn = new JButton("Delete Selected");
+        JButton deleteBtn = new JButton(I18n.t("common.deleteSelected"));
         UIStyle.styleButton(deleteBtn);
         deleteBtn.addActionListener(e -> deleteSelected());
-        totalLabel = new JLabel("Total: 0 kcal");
+        totalLabel = new JLabel(I18n.t("nutrition.total", "0"));
         totalLabel.setForeground(UIStyle.ACCENT_COLOR);
         totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         bottom.add(deleteBtn, BorderLayout.WEST);
@@ -221,7 +222,7 @@ public class NutritionPanel extends JPanel {
         if (date == null) return;
         String meal = mealField.getText().trim();
         if (meal.isEmpty()) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter a date and a meal name.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("nutrition.err.dateMeal"));
             return;
         }
         int calories;
@@ -229,11 +230,11 @@ public class NutritionPanel extends JPanel {
             try {
                 calories = Integer.parseInt(caloriesField.getText().trim());
             } catch (NumberFormatException ex) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories must be a number.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.caloriesNumber"));
                 return;
             }
             if (calories < 0) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories cannot be negative.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.caloriesNegative"));
                 return;
             }
         } else {
@@ -242,21 +243,21 @@ public class NutritionPanel extends JPanel {
             try {
                 weight = Double.parseDouble(weightField.getText().trim());
             } catch (NumberFormatException ex) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter the total weight in grams.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.enterWeight"));
                 return;
             }
             try {
                 per100 = Double.parseDouble(caloriesField.getText().trim());
             } catch (NumberFormatException ex) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter calories per 100 g.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.enterCalories100"));
                 return;
             }
             if (weight <= 0) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Weight must be positive.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.weightPositive"));
                 return;
             }
             if (per100 < 0) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories per 100 g cannot be negative.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.calories100Negative"));
                 return;
             }
             calories = (int) Math.round(weight / 100.0 * per100);
@@ -272,7 +273,7 @@ public class NutritionPanel extends JPanel {
 
     private void updateMode() {
         boolean manual = manualModeBox.isSelected();
-        caloriesLabel.setText(manual ? "Calories:" : "Calories per 100g:");
+        caloriesLabel.setText(manual ? I18n.t("nutrition.calories") : I18n.t("nutrition.per100"));
         // Hiding is safe here: the columns holding Weight are still sized
         // by the Meal label/field in the row above
         weightLabel.setVisible(!manual);
@@ -285,7 +286,7 @@ public class NutritionPanel extends JPanel {
         reloadingCatalog = true;
         catalogBox.removeAllItems();
         List<ProductEntry> all = new ArrayList<>(productsRepo.listAll());
-        Collator col = Collator.getInstance();
+        Collator col = Collator.getInstance(I18n.locale());
         col.setStrength(Collator.SECONDARY);
         all.sort((a, b) -> col.compare(a.name(), b.name()));
         for (ProductEntry p : all) catalogBox.addItem(p);
@@ -318,7 +319,7 @@ public class NutritionPanel extends JPanel {
         rowIds.clear();
         String date = validDateISO();
         if (date == null) {
-            totalLabel.setText("Total: 0 kcal");
+            totalLabel.setText(I18n.t("nutrition.total", "0"));
             return;
         }
         try {
@@ -329,19 +330,19 @@ public class NutritionPanel extends JPanel {
         } catch (Exception e) {
             AppLogger.error("NutritionPanel: failed to load entries - " + e.getMessage());
         }
-        totalLabel.setText("Total: " + repo.totalCalories(date) + " kcal");
+        totalLabel.setText(I18n.t("nutrition.total", String.valueOf(repo.totalCalories(date))));
     }
 
     private LocalDate parseDateField() {
         String text = dateField.getText().trim();
         if (text.isEmpty()) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter a date (dd.MM.yyyy).");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.enterDate"));
             return null;
         }
         try {
             return DateUtils.parseDisplay(text);
         } catch (Exception ex) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Invalid date. Use format dd.MM.yyyy.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.dateFormat"));
             return null;
         }
     }

@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.List;
+import util.I18n;
 
 public class BarChartPanel extends JPanel {
     private int[] values;
@@ -37,8 +38,10 @@ public class BarChartPanel extends JPanel {
         double barWidth = (double) width / values.length;
         int col = (int) ((e.getX() - PADDING_LEFT) / barWidth);
         if (col >= 0 && col < values.length) {
-            String dateLabel = (labels != null && col < labels.length) ? labels[col] : "Index: " + col;
-            setToolTipText("<html><b>" + dateLabel + "</b><br>Time: " + formatShortTime(values[col]) + "</html>");
+            String dateLabel = (labels != null && col < labels.length) ? labels[col]
+                    : I18n.t("chart.index", String.valueOf(col));
+            setToolTipText("<html><b>" + dateLabel + "</b><br>"
+                    + I18n.t("chart.time") + " " + formatShortTime(values[col]) + "</html>");
         } else {
             setToolTipText(null);
         }
@@ -150,7 +153,7 @@ public class BarChartPanel extends JPanel {
 
     private void drawEmptyMessage(Graphics2D g2) {
         g2.setColor(Color.GRAY);
-        String msg = "No data recorded";
+        String msg = I18n.t("chart.noData");
         FontMetrics fm = g2.getFontMetrics();
         g2.drawString(msg, (getWidth() - fm.stringWidth(msg)) / 2, getHeight() / 2);
     }

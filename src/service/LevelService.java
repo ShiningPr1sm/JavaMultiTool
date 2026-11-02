@@ -1,6 +1,7 @@
 package service;
 
 import db.DatabaseProvider;
+import util.I18n;
 
 public class LevelService {
 
@@ -25,7 +26,7 @@ public class LevelService {
         var repo = DatabaseProvider.getLevelRepository();
         int lvl = repo.getLevel(login);
         int xp = repo.getXP(login);
-        return String.format("Level: %d (%d XP)", lvl, xp);
+        return I18n.t("header.level", String.valueOf(lvl), String.valueOf(xp));
     }
 
     public int calculateLevel(int xp) {

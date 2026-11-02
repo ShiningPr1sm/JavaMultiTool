@@ -2,6 +2,7 @@ package ui.dailytracker;
 
 import ui.StyledDialog;
 import ui.UIStyle;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +21,7 @@ import java.util.function.Consumer;
 public class ExportDateRangeDialog extends JDialog {
 
     private static final Font MONTH_FONT = new Font("Segoe UI", Font.BOLD, 13);
-    private static final String[] WEEKDAYS = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
+    private static final String[] WEEKDAYS = {"wd.mo", "wd.tu", "wd.we", "wd.th", "wd.fr", "wd.sa", "wd.su"};
 
     public static LocalDate[] show(Window parent, Set<LocalDate> recordedDates,
                                    LocalDate initialFrom, LocalDate initialTo) {
@@ -49,19 +50,19 @@ public class ExportDateRangeDialog extends JDialog {
                 BorderFactory.createLineBorder(UIStyle.BORDER_COLOR, 1),
                 BorderFactory.createEmptyBorder(18, 22, 18, 22)));
 
-        JLabel title = new JLabel("Select export range", SwingConstants.CENTER);
+        JLabel title = new JLabel(I18n.t("daily.range.title"), SwingConstants.CENTER);
         title.setForeground(UIStyle.TEXT_COLOR);
         title.setFont(MONTH_FONT);
 
         JPanel calendars = new JPanel(new GridLayout(1, 2, 25, 0));
         calendars.setOpaque(false);
-        calendars.add(buildCalendarColumn("From:", fromCal));
-        calendars.add(buildCalendarColumn("To:", toCal));
+        calendars.add(buildCalendarColumn(I18n.t("daily.range.from"), fromCal));
+        calendars.add(buildCalendarColumn(I18n.t("daily.range.to"), toCal));
 
-        JButton okBtn = new JButton("OK");
+        JButton okBtn = new JButton(I18n.t("common.ok"));
         UIStyle.styleButton(okBtn);
         okBtn.setPreferredSize(new Dimension(100, 32));
-        JButton cancelBtn = new JButton("Cancel");
+        JButton cancelBtn = new JButton(I18n.t("common.cancel"));
         UIStyle.styleButton(cancelBtn);
         cancelBtn.setPreferredSize(new Dimension(100, 32));
 
@@ -69,7 +70,7 @@ public class ExportDateRangeDialog extends JDialog {
             LocalDate from = fromCal.getSelected();
             LocalDate to = toCal.getSelected();
             if (from == null || to == null) {
-                StyledDialog.show(this, "Select both dates.");
+                StyledDialog.show(this, I18n.t("daily.range.selectBoth"));
                 return;
             }
             if (from.isAfter(to)) {
@@ -132,8 +133,8 @@ public class ExportDateRangeDialog extends JDialog {
     }
 
     private static String monthText(YearMonth month) {
-        return month.format(DateTimeFormatter.ofPattern("MMMM yyyy")
-                .withLocale(java.util.Locale.ENGLISH));
+        return month.format(DateTimeFormatter.ofPattern("LLLL yyyy")
+                .withLocale(I18n.locale()));
     }
 
     /** Flat arrow button in the app style: themed background + hand-painted triangle. */
@@ -241,7 +242,7 @@ public class ExportDateRangeDialog extends JDialog {
             g2.setFont(new Font("Segoe UI", Font.PLAIN, 11));
             g2.setColor(UIStyle.ACCENT_COLOR);
             for (int i = 0; i < WEEKDAYS.length; i++) {
-                String wd = WEEKDAYS[i];
+                String wd = I18n.t(WEEKDAYS[i]);
                 FontMetrics fm = g2.getFontMetrics();
                 int tx = (int) (x0 + i * cellW + (cellW - fm.stringWidth(wd)) / 2);
                 g2.drawString(wd, tx, 14);

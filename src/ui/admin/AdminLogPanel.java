@@ -2,6 +2,7 @@ package ui.admin;
 
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -40,7 +41,7 @@ public class AdminLogPanel extends JPanel {
 
         add(scrollPane, BorderLayout.CENTER);
 
-        JButton clearBtn = new JButton("Clear Console");
+        JButton clearBtn = new JButton(I18n.t("admin.clearConsole"));
         UIStyle.styleButton(clearBtn);
         clearBtn.addActionListener(e -> textPane.setText(""));
         add(clearBtn, BorderLayout.SOUTH);

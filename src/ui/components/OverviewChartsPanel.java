@@ -4,6 +4,7 @@ import db.StatResult;
 import db.WorkflowRepository;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 import util.JavaFxFileChooser;
 
 import javax.imageio.ImageIO;
@@ -22,7 +23,7 @@ public class OverviewChartsPanel extends JPanel {
     private final JComboBox<String> dateSelector = new JComboBox<>();
     private final JComboBox<String> appFilter = new JComboBox<>();
     private final PieChartPanel pieChart =
-            new PieChartPanel("Application Usage Distribution", "No data recorded for this day!",
+            new PieChartPanel(I18n.t("charts.appUsage"), I18n.t("charts.noDataDay"),
                     PieChartPanel::formatFullTime, 280, 40);
     private final BarChartPanel hourChart = new BarChartPanel();
     private final BarChartPanel weekChart = new BarChartPanel();
@@ -83,16 +84,16 @@ public class OverviewChartsPanel extends JPanel {
         dateSelector.addActionListener(autoUpdateListener);
         appFilter.addActionListener(autoUpdateListener);
 
-        filterPanel.add(new JLabel("<html><b style='color:white'>Date:</b></html>"));
+        filterPanel.add(new JLabel("<html><b style='color:white'>" + I18n.t("charts.date") + "</b></html>"));
         filterPanel.add(dateSelector);
-        filterPanel.add(new JLabel("<html><b style='color:white'>App:</b></html>"));
+        filterPanel.add(new JLabel("<html><b style='color:white'>" + I18n.t("charts.app") + "</b></html>"));
         filterPanel.add(appFilter);
 
-        JButton refreshBtn = new JButton("Refresh Data");
+        JButton refreshBtn = new JButton(I18n.t("charts.refreshData"));
         UIStyle.styleButton(refreshBtn);
         refreshBtn.addActionListener(e -> refresh());
 
-        JButton savePngBtn = new JButton("Save Data as...");
+        JButton savePngBtn = new JButton(I18n.t("charts.saveDataAs"));
         UIStyle.styleButton(savePngBtn);
         savePngBtn.addActionListener(e -> saveAsPng());
 
@@ -122,21 +123,22 @@ public class OverviewChartsPanel extends JPanel {
     }
 
     private static final String[][] IMG_FORMATS = {
-            {"PNG Image (*.png)", "png"},
-            {"JPEG Image (*.jpg)", "jpg"},
-            {"BMP Image (*.bmp)", "bmp"},
-            {"GIF Image (*.gif)", "gif"},
-            {"TIFF Image (*.tiff)", "tiff"},
+            {"PNG", "png"},
+            {"JPEG", "jpg"},
+            {"BMP", "bmp"},
+            {"GIF", "gif"},
+            {"TIFF", "tiff"},
     };
 
     public void saveAsPng() {
         javafx.stage.FileChooser.ExtensionFilter[] filters =
                 new javafx.stage.FileChooser.ExtensionFilter[IMG_FORMATS.length];
         for (int i = 0; i < IMG_FORMATS.length; i++) {
-            filters[i] = new javafx.stage.FileChooser.ExtensionFilter(IMG_FORMATS[i][0], "*." + IMG_FORMATS[i][1]);
+            filters[i] = new javafx.stage.FileChooser.ExtensionFilter(
+                    I18n.t("charts.imgFilter", IMG_FORMATS[i][0], IMG_FORMATS[i][1]), "*." + IMG_FORMATS[i][1]);
         }
 
-        File file = JavaFxFileChooser.saveFile("Save Overview as Image", "overview.png", filters);
+        File file = JavaFxFileChooser.saveFile(I18n.t("charts.saveTitle"), "overview.png", filters);
         if (file == null) return;
 
         String name = file.getName().toLowerCase();
@@ -157,8 +159,8 @@ public class OverviewChartsPanel extends JPanel {
             AppLogger.info("Overview saved to " + filePath);
         } catch (Exception ex) {
             AppLogger.error("Failed to save overview image: " + ex.getMessage());
-            JOptionPane.showMessageDialog(this, "Failed to save image:\n" + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, I18n.t("charts.saveFailed", ex.getMessage()),
+                    I18n.t("common.error"), JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -193,14 +195,14 @@ public class OverviewChartsPanel extends JPanel {
             int[] hVal = workflowRepo.getHourlyStats(date, filter);
             String[] hLab = new String[24];
             for (int i = 0; i < 24; i++)
-                hLab[i] = "Time: " + i + ":00";
+                hLab[i] = I18n.t("chart.time") + " " + i + ":00";
             StatResult wData = workflowRepo.getPeriodStats(date, filter, 7);
             String[] dayNames = new String[7];
             for (int i = 0; i < 7; i++) {
                 LocalDate d = LocalDate.parse(wData.labels[i]);
                 dayNames[i] = d.getDayOfWeek()
-                        .getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH)
-                        .toUpperCase();
+                        .getDisplayName(java.time.format.TextStyle.SHORT, I18n.locale())
+                        .toUpperCase(I18n.locale());
             }
             StatResult mData = workflowRepo.getCalendarMonthStats(date, filter);
             String displayDate = date;
@@ -209,9 +211,9 @@ public class OverviewChartsPanel extends JPanel {
             } catch (Exception ignored) {}
             final String hourTitleDate = displayDate;
             SwingUtilities.invokeLater(() -> {
-                hourChart.setData("Hourly Distribution (" + hourTitleDate + ")", hVal, hLab);
-                weekChart.setData("Weekly Activity", wData.values, dayNames);
-                monthChart.setData("Monthly Activity", mData.values, mData.labels);
+                hourChart.setData(I18n.t("charts.hourly", hourTitleDate), hVal, hLab);
+                weekChart.setData(I18n.t("charts.weekly"), wData.values, dayNames);
+                monthChart.setData(I18n.t("charts.monthly"), mData.values, mData.labels);
                 pieChart.setData(workflowRepo.getDaySummary(date));
             });
         }).start();

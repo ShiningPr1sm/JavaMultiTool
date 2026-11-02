@@ -5,6 +5,7 @@ import db.ProductRepository;
 import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -43,18 +44,18 @@ public class ProductCatalogPanel extends JPanel {
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(4, 5, 4, 5);
 
-        c.gridx = 0; form.add(label("Name:"), c);
+        c.gridx = 0; form.add(label(I18n.t("catalog.name")), c);
         c.gridx = 1; nameField = field(15); form.add(nameField, c);
-        c.gridx = 2; form.add(label("Price:"), c);
+        c.gridx = 2; form.add(label(I18n.t("catalog.price")), c);
         c.gridx = 3; priceField = field(8); form.add(priceField, c);
         c.gridx = 4; currencyBox = new JComboBox<>(CURRENCIES);
         UIStyle.styleComboBox(currencyBox);
         currencyBox.setSelectedItem("EUR");
         form.add(currencyBox, c);
 
-        caloriesLabel = label("Calories:");
+        caloriesLabel = label(I18n.t("nutrition.calories"));
         FontMetrics calMetrics = caloriesLabel.getFontMetrics(caloriesLabel.getFont());
-        int calWidth = Math.max(calMetrics.stringWidth("Calories:"), calMetrics.stringWidth("Calories per 100g:"));
+        int calWidth = Math.max(calMetrics.stringWidth(I18n.t("nutrition.calories")), calMetrics.stringWidth(I18n.t("nutrition.per100")));
         Dimension calLabelSize = new Dimension(calWidth, caloriesLabel.getPreferredSize().height);
         caloriesLabel.setPreferredSize(calLabelSize);
         caloriesLabel.setMinimumSize(calLabelSize);
@@ -62,19 +63,19 @@ public class ProductCatalogPanel extends JPanel {
         c.gridx = 5; form.add(caloriesLabel, c);
         c.gridx = 6; caloriesField = field(6); form.add(caloriesField, c);
 
-        weightLabel = label("Weight (g):");
+        weightLabel = label(I18n.t("nutrition.weight"));
         Dimension weightLabelSize = new Dimension(weightLabel.getPreferredSize().width, weightLabel.getPreferredSize().height);
         weightLabel.setPreferredSize(weightLabelSize);
         weightLabel.setMinimumSize(weightLabelSize);
         c.gridx = 7; form.add(weightLabel, c);
         c.gridx = 8; weightField = field(8); form.add(weightField, c);
 
-        addBtn = new JButton("Add");
+        addBtn = new JButton(I18n.t("common.add"));
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> saveProduct());
         c.gridx = 9; form.add(addBtn, c);
 
-        cancelEditBtn = new JButton("Cancel");
+        cancelEditBtn = new JButton(I18n.t("common.cancel"));
         UIStyle.styleButton(cancelEditBtn);
         cancelEditBtn.setVisible(false);
         cancelEditBtn.addActionListener(e -> clearForm());
@@ -87,10 +88,10 @@ public class ProductCatalogPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         form.add(filler, c);
 
-        manualModeBox = new JCheckBox("Manual mode");
+        manualModeBox = new JCheckBox(I18n.t("nutrition.manualMode"));
         UIStyle.styleCheckbox(manualModeBox);
         manualModeBox.setSelected(true);
-        manualModeBox.setToolTipText("Checked: enter total calories. Unchecked: enter total weight and calories per 100 g.");
+        manualModeBox.setToolTipText(I18n.t("nutrition.manualModeTip"));
         manualModeBox.addItemListener(e -> updateMode());
         c.gridy = 1;
         c.gridx = 0;
@@ -102,7 +103,7 @@ public class ProductCatalogPanel extends JPanel {
 
         add(form, BorderLayout.NORTH);
 
-        model = new DefaultTableModel(new String[]{"Name", "Price", "Currency", "Calories"}, 0) {
+        model = new DefaultTableModel(new String[]{I18n.t("catalog.col.name"), I18n.t("catalog.col.price"), I18n.t("catalog.col.currency"), I18n.t("nutrition.col.calories")}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -135,7 +136,7 @@ public class ProductCatalogPanel extends JPanel {
         JButton deleteBtn = new JButton("Delete Selected");
         UIStyle.styleButton(deleteBtn);
         deleteBtn.addActionListener(e -> deleteSelected());
-        JLabel hint = new JLabel("Price and calories are optional.");
+        JLabel hint = new JLabel(I18n.t("catalog.hint"));
         hint.setForeground(UIStyle.TEXT_COLOR);
         bottom.add(deleteBtn, BorderLayout.WEST);
         bottom.add(hint, BorderLayout.EAST);
@@ -149,7 +150,7 @@ public class ProductCatalogPanel extends JPanel {
     private void saveProduct() {
         String name = nameField.getText().trim();
         if (name.isEmpty()) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter a product name.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("catalog.err.name"));
             return;
         }
         Double price = null;
@@ -158,11 +159,11 @@ public class ProductCatalogPanel extends JPanel {
             try {
                 price = Double.parseDouble(priceText);
                 if (price < 0) {
-                    StyledDialog.show(SwingUtilities.windowForComponent(this), "Price cannot be negative.");
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.priceNegative"));
                     return;
                 }
             } catch (NumberFormatException ex) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Price must be a number.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.priceNumber"));
                 return;
             }
         }
@@ -173,11 +174,11 @@ public class ProductCatalogPanel extends JPanel {
                 try {
                     calories = Integer.parseInt(calText);
                     if (calories < 0) {
-                        StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories cannot be negative.");
+                        StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.caloriesNegative"));
                         return;
                     }
                 } catch (NumberFormatException ex) {
-                    StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories must be a whole number.");
+                    StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.caloriesWhole"));
                     return;
                 }
             }
@@ -186,22 +187,22 @@ public class ProductCatalogPanel extends JPanel {
             try {
                 weight = Double.parseDouble(weightField.getText().trim());
             } catch (NumberFormatException ex) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter the total weight in grams.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.enterWeight"));
                 return;
             }
             if (weight <= 0) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Weight must be positive.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.weightPositive"));
                 return;
             }
             double per100;
             try {
                 per100 = Double.parseDouble(caloriesField.getText().trim());
             } catch (NumberFormatException ex) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter calories per 100 g.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.enterCalories100"));
                 return;
             }
             if (per100 < 0) {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "Calories per 100 g cannot be negative.");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.calories100Negative"));
                 return;
             }
             calories = (int) Math.round(weight / 100.0 * per100);
@@ -213,7 +214,7 @@ public class ProductCatalogPanel extends JPanel {
             if (editingId == null || p.id() != editingId) {
                 if (p.name().equalsIgnoreCase(name)) {
                     StyledDialog.show(SwingUtilities.windowForComponent(this),
-                            "Product with this name already exists.");
+                            I18n.t("catalog.err.duplicate"));
                     return;
                 }
             }
@@ -240,7 +241,7 @@ public class ProductCatalogPanel extends JPanel {
         fill(caloriesField, (String) model.getValueAt(row, 3));
         manualModeBox.setSelected(true);
         weightField.setText("");
-        addBtn.setText("Save");
+        addBtn.setText(I18n.t("common.save"));
         cancelEditBtn.setVisible(true);
         updateMode();
     }
@@ -253,7 +254,7 @@ public class ProductCatalogPanel extends JPanel {
         fill(weightField, "");
         if (!currencyBox.isPopupVisible()) currencyBox.setSelectedItem("EUR");
         manualModeBox.setSelected(true);
-        addBtn.setText("Add");
+        addBtn.setText(I18n.t("common.add"));
         cancelEditBtn.setVisible(false);
         table.clearSelection();
         updateMode();
@@ -269,7 +270,7 @@ public class ProductCatalogPanel extends JPanel {
 
     private void updateMode() {
         boolean manual = manualModeBox.isSelected();
-        caloriesLabel.setText(manual ? "Calories:" : "Calories per 100g:");
+        caloriesLabel.setText(manual ? I18n.t("nutrition.calories") : I18n.t("nutrition.per100"));
         weightLabel.setVisible(!manual);
         weightField.setVisible(!manual);
         if (manual) weightField.setText("");
@@ -278,7 +279,7 @@ public class ProductCatalogPanel extends JPanel {
     private void deleteSelected() {
         int row = table.getSelectedRow();
         if (row < 0) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a product to delete.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("catalog.err.selectDelete"));
             return;
         }
         int id = rowIds.get(row);
@@ -292,7 +293,7 @@ public class ProductCatalogPanel extends JPanel {
         model.setRowCount(0);
         rowIds.clear();
         List<ProductEntry> all = new ArrayList<>(repo.listAll());
-        Collator col = Collator.getInstance();
+        Collator col = Collator.getInstance(I18n.locale());
         col.setStrength(Collator.SECONDARY);
         all.sort((a, b) -> col.compare(a.name(), b.name()));
         for (ProductEntry p : all) {

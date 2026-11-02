@@ -3,12 +3,15 @@ package ui.settings;
 import service.AchievementService;
 import service.Services;
 import service.SystemInfoService;
+import service.UpdateApplier;
 import db.DatabaseProvider;
 import ui.AuthFrame;
 import ui.MainFrame;
 import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
+import util.ConfigManager;
+import util.I18n;
 import util.JavaFxFileChooser;
 
 import javafx.stage.FileChooser;
@@ -34,10 +37,11 @@ public class SettingsPanel extends JPanel {
     private final AchievementService achievementService;
     private final Services services;
 
-    private static final String LOADING_LABEL = "Loading...";
+    /** Translated at class-load (Launcher applies language before UI). */
+    private static final String LOADING_LABEL = I18n.t("status.loading");
     private static final int ROW_INSET = 4;
-    private final JLabel appUptimeLabel = new JLabel("App uptime: " + LOADING_LABEL);
-    private final JLabel sysUptimeLabel = new JLabel("System uptime: " + LOADING_LABEL);
+    private final JLabel appUptimeLabel = new JLabel(I18n.t("settings.appUptime", LOADING_LABEL));
+    private final JLabel sysUptimeLabel = new JLabel(I18n.t("settings.sysUptime", LOADING_LABEL));
     private final Timer uptimeTimer;
 
     public SettingsPanel(MainFrame mainFrame, String login, AchievementService achievementService, SystemInfoService systemInfoService, Services services) {
@@ -64,13 +68,13 @@ public class SettingsPanel extends JPanel {
         avatarLabel.setBackground(Color.GRAY);
         updateAvatarImage(avatarLabel);
 
-        JButton changeAvatarBtn = new JButton("Change Avatar");
+        JButton changeAvatarBtn = new JButton(I18n.t("settings.changeAvatar"));
         changeAvatarBtn.addActionListener(e -> chooseAvatar(mainFrame, avatarLabel));
         UIStyle.styleButton(changeAvatarBtn);
         changeAvatarBtn.setPreferredSize(new Dimension(avatarLabel.getPreferredSize().width, changeAvatarBtn.getPreferredSize().height));
         changeAvatarBtn.setMaximumSize(new Dimension(avatarLabel.getPreferredSize().width, changeAvatarBtn.getPreferredSize().height));
 
-        JButton deleteAvatarBtn = new JButton("Delete Avatar");
+        JButton deleteAvatarBtn = new JButton(I18n.t("settings.deleteAvatar"));
         deleteAvatarBtn.addActionListener(e -> deleteAvatar(mainFrame, avatarLabel));
         UIStyle.styleButton(deleteAvatarBtn);
         deleteAvatarBtn.setPreferredSize(new Dimension(avatarLabel.getPreferredSize().width, deleteAvatarBtn.getPreferredSize().height));
@@ -85,17 +89,17 @@ public class SettingsPanel extends JPanel {
         avatarBox.add(Box.createVerticalStrut(5));
         avatarBox.add(deleteAvatarBtn);
 
-        JLabel nicknameLabel = new JLabel("Nickname:");
+        JLabel nicknameLabel = new JLabel(I18n.t("settings.nickname"));
         nicknameLabel.setForeground(Color.WHITE);
 
         JTextField nicknameField = new JTextField(userRepo.getNickname(login));
         UIStyle.styleTextField(nicknameField);
 
-        JButton saveNicknameBtn = new JButton("Save Changes");
+        JButton saveNicknameBtn = new JButton(I18n.t("settings.saveChanges"));
         saveNicknameBtn.addActionListener(e -> updateNickname(mainFrame, login, nicknameField.getText()));
         UIStyle.styleButton(saveNicknameBtn);
 
-        JButton changePasswordBtn = new JButton("Change Password");
+        JButton changePasswordBtn = new JButton(I18n.t("settings.changePassword"));
         changePasswordBtn.addActionListener(e -> openChangePasswordDialog(login));
         UIStyle.styleButton(changePasswordBtn);
 
@@ -109,8 +113,31 @@ public class SettingsPanel extends JPanel {
             assert selected != null;
             AppLogger.admin("Settings: theme changed to " + selected + " (restart)");
             UIStyle.applyTheme(selected);
-            StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Theme applied! Program would restart to apply changes!");
+            StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("settings.themeApplied"));
             System.exit(0);
+        });
+
+        // Language switcher - native names; restart offered after the change (see below).
+        JComboBox<String> languageBox = new JComboBox<>(I18n.displayNames());
+        UIStyle.styleComboBox(languageBox);
+        languageBox.setSelectedItem(I18n.displayName(I18n.currentLanguage()));
+        languageBox.addActionListener(e -> {
+            String selected = (String) languageBox.getSelectedItem();
+            String code = I18n.codeOf(selected);
+            ConfigManager.saveProperty("language", code);
+            I18n.setLanguage(code); // dialog below speaks the NEW language already
+            AppLogger.admin("Settings: language changed to " + code);
+            java.awt.Window parent = SwingUtilities.getWindowAncestor(this);
+            if (StyledDialog.confirmYesNo(parent,
+                    I18n.t("settings.language.restartPrompt", I18n.displayName(code)),
+                    I18n.t("settings.language.restartTitle"))) {
+                // From a jar: fresh process takes over; dev keeps the manual-restart flow
+                if (!UpdateApplier.relaunchApp()) {
+                    StyledDialog.show(parent, I18n.t("settings.language.applied"));
+                    System.exit(0);
+                }
+            }
+            // "No" -> setting is saved, applies on the next launch
         });
 
         nicknameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -151,31 +178,39 @@ public class SettingsPanel extends JPanel {
         themeBox.setMaximumSize(new Dimension(commonWidth, themeBox.getPreferredSize().height));
         nicknameBox.add(themeBox);
 
+        languageBox.setPreferredSize(new Dimension(commonWidth, languageBox.getPreferredSize().height));
+        languageBox.setMaximumSize(new Dimension(commonWidth, languageBox.getPreferredSize().height));
+        nicknameBox.add(Box.createVerticalStrut(5));
+        nicknameBox.add(languageBox);
+
         userInfoPanel.add(avatarBox);
         userInfoPanel.add(nicknameBox);
 
-        JLabel publicIpLabel = toggleLabel("Public IP: ***.***.***.***", "Public IP: ",
+        JLabel publicIpLabel = toggleLabel(I18n.t("settings.ipPublic") + " ***.***.***.***",
+                I18n.t("settings.ipPublic") + " ",
                 systemInfoService::getCachedPublicIP);
 
-        JLabel localIpLabel = dataLabel("Local IP: " + valueOrLoading(systemInfoService.getCachedLocalIP()));
+        JLabel localIpLabel = dataLabel(I18n.t("settings.ipLocal") + " " + valueOrLoading(systemInfoService.getCachedLocalIP()));
 
-        JLabel macLabel = dataLabel("MAC Address: " + valueOrLoading(systemInfoService.getCachedMac()));
+        JLabel macLabel = dataLabel(I18n.t("settings.mac") + " " + valueOrLoading(systemInfoService.getCachedMac()));
 
-        JLabel gatewayLabel = toggleLabel("Gateway IP: ***.***.***.***", "Gateway IP: ",
+        JLabel gatewayLabel = toggleLabel(I18n.t("settings.gateway") + " ***.***.***.***",
+                I18n.t("settings.gateway") + " ",
                 systemInfoService::getCachedGatewayIp);
 
-        JLabel dnsLabel = toggleLabel("DNS Servers: ***.***.***.***", "DNS Servers: ",
+        JLabel dnsLabel = toggleLabel(I18n.t("settings.dns") + " ***.***.***.***",
+                I18n.t("settings.dns") + " ",
                 systemInfoService::getCachedDnsServers);
 
-        JLabel regDateLabel = dataLabel("Registered: " + reformatDate(userRepo.getRegistrationDate(login)));
+        JLabel regDateLabel = dataLabel(I18n.t("settings.registered") + " " + reformatDate(userRepo.getRegistrationDate(login)));
 
-        JLabel lastLoginLabel = dataLabel("Last Login: " + reformatDate(userRepo.getLastLoginDate(login)));
+        JLabel lastLoginLabel = dataLabel(I18n.t("settings.lastLogin") + " " + reformatDate(userRepo.getLastLoginDate(login)));
 
         styleDataLabel(appUptimeLabel);
 
         styleDataLabel(sysUptimeLabel);
 
-        JButton logoutBtn = new JButton("Logout");
+        JButton logoutBtn = new JButton(I18n.t("settings.logout"));
         logoutBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         logoutBtn.addActionListener(e -> logout());
         UIStyle.styleButton(logoutBtn);
@@ -218,7 +253,7 @@ public class SettingsPanel extends JPanel {
 
         JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         bottomBar.setBackground(UIStyle.BG_COLOR);
-        JButton advancedBtn = new JButton("Advanced Settings");
+        JButton advancedBtn = new JButton(I18n.t("settings.advanced"));
         UIStyle.styleButton(advancedBtn);
         advancedBtn.addActionListener(e ->
                 new AdvancedSettingsDialog((Frame) SwingUtilities.getWindowAncestor(this), login).setVisible(true));
@@ -228,8 +263,8 @@ public class SettingsPanel extends JPanel {
         add(bottomBar, BorderLayout.SOUTH);
 
         uptimeTimer = new Timer(1000, e -> {
-            appUptimeLabel.setText("App uptime: " + systemInfoService.getAppUptime());
-            sysUptimeLabel.setText("System uptime: " + systemInfoService.getSystemUptime());
+            appUptimeLabel.setText(I18n.t("settings.appUptime", systemInfoService.getAppUptime()));
+            sysUptimeLabel.setText(I18n.t("settings.sysUptime", systemInfoService.getSystemUptime()));
         });
         uptimeTimer.start();
     }
@@ -311,7 +346,7 @@ public class SettingsPanel extends JPanel {
             }
         } catch (IOException ex) {
             AppLogger.error("Settings: failed to load image - " + ex.getMessage());
-            StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Failed to load image.");
+            StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("settings.avatarFailed"));
         }
     }
 
@@ -322,13 +357,13 @@ public class SettingsPanel extends JPanel {
                 stmt.setString(1, nickname);
                 stmt.setString(2, login);
                 stmt.executeUpdate();
-                StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Nickname updated successfully!", "Success");
+                StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("settings.nicUpdated"), I18n.t("common.success"));
                 AppLogger.admin("Settings: nickname changed to '" + nickname + "' for " + login);
                 achievementService.complete(login, "change_nickname");
                 mainFrame.updateNickName(userRepo.getNickname(login));
             } catch (Exception ex) {
                 AppLogger.error("Settings: failed to update nickname - " + ex.getMessage());
-                StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Failed to update nickname.");
+                StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("settings.nicFailed"));
             }
         }
     }
@@ -344,11 +379,11 @@ public class SettingsPanel extends JPanel {
 
         JPanel panel = new JPanel(new GridLayout(0, 1, 0, 6));
         panel.setBackground(UIStyle.SIDE_BOX);
-        JLabel curLabel = new JLabel("Current Password:");
+        JLabel curLabel = new JLabel(I18n.t("settings.curPassword"));
         curLabel.setForeground(UIStyle.TEXT_COLOR);
-        JLabel newLabel = new JLabel("New Password:");
+        JLabel newLabel = new JLabel(I18n.t("settings.newPassword"));
         newLabel.setForeground(UIStyle.TEXT_COLOR);
-        JLabel confLabel = new JLabel("Confirm New Password:");
+        JLabel confLabel = new JLabel(I18n.t("settings.confirmPassword"));
         confLabel.setForeground(UIStyle.TEXT_COLOR);
 
         panel.add(curLabel);
@@ -358,7 +393,7 @@ public class SettingsPanel extends JPanel {
         panel.add(confLabel);
         panel.add(confirmPassword);
 
-        boolean confirmed = StyledDialog.confirm(SwingUtilities.getWindowAncestor(this), panel, "Change Password");
+        boolean confirmed = StyledDialog.confirm(SwingUtilities.getWindowAncestor(this), panel, I18n.t("settings.changePassword"));
         if (confirmed) {
             String current = new String(currentPassword.getPassword());
             String newPass = new String(newPassword.getPassword());
@@ -366,18 +401,18 @@ public class SettingsPanel extends JPanel {
 
             if (!newPass.equals(confirmPass)) {
                 AppLogger.info("Settings: password change rejected - passwords do not match");
-                StyledDialog.show(SwingUtilities.getWindowAncestor(this), "New passwords do not match.");
+                StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("settings.pwMismatch"));
                 return;
             }
 
             if (!userRepo.checkPassword(login, current)) {
                 AppLogger.info("Settings: password change rejected - incorrect current password");
-                StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Current password is incorrect.");
+                StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("settings.pwIncorrect"));
                 return;
             }
 
             userRepo.updatePassword(login, newPass);
-            StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Password changed successfully!", "Success");
+            StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("settings.pwChanged"), I18n.t("common.success"));
             AppLogger.admin("Settings: password changed for " + login);
         }
     }

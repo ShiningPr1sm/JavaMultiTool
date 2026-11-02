@@ -4,6 +4,7 @@ import service.ImageMetadataService;
 import service.Services;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 import util.JavaFxFileChooser;
 
 import javax.swing.*;
@@ -43,7 +44,7 @@ public class MetadataPanel extends JPanel {
 
         metadataService = new ImageMetadataService();
 
-        imagePreview = new JLabel("Drag & Drop Image Here", SwingConstants.CENTER);
+        imagePreview = new JLabel(I18n.t("meta.dropHere"), SwingConstants.CENTER);
         imagePreview.setPreferredSize(new Dimension(500, 0));
         imagePreview.setBorder(BorderFactory.createDashedBorder(UIStyle.BORDER_COLOR, 5, 5));
         imagePreview.setForeground(Color.GRAY);
@@ -69,7 +70,7 @@ public class MetadataPanel extends JPanel {
         rightHeader.setPreferredSize(new Dimension(420, 35));
         rightHeader.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
 
-        JLabel metaTitle = new JLabel("IMAGE METADATA");
+        JLabel metaTitle = new JLabel(I18n.t("meta.title"));
         metaTitle.setForeground(Color.GRAY);
         metaTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
         metaTitle.setVerticalAlignment(SwingConstants.CENTER);
@@ -77,12 +78,12 @@ public class MetadataPanel extends JPanel {
         JPanel actionBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
         actionBtns.setOpaque(false);
 
-        JButton copyBtn = new JButton("Copy");
+        JButton copyBtn = new JButton(I18n.t("common.copy"));
         UIStyle.styleButton(copyBtn);
         copyBtn.setPreferredSize(new Dimension(80, 24));
         copyBtn.addActionListener(e -> copyMetadata());
 
-        JButton exportBtn = new JButton("Export");
+        JButton exportBtn = new JButton(I18n.t("meta.export"));
         UIStyle.styleButton(exportBtn);
         exportBtn.setPreferredSize(new Dimension(85, 24));
         exportBtn.addActionListener(e -> exportMetadata());
@@ -93,16 +94,16 @@ public class MetadataPanel extends JPanel {
         rightHeader.add(metaTitle, BorderLayout.WEST);
         rightHeader.add(actionBtns, BorderLayout.EAST);
 
-        openMapBtn = new JButton("Open in Maps");
+        openMapBtn = new JButton(I18n.t("meta.openMaps"));
         UIStyle.styleButton(openMapBtn);
         openMapBtn.setVisible(false);
 
-        stripExifBtn = new JButton("Strip EXIF & Save");
+        stripExifBtn = new JButton(I18n.t("meta.stripExif"));
         UIStyle.styleButton(stripExifBtn);
         stripExifBtn.setVisible(false);
         stripExifBtn.addActionListener(e -> stripExif());
 
-        elaBtn = new JButton("ELA");
+        elaBtn = new JButton(I18n.t("meta.ela"));
         UIStyle.styleButton(elaBtn);
         elaBtn.setVisible(false);
         elaBtn.addActionListener(e -> runELA());
@@ -175,7 +176,7 @@ public class MetadataPanel extends JPanel {
 
     private void processImage(File file) {
         AppLogger.info("Analyzing image: " + file.getName());
-        infoArea.setText("Extracting metadata...");
+        infoArea.setText(I18n.t("meta.extracting"));
         openMapBtn.setVisible(false);
         stripExifBtn.setVisible(false);
         elaBtn.setVisible(false);
@@ -221,7 +222,7 @@ public class MetadataPanel extends JPanel {
                 services.achievementService().complete(login, "magnifier");
             } catch (Exception e) {
                 AppLogger.error("Image Processing Error: " + e.getMessage());
-                SwingUtilities.invokeLater(() -> infoArea.setText("Failed to process image: " + e.getMessage()));
+                SwingUtilities.invokeLater(() -> infoArea.setText(I18n.t("meta.failProcess", e.getMessage())));
             }
         }).start();
     }
@@ -241,18 +242,18 @@ public class MetadataPanel extends JPanel {
 
                     double score = elaResult.score();
                     String verdict;
-                    if (score < 1.0) verdict = "Low chance of editing";
-                    else if (score < 3.0) verdict = "Moderate chance of editing";
-                    else verdict = "High chance of editing";
+                    if (score < 1.0) verdict = I18n.t("meta.verdict.low");
+                    else if (score < 3.0) verdict = I18n.t("meta.verdict.moderate");
+                    else verdict = I18n.t("meta.verdict.high");
 
-                    elaScoreLabel.setText(String.format("ELA Score: %.2f — %s", score, verdict));
+                    elaScoreLabel.setText(I18n.t("meta.elaScore", String.format("%.2f", score), verdict));
                     elaPanel.setVisible(true);
                     centerPanel.revalidate();
                     AppLogger.info("ELA analysis completed: score=" + score + ", " + verdict);
                 });
             } catch (Exception ex) {
                 AppLogger.error("ELA failed: " + ex.getMessage());
-                SwingUtilities.invokeLater(() -> elaScoreLabel.setText("ELA analysis failed."));
+                SwingUtilities.invokeLater(() -> elaScoreLabel.setText(I18n.t("meta.elaFail")));
             } finally {
                 SwingUtilities.invokeLater(() -> elaBtn.setEnabled(true));
             }
@@ -271,10 +272,10 @@ public class MetadataPanel extends JPanel {
         String text = infoArea.getText();
         if (text == null || text.isBlank() || currentResult == null) return;
 
-        File file = JavaFxFileChooser.saveFile("Export Metadata",
+        File file = JavaFxFileChooser.saveFile(I18n.t("meta.exportTitle"),
                 currentFile != null ? currentFile.getName() + ".txt" : "metadata.txt",
-                new javafx.stage.FileChooser.ExtensionFilter("Text file (*.txt)", "*.txt"),
-                new javafx.stage.FileChooser.ExtensionFilter("JSON file (*.json)", "*.json"));
+                new javafx.stage.FileChooser.ExtensionFilter(I18n.t("meta.txtFile"), "*.txt"),
+                new javafx.stage.FileChooser.ExtensionFilter(I18n.t("daily.overview.jsonFile"), "*.json"));
         if (file == null) return;
 
         String name = file.getName().toLowerCase();
@@ -299,7 +300,7 @@ public class MetadataPanel extends JPanel {
     private void stripExif() {
         if (currentResult == null || currentFile == null) return;
 
-        File target = JavaFxFileChooser.saveFile("Save Cleaned Image", "cleaned_" + currentFile.getName());
+        File target = JavaFxFileChooser.saveFile(I18n.t("meta.cleanTitle"), "cleaned_" + currentFile.getName());
         if (target == null) return;
 
         try {

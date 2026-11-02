@@ -4,6 +4,7 @@ import db.BDaysRepository;
 import service.BDaysService;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,13 +29,22 @@ public class BDaysOverviewPanel extends JPanel {
         setBackground(UIStyle.BG_COLOR);
 
         modeSelector = new JComboBox<>(new String[]{"Upcoming", "List", "Reverse List"});
+        // identity values stay EN (compared with equals); only display is translated
+        modeSelector.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, modeOrNull((String) value), index, isSelected, cellHasFocus);
+                return this;
+            }
+        });
         UIStyle.styleComboBox(modeSelector);
         modeSelector.addActionListener(e -> refresh((String) modeSelector.getSelectedItem()));
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         top.setBackground(UIStyle.BG_COLOR);
 
-        JLabel modeLabel = new JLabel("Mode:");
+        JLabel modeLabel = new JLabel(I18n.t("bday.mode.label"));
         modeLabel.setForeground(UIStyle.TEXT_COLOR);
         modeLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         top.add(modeLabel);
@@ -92,7 +102,8 @@ public class BDaysOverviewPanel extends JPanel {
                 lastSeason = currentSeason;
             }
 
-            String mn = Month.of(monthNum).getDisplayName(TextStyle.FULL, Locale.getDefault()).toUpperCase();
+            String mn = Month.of(monthNum).getDisplayName(TextStyle.FULL, I18n.locale())
+                    .toUpperCase(I18n.locale());
             JLabel ml = new JLabel("      " + mn);
             ml.setForeground(getSeasonColor(currentSeason));
             ml.setFont(ml.getFont().deriveFont(Font.BOLD, 14f));
@@ -104,10 +115,10 @@ public class BDaysOverviewPanel extends JPanel {
                 String ageText;
                 if (!entry.yearUnknown) {
                     ageText = entry.expired
-                            ? "(already " + entry.ageThisYear + " y.o.)"
-                            : "(will be " + entry.ageThisYear + " y.o.)";
+                            ? I18n.t("bday.age.already", String.valueOf(entry.ageThisYear))
+                            : I18n.t("bday.age.turns", String.valueOf(entry.ageThisYear));
                 } else {
-                    ageText = "(age unknown)";
+                    ageText = I18n.t("bday.age.unknown");
                 }
 
                 String dateShow = entry.candidate.format(DateTimeFormatter.ofPattern("dd.MM"))
@@ -118,7 +129,7 @@ public class BDaysOverviewPanel extends JPanel {
 
                 if (isToday) {
                     lbl.setForeground(UIStyle.ACCENT_COLOR);
-                    lbl.setText(lbl.getText() + "  [\uD83C\uDF89 TODAY!]");
+                    lbl.setText(lbl.getText() + I18n.t("bday.today"));
                     lbl.setFont(lbl.getFont().deriveFont(15f));
                 } else {
                     lbl.setForeground(upcoming && entry.expired ? Color.GRAY : Color.WHITE);
@@ -133,10 +144,39 @@ public class BDaysOverviewPanel extends JPanel {
     }
 
     private void addSeasonHeader(String season) {
-        JLabel sl = new JLabel("   " + season + "  ----------------------------------------------");
+        String seasonKey = seasonKey(season);
+        JLabel sl = new JLabel("   " + (seasonKey.equals(season) ? season : I18n.t(seasonKey))
+                + "  ----------------------------------------------");
         sl.setForeground(getSeasonColor(season));
         sl.setFont(sl.getFont().deriveFont(Font.BOLD, 16f));
         overviewContainer.add(sl);
+    }
+
+    /** Identity season name (EN, from BDaysService) -> i18n key. Also used for combobox modes below. */
+    private static String seasonKey(String season) {
+        return switch (season) {
+            case "Winter" -> "season.winter";
+            case "Spring" -> "season.spring";
+            case "Summer" -> "season.summer";
+            case "Autumn" -> "season.autumn";
+            default -> season;
+        };
+    }
+
+    /** Translates mapped keys; unmapped values render as-is, never passed to {@link I18n#t}. */
+    private static String modeOrNull(String mode) {
+        String key = modeKey(mode);
+        return key.equals(mode) ? mode : I18n.t(key);
+    }
+
+    /** Mode identity ("Upcoming"/"List"/"Reverse List") -> i18n key. */
+    private static String modeKey(String mode) {
+        return switch (mode) {
+            case "Upcoming" -> "bday.mode.upcoming";
+            case "List" -> "bday.mode.list";
+            case "Reverse List" -> "bday.mode.reverse";
+            default -> mode;
+        };
     }
 
     private Color getSeasonColor(String season) {

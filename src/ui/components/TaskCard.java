@@ -4,6 +4,7 @@ import db.DatabaseProvider;
 import service.WorkflowService;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,7 +35,8 @@ public class TaskCard extends JPanel {
         JLabel nameLbl = new JLabel(name.toUpperCase());
         nameLbl.setForeground(new Color(194, 0, 255));
         nameLbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        JLabel descLbl = new JLabel("<html><body style='width: 150px'>" + (desc.isEmpty() ? "No description" : desc) + "</body></html>");
+        JLabel descLbl = new JLabel("<html><body style='width: 150px'>"
+                + (desc.isEmpty() ? I18n.t("task.noDesc") : desc) + "</body></html>");
         descLbl.setForeground(Color.LIGHT_GRAY);
         descLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         textPanel.add(nameLbl);
@@ -43,7 +45,7 @@ public class TaskCard extends JPanel {
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setOpaque(false);
-        timeLabel = new JLabel("Time: " + formatSeconds(workflowRepo.getSecondsToday(id, 1)));
+        timeLabel = new JLabel(I18n.t("chart.time") + " " + formatSeconds(workflowRepo.getSecondsToday(id, 1)));
         timeLabel.setForeground(Color.WHITE);
         timeLabel.setFont(new Font("Monospaced", Font.BOLD, 12));
 
@@ -75,7 +77,7 @@ public class TaskCard extends JPanel {
 
     public void updateTime() {
         int freshSeconds = workflowRepo.getSecondsToday(this.taskId, 1);
-        timeLabel.setText("Time: " + formatSeconds(freshSeconds));
+        timeLabel.setText(I18n.t("chart.time") + " " + formatSeconds(freshSeconds));
         int activeId = workflowService.getActiveTaskId();
         Color accent = (activeId == taskId) ? Color.RED : new Color(194, 0, 255);
         this.setBorder(BorderFactory.createCompoundBorder(

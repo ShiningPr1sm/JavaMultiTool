@@ -2,6 +2,7 @@ package ui.dailytracker;
 
 import db.DatabaseProvider;
 import ui.UIStyle;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,11 +43,11 @@ public class DailyTrackerPanel extends JPanel {
 
         JTabbedPane tabs = new JTabbedPane();
         UIStyle.styleTabbedPane(tabs);
-        tabs.addTab(" Overview ", overviewPanel);
-        tabs.addTab(" Calories ", nutritionPanel);
-        tabs.addTab(" Steps ", stepsPanel);
-        tabs.addTab(" Purchases ", purchasesPanel);
-        tabs.addTab(" Catalog ", catalogPanel);
+        tabs.addTab(" " + I18n.t("daily.tab.overview") + " ", overviewPanel);
+        tabs.addTab(" " + I18n.t("daily.tab.calories") + " ", nutritionPanel);
+        tabs.addTab(" " + I18n.t("daily.tab.steps") + " ", stepsPanel);
+        tabs.addTab(" " + I18n.t("daily.tab.purchases") + " ", purchasesPanel);
+        tabs.addTab(" " + I18n.t("daily.tab.catalog") + " ", catalogPanel);
 
         tabs.addChangeListener(e -> {
             if (tabs.getSelectedIndex() == 0) {

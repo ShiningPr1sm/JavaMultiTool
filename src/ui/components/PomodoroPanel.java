@@ -3,6 +3,7 @@ package ui.components;
 import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -20,19 +21,21 @@ public class PomodoroPanel extends JPanel {
     private int remainingSeconds;
     private int sessionCount = 0;
     private boolean running = false;
+    /** true after the very first Start since last reset (Reset clears it). Used to fire onTimerStart once. */
+    private boolean everStarted = false;
     private Runnable onTimerStart;
 
-    private final JLabel phaseLabel = new JLabel("Work", SwingConstants.CENTER);
+    private final JLabel phaseLabel = new JLabel(I18n.t("pomo.work"), SwingConstants.CENTER);
     private final JLabel timerLabel = new JLabel("25:00", SwingConstants.CENTER);
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel sessionLabel = new JLabel("Sessions: 0");
+    private final JLabel sessionLabel = new JLabel(I18n.t("pomo.sessions", "0"));
 
     private final JSpinner workSpinner = new JSpinner(new SpinnerNumberModel(25, 1, 120, 1));
     private final JSpinner shortBreakSpinner = new JSpinner(new SpinnerNumberModel(5, 1, 60, 1));
     private final JSpinner longBreakSpinner = new JSpinner(new SpinnerNumberModel(15, 1, 120, 1));
 
-    private final JButton startBtn = new JButton("Start");
-    private final JButton resetBtn = new JButton("Reset");
+    private final JButton startBtn = new JButton(I18n.t("pomo.start"));
+    private final JButton resetBtn = new JButton(I18n.t("pomo.reset"));
 
     private final Timer countdownTimer = new Timer(1000, e -> tick());
 
@@ -93,11 +96,11 @@ public class PomodoroPanel extends JPanel {
         UIStyle.styleSpinner(shortBreakSpinner);
         UIStyle.styleSpinner(longBreakSpinner);
 
-        config.add(label("Work (min):"));
+        config.add(label(I18n.t("pomo.work.min")));
         config.add(workSpinner);
-        config.add(label("Short Break (min):"));
+        config.add(label(I18n.t("pomo.short.min")));
         config.add(shortBreakSpinner);
-        config.add(label("Long Break (min):"));
+        config.add(label(I18n.t("pomo.long.min")));
         config.add(longBreakSpinner);
         center.add(config, c);
 
@@ -145,13 +148,14 @@ public class PomodoroPanel extends JPanel {
         if (running) {
             countdownTimer.stop();
             running = false;
-            startBtn.setText("Resume");
+            startBtn.setText(I18n.t("pomo.resume"));
             AppLogger.info("Pomodoro paused");
         } else {
-            boolean isFirstStart = "Start".equals(startBtn.getText());
+            boolean isFirstStart = !everStarted;
+            everStarted = true;
             countdownTimer.start();
             running = true;
-            startBtn.setText("Pause");
+            startBtn.setText(I18n.t("pomo.pause"));
             AppLogger.info("Pomodoro " + (isFirstStart ? "started" : "resumed"));
             if (isFirstStart && onTimerStart != null) {
                 onTimerStart.run();
@@ -162,7 +166,8 @@ public class PomodoroPanel extends JPanel {
     private void resetTimer() {
         countdownTimer.stop();
         running = false;
-        startBtn.setText("Start");
+        everStarted = false;
+        startBtn.setText(I18n.t("pomo.start"));
         switch (phase) {
             case WORK -> remainingSeconds = workMinutes * 60;
             case SHORT_BREAK -> remainingSeconds = shortBreakMinutes * 60;
@@ -179,7 +184,7 @@ public class PomodoroPanel extends JPanel {
         if (remainingSeconds == 0) {
             countdownTimer.stop();
             running = false;
-            startBtn.setText("Start");
+            startBtn.setText(I18n.t("pomo.start"));
             Toolkit.getDefaultToolkit().beep();
             onPhaseComplete();
         }
@@ -189,7 +194,7 @@ public class PomodoroPanel extends JPanel {
         switch (phase) {
             case WORK -> {
                 sessionCount++;
-                sessionLabel.setText("Sessions: " + sessionCount);
+                sessionLabel.setText(I18n.t("pomo.sessions", String.valueOf(sessionCount)));
                 if (sessionCount % 4 == 0) {
                     phase = LONG_BREAK;
                 } else {
@@ -200,16 +205,16 @@ public class PomodoroPanel extends JPanel {
         }
 
         String phaseName = switch (phase) {
-            case WORK -> "Work";
-            case SHORT_BREAK -> "Short Break";
-            default -> "Long Break";
+            case WORK -> I18n.t("pomo.work");
+            case SHORT_BREAK -> I18n.t("pomo.short");
+            default -> I18n.t("pomo.long");
         };
         phaseLabel.setText(phaseName);
         phaseLabel.setForeground(phase == WORK ? UIStyle.ACCENT_COLOR : new Color(0x2ECC71));
 
         AppLogger.info("Pomodoro phase completed, next: " + phaseName);
         resetTimer();
-        StyledDialog.show(SwingUtilities.getWindowAncestor(this), "Pomodoro", phaseName + " phase started!");
+        StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("pomo.title"), I18n.t("pomo.started", phaseName));
     }
 
     private void updateDisplay() {

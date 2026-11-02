@@ -2,6 +2,7 @@ package ui.photovideotab;
 
 import service.Services;
 import ui.UIStyle;
+import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,10 +17,10 @@ public class ImageToolsPanel extends JPanel {
         JTabbedPane tabs = new JTabbedPane();
         UIStyle.styleTabbedPane(tabs);
 
-        tabs.addTab("  Metadata  ", new MetadataPanel(services, login));
-        tabs.addTab("  Resizer  ", new ResizerPanel());
-        tabs.addTab("  Converter  ", new ImageConverterPanel());
-        tabs.addTab("  Uniquify  ", new ImageUniquifyPanel());
+        tabs.addTab(" " + I18n.t("pv.tab.metadata") + " ", new MetadataPanel(services, login));
+        tabs.addTab(" " + I18n.t("pv.tab.resizer") + " ", new ResizerPanel());
+        tabs.addTab(" " + I18n.t("pv.tab.converter") + " ", new ImageConverterPanel());
+        tabs.addTab(" " + I18n.t("pv.tab.uniquify") + " ", new ImageUniquifyPanel());
 
         add(tabs, BorderLayout.CENTER);
     }

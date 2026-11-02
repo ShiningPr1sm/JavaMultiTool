@@ -9,6 +9,7 @@ import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
 import util.DateUtils;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -53,7 +54,7 @@ public class PurchasesPanel extends JPanel {
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(4, 5, 4, 5);
 
-        form.add(label("Date (dd.MM.yyyy):"), c);
+        form.add(label(I18n.t("daily.date")), c);
         c.gridx = 1;
         dateField = new JTextField(10);
         UIStyle.styleTextField(dateField);
@@ -61,7 +62,7 @@ public class PurchasesPanel extends JPanel {
         form.add(dateField, c);
 
         c.gridx = 2;
-        form.add(label("Item:"), c);
+        form.add(label(I18n.t("purchases.item")), c);
         c.gridx = 3;
         c.gridwidth = 2;
         itemField = new JTextField(15);
@@ -70,7 +71,7 @@ public class PurchasesPanel extends JPanel {
 
         c.gridx = 5;
         c.gridwidth = 1;
-        form.add(label("Price:"), c);
+        form.add(label(I18n.t("catalog.price")), c);
         c.gridx = 6;
         priceField = new JTextField(9);
         UIStyle.styleTextField(priceField);
@@ -83,14 +84,14 @@ public class PurchasesPanel extends JPanel {
         form.add(currencyBox, c);
 
         c.gridx = 8;
-        JButton addBtn = new JButton("Add");
+        JButton addBtn = new JButton(I18n.t("common.add"));
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> addPurchase());
         form.add(addBtn, c);
 
         c.gridy = 1;
         c.gridx = 0;
-        form.add(label("From catalog:"), c);
+        form.add(label(I18n.t("nutrition.fromCatalog")), c);
         catalogBox = new JComboBox<>();
         UIStyle.styleComboBox(catalogBox);
         catalogBox.setPreferredSize(new Dimension(240, 30));
@@ -98,7 +99,7 @@ public class PurchasesPanel extends JPanel {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                           boolean isSelected, boolean cellHasFocus) {
-                Object display = (value instanceof ProductEntry p) ? p.name() : "Select from catalog...";
+                Object display = (value instanceof ProductEntry p) ? p.name() : I18n.t("nutrition.selectCatalog");
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, display, index, isSelected, cellHasFocus);
                 lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                 lbl.setOpaque(true);
@@ -118,7 +119,7 @@ public class PurchasesPanel extends JPanel {
         c.gridwidth = 8;
         form.add(catalogBox, c);
 
-        includeCalBox = new JCheckBox("Include calories in today's intake");
+        includeCalBox = new JCheckBox(I18n.t("purchases.includeCal"));
         UIStyle.styleCheckbox(includeCalBox);
         includeCalBox.setEnabled(false);
         c.gridy = 2;
@@ -126,7 +127,7 @@ public class PurchasesPanel extends JPanel {
         form.add(includeCalBox, c);
         c.gridwidth = 1;
 
-        model = new DefaultTableModel(new String[]{"Item", "Price", "Currency"}, 0) {
+        model = new DefaultTableModel(new String[]{I18n.t("purchases.col.item"), I18n.t("catalog.col.price"), I18n.t("catalog.col.currency")}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -152,10 +153,10 @@ public class PurchasesPanel extends JPanel {
 
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setOpaque(false);
-        JButton deleteBtn = new JButton("Delete Selected");
+        JButton deleteBtn = new JButton(I18n.t("common.deleteSelected"));
         UIStyle.styleButton(deleteBtn);
         deleteBtn.addActionListener(e -> deleteSelected());
-        totalLabel = new JLabel("Total: -");
+        totalLabel = new JLabel(I18n.t("purchases.totalDash"));
         totalLabel.setForeground(UIStyle.ACCENT_COLOR);
         totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         bottom.add(deleteBtn, BorderLayout.WEST);
@@ -172,23 +173,23 @@ public class PurchasesPanel extends JPanel {
     private void addPurchase() {
         String dateISO = validDateISO();
         if (dateISO == null) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Invalid date. Use format dd.MM.yyyy.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.dateFormat"));
             return;
         }
         String item = itemField.getText().trim();
         if (item.isEmpty()) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Enter an item name.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("purchases.err.item"));
             return;
         }
         double price;
         try {
             price = Double.parseDouble(priceField.getText().trim());
         } catch (NumberFormatException ex) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Price must be a number.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.priceNumber"));
             return;
         }
         if (price < 0) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Price cannot be negative.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("daily.error.priceNegative"));
             return;
         }
         String currency = (String) currencyBox.getSelectedItem();
@@ -210,7 +211,7 @@ public class PurchasesPanel extends JPanel {
     private void deleteSelected() {
         int row = table.getSelectedRow();
         if (row < 0) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), "Select a row to delete.");
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("purchases.err.selectDelete"));
             return;
         }
         int id = rowIds.get(row);
@@ -226,7 +227,7 @@ public class PurchasesPanel extends JPanel {
         rowIds.clear();
         String date = validDateISO();
         if (date == null) {
-            totalLabel.setText("Total: -");
+            totalLabel.setText(I18n.t("purchases.totalDash"));
             return;
         }
         try {
@@ -237,11 +238,12 @@ public class PurchasesPanel extends JPanel {
         } catch (Exception e) {
             AppLogger.error("PurchasesPanel: failed to load entries - " + e.getMessage());
         }
-        StringBuilder sb = new StringBuilder("Total:");
+        StringBuilder sb = new StringBuilder(I18n.t("purchases.totalLabel"));
         try {
             List<String> currencies = repo.getCurrenciesForDate(date);
             if (currencies.isEmpty()) {
-                sb.append(" -");
+                totalLabel.setText(I18n.t("purchases.totalDash"));
+                return;
             } else {
                 for (String cur : currencies) {
                     sb.append(" ").append(String.format("%.2f", repo.totalForCurrency(date, cur))).append(" ").append(cur).append("  ");
@@ -262,7 +264,7 @@ public class PurchasesPanel extends JPanel {
         reloadingCatalog = true;
         catalogBox.removeAllItems();
         List<ProductEntry> all = new ArrayList<>(productsRepo.listAll());
-        Collator col = Collator.getInstance();
+        Collator col = Collator.getInstance(I18n.locale());
         col.setStrength(Collator.SECONDARY);
         all.sort((a, b) -> col.compare(a.name(), b.name()));
         for (ProductEntry p : all) catalogBox.addItem(p);

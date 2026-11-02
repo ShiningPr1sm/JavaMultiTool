@@ -9,6 +9,7 @@ import ui.components.AppsEditPanel;
 import ui.components.OverviewChartsPanel;
 import ui.components.PomodoroPanel;
 import ui.components.TaskTrackerPanel;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -38,9 +39,9 @@ public class WorkflowPanel extends JPanel {
         JTabbedPane tabs = new JTabbedPane();
         UIStyle.styleTabbedPane(tabs);
 
-        tabs.addTab(" Worklog ", createWorklogUI(taskTrackerPanel, pomodoroPanel));
-        tabs.addTab(" AppTracker ", createAppTrackerUI(appTrackerPanel));
-        tabs.addTab(" Overview ", createOverviewUI());
+        tabs.addTab(" " + I18n.t("wf.tab.worklog") + " ", createWorklogUI(taskTrackerPanel, pomodoroPanel));
+        tabs.addTab(" " + I18n.t("wf.tab.appTracker") + " ", createAppTrackerUI(appTrackerPanel));
+        tabs.addTab(" " + I18n.t("wf.tab.overview") + " ", createOverviewUI());
 
         tabs.addChangeListener(e -> {
             if (tabs.getSelectedIndex() == 2 && overviewCharts != null) {

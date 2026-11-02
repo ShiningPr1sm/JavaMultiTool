@@ -2,6 +2,7 @@ package ui.utilstab;
 
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -66,7 +67,7 @@ public class ColorPickerPanel extends JPanel {
         controls.add(createSliderRow("B", bSlider), c);
 
         c.insets = new Insets(10, 5, 10, 5);
-        JButton pipetteBtn = new JButton("Pick from Screen");
+        JButton pipetteBtn = new JButton(I18n.t("picker.pickScreen"));
         UIStyle.styleButton(pipetteBtn);
         pipetteBtn.addActionListener(e -> startPipette());
         JPanel pipetteRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -79,7 +80,7 @@ public class ColorPickerPanel extends JPanel {
         JLabel hexLbl = new JLabel("HEX:");
         hexLbl.setForeground(UIStyle.TEXT_COLOR);
         hexLbl.setPreferredSize(new Dimension(28, 26));
-        JButton hexCopy = new JButton("Copy");
+        JButton hexCopy = new JButton(I18n.t("common.copy"));
         UIStyle.styleButton(hexCopy);
         hexCopy.addActionListener(e -> copy(hexField.getText()));
         controls.add(labeledRow(hexLbl, hexField, hexCopy), c);
@@ -89,7 +90,7 @@ public class ColorPickerPanel extends JPanel {
         JLabel rgbLbl = new JLabel("RGB:");
         rgbLbl.setForeground(UIStyle.TEXT_COLOR);
         rgbLbl.setPreferredSize(new Dimension(28, 26));
-        JButton rgbCopy = new JButton("Copy");
+        JButton rgbCopy = new JButton(I18n.t("common.copy"));
         UIStyle.styleButton(rgbCopy);
         rgbCopy.addActionListener(e -> copy(rgbField.getText()));
         controls.add(labeledRow(rgbLbl, rgbField, rgbCopy), c);
@@ -97,7 +98,7 @@ public class ColorPickerPanel extends JPanel {
         JLabel hslLbl = new JLabel("HSL:");
         hslLbl.setForeground(UIStyle.TEXT_COLOR);
         hslLbl.setPreferredSize(new Dimension(28, 26));
-        JButton hslCopy = new JButton("Copy");
+        JButton hslCopy = new JButton(I18n.t("common.copy"));
         UIStyle.styleButton(hslCopy);
         hslCopy.addActionListener(e -> copy(hslField.getText()));
         controls.add(labeledRow(hslLbl, hslField, hslCopy), c);
@@ -226,7 +227,7 @@ public class ColorPickerPanel extends JPanel {
             } catch (AWTException ex) {
                 AppLogger.error("Failed to initialize screen capture for pipette: " + ex.getMessage());
                 SwingUtilities.invokeLater(() ->
-                    JOptionPane.showMessageDialog(this, "Failed to initialize screen capture."));
+                    JOptionPane.showMessageDialog(this, I18n.t("picker.failCapture"), I18n.t("common.error"), JOptionPane.ERROR_MESSAGE));
             }
         }).start();
     }
@@ -259,7 +260,7 @@ public class ColorPickerPanel extends JPanel {
         colorPreview.setBackground(Color.BLACK);
         colorPreview.setBorder(BorderFactory.createLineBorder(Color.WHITE));
 
-        JLabel infoText = new JLabel("Click anywhere to pick a color", SwingConstants.CENTER);
+        JLabel infoText = new JLabel(I18n.t("picker.clickToPick"), SwingConstants.CENTER);
         infoText.setFont(new Font("Segoe UI", Font.BOLD, 14));
         infoText.setForeground(Color.WHITE);
         infoText.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));

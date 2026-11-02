@@ -3,6 +3,8 @@ package ui;
 import javax.swing.*;
 import java.awt.*;
 
+import util.I18n;
+
 public class StyledDialog {
 
     public static void show(Window parent, String message) {
@@ -25,7 +27,7 @@ public class StyledDialog {
         msgLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         msgLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JButton okButton = new JButton("OK");
+        JButton okButton = new JButton(I18n.t("common.ok"));
         okButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
         okButton.setPreferredSize(new Dimension(100, 35));
         okButton.setMaximumSize(new Dimension(100, 35));
@@ -73,7 +75,7 @@ public class StyledDialog {
 
         final boolean[] result = {false};
 
-        JButton okButton = new JButton("OK");
+        JButton okButton = new JButton(I18n.t("common.ok"));
         okButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
         okButton.setPreferredSize(new Dimension(100, 35));
         UIStyle.styleButton(okButton);
@@ -82,7 +84,7 @@ public class StyledDialog {
             dialog.dispose();
         });
 
-        JButton cancelButton = new JButton("Cancel");
+        JButton cancelButton = new JButton(I18n.t("common.cancel"));
         cancelButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cancelButton.setPreferredSize(new Dimension(100, 35));
         UIStyle.styleButton(cancelButton);
@@ -131,15 +133,22 @@ public class StyledDialog {
 
         final boolean[] result = {false};
 
-        JTextArea msgArea = new JTextArea(message);
-        msgArea.setEditable(false);
-        msgArea.setBackground(UIStyle.SIDE_BOX);
-        msgArea.setForeground(UIStyle.TEXT_COLOR);
-        msgArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        msgArea.setLineWrap(true);
-        msgArea.setWrapStyleWord(true);
+        // HTML label, not a line-wrapping JTextArea: pack() computes the wrong
+        // preferred height for a wrapping JTextArea (messages get cut at 360px
+        // width), and a focused JTextArea paints a caret at position 0
+        // (a dark bar before the first letter).
+        String escaped = message
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\n", "<br>");
+        JLabel msgLabel = new JLabel(
+                "<html><div style='text-align: center; width: 300px;'>" + escaped + "</div></html>",
+                SwingConstants.CENTER);
+        msgLabel.setForeground(UIStyle.TEXT_COLOR);
+        msgLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        JButton yesButton = new JButton("Yes");
+        JButton yesButton = new JButton(I18n.t("common.yes"));
         yesButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
         yesButton.setPreferredSize(new Dimension(100, 35));
         UIStyle.styleButton(yesButton);
@@ -148,7 +157,7 @@ public class StyledDialog {
             dialog.dispose();
         });
 
-        JButton noButton = new JButton("No");
+        JButton noButton = new JButton(I18n.t("common.no"));
         noButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         noButton.setPreferredSize(new Dimension(100, 35));
         UIStyle.styleButton(noButton);
@@ -161,7 +170,7 @@ public class StyledDialog {
         btnPanel.add(yesButton);
         btnPanel.add(noButton);
 
-        panel.add(msgArea, BorderLayout.CENTER);
+        panel.add(msgLabel, BorderLayout.CENTER);
         panel.add(btnPanel, BorderLayout.SOUTH);
 
         dialog.setContentPane(panel);

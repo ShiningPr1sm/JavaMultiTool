@@ -4,6 +4,7 @@ import service.Services;
 import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
+import util.I18n;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -37,7 +38,7 @@ public class PasswordGeneratorPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(6, 10, 6, 10);
 
-        JLabel title = new JLabel("Password Generator", SwingConstants.CENTER);
+        JLabel title = new JLabel(I18n.t("pwgen.title"), SwingConstants.CENTER);
         title.setForeground(UIStyle.ACCENT_COLOR);
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         center.add(title, c);
@@ -45,7 +46,7 @@ public class PasswordGeneratorPanel extends JPanel {
         c.insets = new Insets(15, 10, 6, 10);
         JPanel topRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         topRow.setOpaque(false);
-        JLabel lenLbl = new JLabel("Length:");
+        JLabel lenLbl = new JLabel(I18n.t("pwgen.length"));
         lenLbl.setForeground(UIStyle.TEXT_COLOR);
         lengthSpinner = new JSpinner(new SpinnerNumberModel(16, 4, 128, 1));
         UIStyle.styleSpinner(lengthSpinner);
@@ -53,10 +54,10 @@ public class PasswordGeneratorPanel extends JPanel {
         topRow.add(lenLbl);
         topRow.add(lengthSpinner);
 
-        upperCb = new JCheckBox("Uppercase (A-Z)", true);
-        lowerCb = new JCheckBox("Lowercase (a-z)", true);
-        digitCb = new JCheckBox("Digits (0-9)", true);
-        symbolCb = new JCheckBox("Symbols (!@#...)", true);
+        upperCb = new JCheckBox(I18n.t("pwgen.upper"), true);
+        lowerCb = new JCheckBox(I18n.t("pwgen.lower"), true);
+        digitCb = new JCheckBox(I18n.t("pwgen.digits"), true);
+        symbolCb = new JCheckBox(I18n.t("pwgen.symbols"), true);
         for (var cb : new JCheckBox[]{upperCb, lowerCb, digitCb, symbolCb}) {
             UIStyle.styleCheckbox(cb);
             topRow.add(cb);
@@ -87,10 +88,10 @@ public class PasswordGeneratorPanel extends JPanel {
 
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         btnRow.setOpaque(false);
-        JButton genBtn = new JButton("Generate");
+        JButton genBtn = new JButton(I18n.t("common.generate"));
         UIStyle.styleButton(genBtn);
         genBtn.addActionListener(e -> generatePassword());
-        JButton copyBtn = new JButton("Copy");
+        JButton copyBtn = new JButton(I18n.t("common.copy"));
         UIStyle.styleButton(copyBtn);
         copyBtn.addActionListener(e -> {
             String pwd = passwordField.getText();
@@ -100,7 +101,7 @@ public class PasswordGeneratorPanel extends JPanel {
                 AppLogger.info("Password copied to clipboard");
                 services.achievementService().complete(login, "security");
             } else {
-                StyledDialog.show(SwingUtilities.windowForComponent(this), "You can't generate empty password!");
+                StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("pwgen.errEmpty"));
             }
         });
         btnRow.add(genBtn);
@@ -125,7 +126,7 @@ public class PasswordGeneratorPanel extends JPanel {
 
         if (pool.isEmpty()) {
             passwordField.setText("");
-            strengthLabel.setText("Select at least one character type");
+            strengthLabel.setText(I18n.t("pwgen.errNoType"));
             AppLogger.info("Password generation skipped: no character types selected");
             return;
         }
@@ -153,9 +154,9 @@ public class PasswordGeneratorPanel extends JPanel {
         if (pwd.chars().anyMatch(ch -> SYMBOLS.indexOf(ch) >= 0)) types++;
 
         int score = pwd.length() * types;
-        if (score < 20) strengthLabel.setText("Strength: Weak");
-        else if (score < 40) strengthLabel.setText("Strength: Medium");
-        else strengthLabel.setText("Strength: Strong");
+        if (score < 20) strengthLabel.setText(I18n.t("pwgen.weak"));
+        else if (score < 40) strengthLabel.setText(I18n.t("pwgen.medium"));
+        else strengthLabel.setText(I18n.t("pwgen.strong"));
 
         Color strColor;
         if (score < 20) strColor = new Color(255, 80, 80);
