@@ -49,12 +49,12 @@ public class ResizerPanel extends JPanel {
 
         JPanel dims = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         dims.setOpaque(false);
-        dims.add(new JLabel("W:") { { setForeground(UIStyle.TEXT_COLOR); } });
+        dims.add(new JLabel(I18n.t("conv.width")) { { setForeground(UIStyle.TEXT_COLOR); } });
         widthField = new JTextField(5);
         UIStyle.styleTextField(widthField);
         widthField.setText("800");
         dims.add(widthField);
-        dims.add(new JLabel("H:") { { setForeground(UIStyle.TEXT_COLOR); } });
+        dims.add(new JLabel(I18n.t("conv.height")) { { setForeground(UIStyle.TEXT_COLOR); } });
         heightField = new JTextField(5);
         UIStyle.styleTextField(heightField);
         heightField.setText("600");

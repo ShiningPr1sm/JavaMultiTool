@@ -9,9 +9,7 @@ import util.I18n;
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 
@@ -102,7 +100,10 @@ public class BDaysOverviewPanel extends JPanel {
                 lastSeason = currentSeason;
             }
 
-            String mn = Month.of(monthNum).getDisplayName(TextStyle.FULL, I18n.locale())
+            // Stand-alone month name (LLLL): "НОЯБРЬ" - the full/TEXT style above returns
+            // the genitive format form ("НОЯБРЯ") for ru/uk.
+            String mn = LocalDate.of(2004, monthNum, 1)
+                    .format(DateTimeFormatter.ofPattern("LLLL", I18n.locale()))
                     .toUpperCase(I18n.locale());
             JLabel ml = new JLabel("      " + mn);
             ml.setForeground(getSeasonColor(currentSeason));
