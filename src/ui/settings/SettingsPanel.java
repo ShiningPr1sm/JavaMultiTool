@@ -111,10 +111,21 @@ public class SettingsPanel extends JPanel {
             String selected = (String) themeBox.getSelectedItem();
             userRepo.setTheme(login, selected);
             assert selected != null;
-            AppLogger.admin("Settings: theme changed to " + selected + " (restart)");
-            UIStyle.applyTheme(selected);
-            StyledDialog.show(SwingUtilities.getWindowAncestor(this), I18n.t("settings.themeApplied"));
-            System.exit(0);
+            AppLogger.admin("Settings: theme changed to " + selected);
+            java.awt.Window parent = SwingUtilities.getWindowAncestor(this);
+            // applyTheme() is NOT called here: components captured UIStyle colors at
+            // construction, so a live repaint would only half-apply the theme. The
+            // saved theme is picked up fully on the next launch.
+            if (StyledDialog.confirmYesNo(parent,
+                    I18n.t("settings.theme.restartPrompt", selected),
+                    I18n.t("settings.language.restartTitle"))) {
+                // From a jar: fresh process takes over; dev explains why restart is manual
+                if (!UpdateApplier.relaunchApp()) {
+                    StyledDialog.show(parent, I18n.t("settings.appliedManual"));
+                    System.exit(0);
+                }
+            }
+            // "No" -> theme is saved, applies on the next launch
         });
 
         // Language switcher - native names; restart offered after the change (see below).
@@ -131,9 +142,9 @@ public class SettingsPanel extends JPanel {
             if (StyledDialog.confirmYesNo(parent,
                     I18n.t("settings.language.restartPrompt", I18n.displayName(code)),
                     I18n.t("settings.language.restartTitle"))) {
-                // From a jar: fresh process takes over; dev keeps the manual-restart flow
+                // From a jar: fresh process takes over; dev explains why restart is manual
                 if (!UpdateApplier.relaunchApp()) {
-                    StyledDialog.show(parent, I18n.t("settings.language.applied"));
+                    StyledDialog.show(parent, I18n.t("settings.appliedManual"));
                     System.exit(0);
                 }
             }

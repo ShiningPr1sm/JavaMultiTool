@@ -44,6 +44,15 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * Toggles autostart with Windows (HKCU CurrentVersion\\Run).
+     * Written via a temp .reg file + "reg import": passing a value with embedded
+     * quotes ("javaw -jar \\"...\\"") through ProcessBuilder breaks reg.exe with
+     * "Invalid syntax" (Java does not escape inner quotes on Windows), while the
+     * import-file route has no command-line quoting pitfalls.
+     *
+     * @param enabled true to register the jar in the Run key, false to remove it
+     */
     public static void setStartup(boolean enabled) {
         try {
             if (enabled) {
@@ -52,18 +61,41 @@ public class ConfigManager {
                     AppLogger.error("ConfigManager: cannot determine JAR path for startup");
                     return;
                 }
-                new ProcessBuilder("reg", "add", REG_KEY, "/v", APP_REG_NAME,
-                        "/t", "REG_SZ", "/d", "javaw -jar \"" + jarPath + "\"", "/f")
-                        .start().waitFor();
-                AppLogger.info("ConfigManager: startup enabled, path=" + jarPath);
+                String javaw = Path.of(System.getProperty("java.home"), "bin", "javaw.exe").toString();
+                Path script = Files.createTempFile("javamultitool_startup_", ".reg");
+                // Value shown to Windows later: "C:\...\javaw.exe" -jar "C:\...\app.jar"
+                String command = "\"" + javaw + "\" -jar \"" + jarPath + "\"";
+                Files.writeString(script, String.format(
+                        "Windows Registry Editor Version 5.00%n%n"
+                        + "[HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run]%n"
+                        + "\"%s\"=\"%s\"%n",
+                        APP_REG_NAME, regEscape(command)));
+                ProcessBuilder pb = new ProcessBuilder("reg", "import", script.toString());
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                String output = new String(p.getInputStream().readAllBytes());
+                boolean ok = p.waitFor() == 0;
+                Files.deleteIfExists(script);
+                if (ok && isStartupEnabled()) {
+                    AppLogger.info("ConfigManager: startup enabled, jar=" + jarPath);
+                } else {
+                    AppLogger.error("ConfigManager: startup import failed - " + output.trim());
+                }
             } else {
-                new ProcessBuilder("reg", "delete", REG_KEY, "/v", APP_REG_NAME, "/f")
-                        .start().waitFor();
-                AppLogger.info("ConfigManager: startup disabled");
+                ProcessBuilder pb = new ProcessBuilder("reg", "delete", REG_KEY, "/v", APP_REG_NAME, "/f");
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                p.waitFor();
+                AppLogger.info("ConfigManager: startup disabled, exit=" + p.exitValue());
             }
         } catch (Exception e) {
             AppLogger.error("ConfigManager: failed to set startup: " + e.getMessage());
         }
+    }
+
+    /** Escapes a string for a value body in a .reg file: backslash -> double, quote -> \\\". */
+    private static String regEscape(String s) {
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private static String getJarPath() {

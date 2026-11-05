@@ -70,17 +70,22 @@ public class AdvancedSettingsDialog extends JDialog {
             c.gridx = 1;
             c.anchor = GridBagConstraints.CENTER;
             c.fill = GridBagConstraints.NONE;
-            boolean value = "minToTray".equals(def.key())
-                    ? userRepo.isCloseToTrayEnabled(login)
-                    : Boolean.parseBoolean(ConfigManager.loadProperty(def.key(), String.valueOf(def.defaultValue())));
+            boolean value = switch (def.key()) {
+                // Real state comes from the Windows Run key, not the saved preference,
+                // so the checkbox always reflects what actually happens on boot.
+                case "launchAtStartup" -> ConfigManager.isStartupEnabled();
+                case "minToTray" -> userRepo.isCloseToTrayEnabled(login);
+                default -> Boolean.parseBoolean(ConfigManager.loadProperty(
+                        def.key(), String.valueOf(def.defaultValue())));
+            };
             JCheckBox cb = new JCheckBox();
             UIStyle.styleCheckbox(cb);
             cb.setSelected(value);
             cb.addActionListener(e -> {
-                if ("minToTray".equals(def.key())) {
-                    userRepo.setCloseToTray(login, cb.isSelected());
-                } else {
-                    ConfigManager.saveProperty(def.key(), String.valueOf(cb.isSelected()));
+                switch (def.key()) {
+                    case "minToTray" -> userRepo.setCloseToTray(login, cb.isSelected());
+                    case "launchAtStartup" -> ConfigManager.setStartup(cb.isSelected());
+                    default -> ConfigManager.saveProperty(def.key(), String.valueOf(cb.isSelected()));
                 }
                 AppLogger.info("Settings: '" + def.key() + "' set to " + cb.isSelected());
             });
