@@ -84,9 +84,9 @@ public class SettingsPanel extends JPanel {
         avatarBox.setLayout(new BoxLayout(avatarBox, BoxLayout.Y_AXIS));
         avatarBox.setBackground(UIStyle.BG_COLOR);
         avatarBox.add(avatarLabel);
-        avatarBox.add(Box.createVerticalStrut(10));
+        avatarBox.add(Box.createVerticalStrut(6));
         avatarBox.add(changeAvatarBtn);
-        avatarBox.add(Box.createVerticalStrut(5));
+        avatarBox.add(Box.createVerticalStrut(6));
         avatarBox.add(deleteAvatarBtn);
 
         JLabel nicknameLabel = new JLabel(I18n.t("settings.nickname"));
@@ -150,13 +150,13 @@ public class SettingsPanel extends JPanel {
         JPanel nicknameBox = new JPanel();
         nicknameBox.setLayout(new BoxLayout(nicknameBox, BoxLayout.Y_AXIS));
         nicknameBox.setBackground(UIStyle.BG_COLOR);
-        nicknameBox.add(Box.createVerticalStrut(14));
+        nicknameBox.add(Box.createVerticalStrut(4));
         nicknameBox.add(nicknameLabel);
-        nicknameBox.add(Box.createVerticalStrut(6));
+        nicknameBox.add(Box.createVerticalStrut(4));
         nicknameBox.add(nicknameField);
-        nicknameBox.add(Box.createVerticalStrut(6));
+        nicknameBox.add(Box.createVerticalStrut(4));
 
-        JPanel btnRow = new JPanel(new GridLayout(2, 1, 0, 15));
+        JPanel btnRow = new JPanel(new GridLayout(2, 1, 0, 4));
         btnRow.setBackground(UIStyle.BG_COLOR);
         int commonWidth = Math.max(nicknameField.getPreferredSize().width,
                 Math.max(saveNicknameBtn.getPreferredSize().width, changePasswordBtn.getPreferredSize().width));
@@ -173,14 +173,16 @@ public class SettingsPanel extends JPanel {
         btnRow.add(changePasswordBtn);
 
         nicknameBox.add(btnRow);
-        nicknameBox.add(Box.createVerticalStrut(15));
+        nicknameBox.add(Box.createVerticalStrut(4));
         themeBox.setPreferredSize(new Dimension(commonWidth, themeBox.getPreferredSize().height));
         themeBox.setMaximumSize(new Dimension(commonWidth, themeBox.getPreferredSize().height));
+        themeBox.setAlignmentX(Component.LEFT_ALIGNMENT);
         nicknameBox.add(themeBox);
 
         languageBox.setPreferredSize(new Dimension(commonWidth, languageBox.getPreferredSize().height));
         languageBox.setMaximumSize(new Dimension(commonWidth, languageBox.getPreferredSize().height));
-        nicknameBox.add(Box.createVerticalStrut(5));
+        languageBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        nicknameBox.add(Box.createVerticalStrut(4));
         nicknameBox.add(languageBox);
 
         userInfoPanel.add(avatarBox);

@@ -50,8 +50,8 @@ public class AchievementsPanel extends JPanel {
         for (AchievementService.AchievementData data : achievements) {
             String iconPath = "/icons/achievements/" + data.code + ".jpg";
             grid.add(createAchievementCard(
-                    data.getDisplayTitle(),
-                    data.description,
+                    displayTitle(data),
+                    I18n.tsafe("ach." + data.code + ".desc", data.description),
                     data.progress,
                     data.required,
                     iconPath,
@@ -60,6 +60,15 @@ public class AchievementsPanel extends JPanel {
         }
         grid.revalidate();
         grid.repaint();
+    }
+
+    /** DB title is the EN fallback; translation comes from ach.<code>.title when present.
+     *  Multi-level achievements get a localized "(Ур. {0})" tag after the title. */
+    private String displayTitle(AchievementService.AchievementData data) {
+        String title = I18n.tsafe("ach." + data.code + ".title", data.title);
+        return data.maxLevel > 1
+                ? title + " (" + I18n.t("ach.levelSuffix", String.valueOf(data.level)) + ")"
+                : title;
     }
 
     public void refreshData() {

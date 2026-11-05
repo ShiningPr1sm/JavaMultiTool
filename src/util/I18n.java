@@ -54,6 +54,20 @@ public final class I18n {
         }
     }
 
+    /**
+     * Translation or a silent fallback (no "missing key" log). For texts whose master
+     * copy lives outside the bundles (e.g. achievement titles/descriptions in SQLite):
+     * key present -> translated, absent -> the DB/EN text itself.
+     * No placeholders are substituted here; the fallback is returned verbatim.
+     */
+    public static String tsafe(String key, String fallback) {
+        try {
+            return bundle.getString(key);
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
     /** Current language code ("en", "ru", "uk"). */
     public static String currentLanguage() {
         String tag = locale.toLanguageTag();
