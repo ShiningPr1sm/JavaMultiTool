@@ -314,6 +314,11 @@ public class NutritionPanel extends JPanel {
         notifyChanged();
     }
 
+    /** Reloads the food table for the date shown in the date field. */
+    public void refresh() {
+        refreshTable();
+    }
+
     private void refreshTable() {
         model.setRowCount(0);
         rowIds.clear();
