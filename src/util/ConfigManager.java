@@ -94,7 +94,7 @@ public class ConfigManager {
     }
 
     /** Escapes a string for a value body in a .reg file: backslash -> double, quote -> \\\". */
-    private static String regEscape(String s) {
+    static String regEscape(String s) {
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
