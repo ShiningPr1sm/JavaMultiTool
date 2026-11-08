@@ -434,7 +434,6 @@ public class MediaDownloadService {
 
             } catch (IOException e) {
                 lastException = e;
-                // info, not error: each retry attempt must not raise a toast, only the final failure does
                 AppLogger.info("Download attempt " + attempt + " failed: " + e.getMessage());
             } catch (InterruptedException e) {
                 lastException = new IOException("Download interrupted", e);

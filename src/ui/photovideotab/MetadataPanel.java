@@ -54,6 +54,9 @@ public class MetadataPanel extends JPanel {
 
         infoArea = new JTextArea();
         infoArea.setEditable(false);
+        infoArea.setCaretColor(new Color(0, 0, 0, 0));
+        infoArea.setSelectionColor(UIStyle.BUTTON_HOVER);
+        infoArea.setSelectedTextColor(UIStyle.TEXT_COLOR);
         infoArea.setBackground(UIStyle.SECONDARY_BG);
         infoArea.setForeground(Color.WHITE);
         infoArea.setFont(new Font("Consolas", Font.PLAIN, 13));
@@ -229,6 +232,16 @@ public class MetadataPanel extends JPanel {
 
     private void runELA() {
         if (currentResult == null) return;
+
+        if (elaPanel.isVisible()) {
+            elaPanel.setVisible(false);
+            elaPreview.setIcon(null);
+            elaPreview.setText(null);
+            elaScoreLabel.setText("");
+            centerPanel.revalidate();
+            return;
+        }
+
         elaBtn.setEnabled(false);
         new Thread(() -> {
             try {

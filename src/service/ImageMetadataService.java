@@ -77,15 +77,24 @@ public class ImageMetadataService {
         IccDirectory iccDir = metadata.getFirstDirectoryOfType(IccDirectory.class);
         if (iccDir != null) {
             sb.append("[ COLOR PROFILE ]\n");
-            String profileDesc = iccDir.getDescription(0x64657363);
+            String profileDesc = cleanIcc(iccDir.getDescription(0x64657363));
             sb.append("Profile: ").append(profileDesc != null ? profileDesc : "Unknown").append("\n");
-            String colorSpace = iccDir.getDescription(0x636c7220);
+            String colorSpace = cleanIcc(iccDir.getDescription(0x636c7220));
             sb.append("Space: ").append(colorSpace != null ? colorSpace : "Unknown").append("\n\n");
         }
 
         List<Color> dominantColors = extractDominantColors(processedImage, 10);
 
         return new ImageMetadataResult(sb.toString(), processedImage, avgColor, mapUrl, dominantColors);
+    }
+
+    /** Turns raw ICC values like "enUS(sRGB          )" into clean display text ("sRGB"). */
+    private static String cleanIcc(String raw) {
+        if (raw == null) return null;
+        String v = raw.replaceAll("\\s+", " ").trim();
+        int open = v.indexOf('(');
+        if (open >= 0 && v.endsWith(")")) v = v.substring(open + 1, v.length() - 1).trim();
+        return v.isEmpty() ? null : v;
     }
 
     public void saveWithoutExif(BufferedImage img, File source, File target) throws IOException {

@@ -105,8 +105,6 @@ public class ComponentStyler {
     }
 
     public static void styleComboBox(JComboBox<?> cb) {
-        // BasicComboBoxUI paints the whole box with ComboBox.disabledBackground
-        // when disabled - the Windows L&F default for that key is white
         UIManager.put("ComboBox.disabledBackground", UIStyle.SIDE_BOX);
         cb.setBackground(UIStyle.BUTTON_BG);
         cb.setForeground(UIStyle.TEXT_COLOR);
@@ -148,10 +146,8 @@ public class ComponentStyler {
             public void paintCurrentValue(Graphics g, Rectangle bounds, boolean hasFocus) {
                 Color oldBg = comboBox.getBackground();
                 if (!comboBox.isEnabled()) {
-                    // darker current-value for the disabled state instead of the L&F white
                     comboBox.setBackground(UIStyle.SIDE_BOX);
                 }
-                // one-space left padding: paintCurrentValue discards the renderer border
                 bounds.x += 6;
                 bounds.width -= 6;
                 super.paintCurrentValue(g, bounds, hasFocus);
