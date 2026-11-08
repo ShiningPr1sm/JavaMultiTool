@@ -450,6 +450,27 @@ public class MainFrame extends JFrame implements AchievementCallback {
             }
         });
 
+        JButton wikiBtn = new JButton();
+        try {
+            ImageIcon wikiIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/icons/menu/wiki_icon.png")));
+            wikiBtn.setIcon(wikiIcon);
+            wikiBtn.setPreferredSize(new Dimension(16, 16));
+            wikiBtn.setMaximumSize(new Dimension(16, 16));
+        } catch (Exception e) {
+            wikiBtn.setText("?");
+        }
+        wikiBtn.setBorderPainted(false);
+        wikiBtn.setContentAreaFilled(false);
+        wikiBtn.setFocusPainted(false);
+        wikiBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        wikiBtn.addActionListener(e -> {
+            try {
+                Desktop.getDesktop().browse(new URI("https://github.com/ShiningPr1sm/JavaMultiTool/wiki"));
+            } catch (Exception ex) {
+                AppLogger.error("Failed to open GitHub wiki: " + ex.getMessage());
+            }
+        });
+
         actualVerLabel = new JLabel(I18n.t("main.actualChecking"));
         actualVerLabel.setForeground(Color.LIGHT_GRAY);
         actualVerLabel.setFont(actualVerLabel.getFont().deriveFont(11f));
@@ -465,6 +486,8 @@ public class MainFrame extends JFrame implements AchievementCallback {
         footer.add(Box.createHorizontalStrut(10));
         footer.add(actualVerLabel);
         footer.add(Box.createHorizontalStrut(10));
+        footer.add(wikiBtn);
+        footer.add(Box.createHorizontalStrut(7));
         footer.add(githubBtn);
 
         fetchActualVersion();
