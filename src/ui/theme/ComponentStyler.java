@@ -137,8 +137,22 @@ public class ComponentStyler {
 
             @Override
             public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
-                g.setColor(UIStyle.BUTTON_BG);
+                g.setColor(comboBox.isEnabled() ? UIStyle.BUTTON_BG : UIStyle.SIDE_BOX);
                 g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+            }
+
+            @Override
+            public void paintCurrentValue(Graphics g, Rectangle bounds, boolean hasFocus) {
+                Color oldBg = comboBox.getBackground();
+                if (!comboBox.isEnabled()) {
+                    // darker current-value for the disabled state instead of the L&F white
+                    comboBox.setBackground(UIStyle.SIDE_BOX);
+                }
+                // one-space left padding: paintCurrentValue discards the renderer border
+                bounds.x += 6;
+                bounds.width -= 6;
+                super.paintCurrentValue(g, bounds, hasFocus);
+                comboBox.setBackground(oldBg);
             }
         });
 

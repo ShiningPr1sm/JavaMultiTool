@@ -36,6 +36,9 @@ public class MediaDownloadService {
     public static final File FFMPEG_EXE = new File(FFMPEG_DIR, "ffmpeg.exe");
     private static final String FFMPEG_ZIP_URL = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip";
 
+    private volatile Process currentProcess;
+    private volatile boolean cancelRequested;
+
     @FunctionalInterface
     public interface ProgressCallback {
         void onProgress(String message, Integer percent);
@@ -63,19 +66,38 @@ public class MediaDownloadService {
         checkAndDownloadYTDLP();
     }
 
-    public int downloadVideo(String videoUrl, String selectedFormat, String browser, File downloadFolder, ProgressCallback callback) throws IOException, InterruptedException {
+    /** Interrupts the running yt-dlp process (video or thumbnail); no-op when idle. */
+    public void cancelAll() {
+        cancelRequested = true;
+        Process p = currentProcess;
+        if (p != null && p.isAlive()) p.destroyForcibly();
+        AppLogger.info("MediaDownloadService: cancellation requested");
+    }
+
+    /** @return true after {@link #cancelAll()} until the next download task starts. */
+    public boolean isCancelled() { return cancelRequested; }
+
+    /**
+     * @param emergencyReferer last-resort workaround for yt-dlp breakage:
+     *                         adds {@code --referer https://example.com} to the command
+     */
+    public int downloadVideo(String videoUrl, String selectedFormat, String browser, boolean emergencyReferer,
+                             File downloadFolder, ProgressCallback callback) throws IOException, InterruptedException {
         if (!ConfigManager.isInternetEnabled()) throw new IOException("Internet access is disabled in settings.");
-        List<String> command = buildDownloadCommand(videoUrl, selectedFormat, browser, downloadFolder);
+        cancelRequested = false;
+        List<String> command = buildDownloadCommand(videoUrl, selectedFormat, browser, emergencyReferer, downloadFolder);
         return executeProcess(command, callback);
     }
 
     public int downloadThumbnail(String videoUrl, String browser, File downloadFolder, ProgressCallback callback) throws IOException, InterruptedException {
         if (!ConfigManager.isInternetEnabled()) throw new IOException("Internet access is disabled in settings.");
+        cancelRequested = false;
         List<String> command = buildThumbnailCommand(videoUrl, browser, downloadFolder);
         return executeProcess(command, callback);
     }
 
-    private List<String> buildDownloadCommand(String videoUrl, String selectedFormat, String browser, File downloadFolder) {
+    private List<String> buildDownloadCommand(String videoUrl, String selectedFormat, String browser,
+                                              boolean emergencyReferer, File downloadFolder) {
         List<String> command = new ArrayList<>();
         command.add(YTDLP_EXE.getAbsolutePath());
         command.add("--remote-components");
@@ -93,6 +115,10 @@ public class MediaDownloadService {
             case "Video only (muted)" -> {
                 command.add("-f");
                 command.add("bestvideo[ext=mp4]/bestvideo/best[ext=mp4]/best");
+                command.add("--remux-video");
+                command.add("mp4");
+                command.add("--ffmpeg-location");
+                command.add(FFMPEG_EXE.getAbsolutePath());
             }
             case "Audio only (mp3)" -> {
                 command.add("-f");
@@ -108,6 +134,11 @@ public class MediaDownloadService {
         if (!browser.equals("none")) {
             command.add("--cookies-from-browser");
             command.add(browser);
+        }
+
+        if (emergencyReferer) {
+            command.add("--referer");
+            command.add("https://example.com");
         }
 
         command.add("--impersonate");
@@ -134,7 +165,8 @@ public class MediaDownloadService {
             command.add(browser);
         }
         command.add("-o");
-        command.add(downloadFolder.getAbsolutePath() + "/%(title)s.%(ext)s");
+        command.add(downloadFolder.getAbsolutePath() + "/%(title)s_%(id)s_"
+                + new java.text.SimpleDateFormat("dd-MM-yyyy_HH-mm-ss").format(new java.util.Date()) + ".%(ext)s");
         command.add(videoUrl);
         return command;
     }
@@ -145,6 +177,7 @@ public class MediaDownloadService {
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.redirectErrorStream(true);
         Process process = pb.start();
+        currentProcess = process;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -161,7 +194,9 @@ public class MediaDownloadService {
             }
         }
 
-        return process.waitFor();
+        int exitCode = process.waitFor();
+        currentProcess = null;
+        return exitCode;
     }
 
     private void checkAndDownloadYTDLP() throws IOException {
@@ -335,6 +370,12 @@ public class MediaDownloadService {
                     AppLogger.info("Server does not support Range, restarting from 0");
                     downloaded = 0;
                     target.delete();
+                } else if (statusCode == 416 && downloaded > 0) {
+                    // 416 Range Not Satisfiable: the stale/broken local copy is
+                    // beyond the remote file's length -> start over from zero
+                    AppLogger.info(stage + ": HTTP 416 for a stale local copy, deleting and restarting from 0");
+                    target.delete();
+                    continue;
                 } else if (statusCode != 200 && statusCode != 206) {
                     throw new IOException("HTTP " + statusCode + " for " + url);
                 }
@@ -393,7 +434,8 @@ public class MediaDownloadService {
 
             } catch (IOException e) {
                 lastException = e;
-                AppLogger.error("Download attempt " + attempt + " failed: " + e.getMessage());
+                // info, not error: each retry attempt must not raise a toast, only the final failure does
+                AppLogger.info("Download attempt " + attempt + " failed: " + e.getMessage());
             } catch (InterruptedException e) {
                 lastException = new IOException("Download interrupted", e);
                 Thread.currentThread().interrupt();

@@ -44,6 +44,10 @@ public class MediaDownloaderPanel extends JPanel {
     private JComboBox<String> browserComboBox;
     private JButton downloadButton;
     private JButton thumbnailButton;
+    private JButton cancelButton;
+    private JCheckBox emergencyBox;
+    /** Guards against two yt-dlp runs at once (double-click on stale buttons). */
+    private volatile boolean taskRunning;
     private final File downloadFolder;
     private final MediaDownloadService downloadService;
 
@@ -114,7 +118,6 @@ public class MediaDownloaderPanel extends JPanel {
                 "Audio only (mp3)"
         });
         UIStyle.styleComboBox(formatBox);
-        // identity values are passed to yt-dlp; only display is translated
         formatBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
@@ -136,9 +139,19 @@ public class MediaDownloaderPanel extends JPanel {
         thumbnailButton.setToolTipText(I18n.t("media.thumbTip"));
         thumbnailButton.addActionListener(e -> startThumbnailTask());
 
+        cancelButton = new JButton(I18n.t("common.cancel"));
+        UIStyle.styleButton(cancelButton);
+        cancelButton.setPreferredSize(new Dimension(90, 30));
+        cancelButton.setEnabled(false);
+        cancelButton.addActionListener(e -> {
+            cancelButton.setEnabled(false);
+            downloadService.cancelAll();
+            progressBar.setString(I18n.t("media.cancelled"));
+            AppLogger.info("Media download cancelled by user");
+        });
+
         browserComboBox = new JComboBox<>(new String[]{"None", "Firefox", "Chrome", "Edge", "Opera", "Brave"});
         UIStyle.styleComboBox(browserComboBox);
-        // "None" is translated at render; value stays EN for the browser profile lookup
         browserComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
@@ -149,52 +162,108 @@ public class MediaDownloaderPanel extends JPanel {
         });
         browserComboBox.setPreferredSize(new Dimension(100, 30));
 
+        emergencyBox = new JCheckBox(I18n.t("media.emergency"));
+        UIStyle.styleCheckbox(emergencyBox);
+        emergencyBox.setToolTipText(I18n.t("media.emergencyTip"));
+
         controls.add(formatBox);
         controls.add(downloadButton);
+        controls.add(cancelButton);
         controls.add(thumbnailButton);
         controls.add(browserComboBox);
+        controls.add(emergencyBox);
 
         centralPanel.add(controls, gbc);
         add(centralPanel, BorderLayout.CENTER);
     }
 
-    private void startDownloadTask() {
+    /** Disables every input while a download runs - one operation at a time. */
+    private void setBusy(boolean busy) {
+        taskRunning = busy;
+        downloadButton.setEnabled(!busy);
+        cancelButton.setEnabled(busy);
+        thumbnailButton.setEnabled(!busy);
+        formatBox.setEnabled(!busy);
+        browserComboBox.setEnabled(!busy);
+        emergencyBox.setEnabled(!busy);
+    }
+
+    /** Same validity rule as the standalone Media Downloader: http/https URIs only. */
+    private static boolean isValidUrl(String url) {
+        try {
+            java.net.URI uri = new java.net.URI(url);
+            String scheme = uri.getScheme();
+            return scheme != null && (scheme.equals("http") || scheme.equals("https"));
+        } catch (java.net.URISyntaxException e) {
+            return false;
+        }
+    }
+
+    /** Parses the textarea (one URL per line); shows a dialog and returns null on emptiness/invalid input. */
+    private List<String> parseVideoUrls() {
         String input = textArea.getText().trim();
         if (input.isEmpty() || input.equals(placeholderText)) {
             StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errUrl"));
-            AppLogger.error("No URL entered.");
-            return;
+            AppLogger.info("No URL entered.");
+            return null;
         }
 
-        String[] urls = input.split("\\r?\\n");
         List<String> videoUrls = new ArrayList<>();
-        for (String url : urls) {
-            if (!url.trim().isEmpty()) videoUrls.add(url.trim());
+        for (String url : input.split("\\r?\\n")) {
+            String trimmed = url.trim();
+            if (trimmed.isEmpty()) continue;
+            if (!isValidUrl(trimmed)) {
+                StyledDialog.show(SwingUtilities.windowForComponent(this),
+                        I18n.t("media.errInvalidUrl", trimmed));
+                AppLogger.info("Invalid URL entered: " + trimmed);
+                return null;
+            }
+            videoUrls.add(trimmed);
         }
+
         if (videoUrls.isEmpty()) {
             StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errNoValid"));
-            AppLogger.info("Download aborted: no valid URLs found.");
-            return;
+            AppLogger.info("Aborted: no valid URLs found.");
+            return null;
         }
+        return videoUrls;
+    }
 
-        downloadButton.setEnabled(false);
+    /** Cookie profiles may be locked by the browser; the user must expect the extraction. */
+    private boolean confirmCookieAccess(String browser) {
+        if (browser.equals("none")) return true;
+        return StyledDialog.confirmYesNo(SwingUtilities.windowForComponent(this),
+                I18n.t("media.cookieBody", browser), I18n.t("media.cookieTitle"));
+    }
+
+    private void startDownloadTask() {
+        if (taskRunning) return;
+
+        List<String> videoUrls = parseVideoUrls();
+        if (videoUrls == null) return;
+
+        String browser = Objects.requireNonNull(browserComboBox.getSelectedItem()).toString().toLowerCase();
+        if (!confirmCookieAccess(browser)) return;
+
+        setBusy(true);
         progressBar.setValue(0);
         progressBar.setString(I18n.t("media.starting"));
-
-        String format = (String) formatBox.getSelectedItem();
-        String browser = Objects.requireNonNull(browserComboBox.getSelectedItem()).toString().toLowerCase();
+        boolean emergency = emergencyBox.isSelected();
 
         new Thread(() -> {
+            int failures = 0;
             try {
                 downloadService.ensureToolsAvailable();
-                AppLogger.info("Selected format: " + format + ", browser: " + browser);
+                String format = (String) formatBox.getSelectedItem();
+                AppLogger.info("Selected format: " + format + ", browser: " + browser + ", emergency referer: " + emergency);
 
                 for (int i = 0; i < videoUrls.size(); i++) {
+                    if (downloadService.isCancelled()) break;
                     int videoIndex = i + 1;
                     String videoUrl = videoUrls.get(i);
                     AppLogger.info("Processing URL " + videoIndex + "/" + videoUrls.size() + ": " + videoUrl);
 
-                    int exitCode = downloadService.downloadVideo(videoUrl, format, browser, downloadFolder,
+                    int exitCode = downloadService.downloadVideo(videoUrl, format, browser, emergency, downloadFolder,
                             (message, percent) -> SwingUtilities.invokeLater(() -> {
                                 if (percent != null) {
                                     int totalProgress = (int) (((videoIndex - 1 + percent / 100.0) / videoUrls.size()) * 100);
@@ -208,25 +277,36 @@ public class MediaDownloaderPanel extends JPanel {
                                 }
                             }));
 
-                    if (exitCode != 0) {
-                        int finalI = i;
+                    if (exitCode != 0 && !downloadService.isCancelled()) {
+                        failures++;
+                        int index = videoIndex;
                         SwingUtilities.invokeLater(() ->
-                                StyledDialog.show(SwingUtilities.windowForComponent(this),
-                                        I18n.t("media.errDl", videoUrls.get(finalI))));
+                                progressBar.setString(I18n.t("media.videoFailed",
+                                        String.valueOf(index), String.valueOf(exitCode))));
+                        AppLogger.info("Video " + videoIndex + " failed (exit " + exitCode + "), continuing: " + videoUrl);
                     }
                 }
 
+                boolean cancelled = downloadService.isCancelled();
+                int failedCount = failures;
                 SwingUtilities.invokeLater(() -> {
-                    progressBar.setValue(100);
-                    progressBar.setString(I18n.t("media.allDone"));
-                    downloadButton.setEnabled(true);
-                    AppLogger.info("All downloads completed.");
+                    progressBar.setValue(cancelled ? 0 : 100);
+                    progressBar.setString(cancelled
+                            ? I18n.t("media.cancelled")
+                            : (failedCount > 0 ? I18n.t("media.doneWithFailures", String.valueOf(failedCount))
+                                               : I18n.t("media.allDone")));
+                    if (!cancelled && failedCount > 0) {
+                        StyledDialog.show(SwingUtilities.windowForComponent(this),
+                                I18n.t("media.doneWithFailures", String.valueOf(failedCount)));
+                    }
+                    setBusy(false);
+                    AppLogger.info(cancelled ? "Download cancelled." : "All downloads completed.");
                 });
             } catch (Exception ex) {
                 AppLogger.error("Download error: " + ex.getMessage());
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setString(I18n.t("common.error") + ": " + ex.getMessage());
-                    downloadButton.setEnabled(true);
+                    setBusy(false);
                     StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errOccurred", ex.getMessage()));
                 });
             }
@@ -234,58 +314,63 @@ public class MediaDownloaderPanel extends JPanel {
     }
 
     private void startThumbnailTask() {
-        String input = textArea.getText().trim();
-        if (input.isEmpty() || input.equals(placeholderText)) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errUrl"));
-            return;
-        }
+        if (taskRunning) return;
 
-        String[] urls = input.split("\\r?\\n");
-        List<String> videoUrls = new ArrayList<>();
-        for (String url : urls) {
-            if (!url.trim().isEmpty()) videoUrls.add(url.trim());
-        }
-        if (videoUrls.isEmpty()) {
-            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errNoValid"));
-            AppLogger.info("Thumbnail download aborted: no valid URLs found.");
-            return;
-        }
+        List<String> videoUrls = parseVideoUrls();
+        if (videoUrls == null) return;
 
-        thumbnailButton.setEnabled(false);
+        String browser = Objects.requireNonNull(browserComboBox.getSelectedItem()).toString().toLowerCase();
+        if (!confirmCookieAccess(browser)) return;
+
+        setBusy(true);
         progressBar.setValue(0);
         progressBar.setString(I18n.t("media.thumbStart"));
 
-        String browser = Objects.requireNonNull(browserComboBox.getSelectedItem()).toString().toLowerCase();
-
         new Thread(() -> {
+            int failures = 0;
             try {
                 downloadService.ensureYTDLPAvailable();
 
                 for (int i = 0; i < videoUrls.size(); i++) {
+                    if (downloadService.isCancelled()) break;
                     int videoIndex = i + 1;
                     String videoUrl = videoUrls.get(i);
                     AppLogger.info("Downloading thumbnail " + videoIndex + "/" + videoUrls.size() + ": " + videoUrl);
 
-                    downloadService.downloadThumbnail(videoUrl, browser, downloadFolder,
+                    int exitCode = downloadService.downloadThumbnail(videoUrl, browser, downloadFolder,
                             (message, percent) -> SwingUtilities.invokeLater(() ->
                                     progressBar.setString(I18n.t("media.thumbMsg",
                                             String.valueOf(videoIndex), String.valueOf(videoUrls.size()), message))));
+
+                    if (exitCode != 0 && !downloadService.isCancelled()) {
+                        failures++;
+                        AppLogger.info("Thumbnail " + videoIndex + " failed (exit " + exitCode + "): " + videoUrl);
+                    }
 
                     int totalProgress = (int) (((double) (i + 1) / videoUrls.size()) * 100);
                     SwingUtilities.invokeLater(() -> progressBar.setValue(totalProgress));
                 }
 
+                boolean cancelled = downloadService.isCancelled();
+                int failedCount = failures;
                 SwingUtilities.invokeLater(() -> {
-                    progressBar.setValue(100);
-                    progressBar.setString(I18n.t("media.thumbDone"));
-                    thumbnailButton.setEnabled(true);
-                    AppLogger.info("All thumbnails downloaded.");
+                    progressBar.setValue(cancelled ? 0 : 100);
+                    progressBar.setString(cancelled
+                            ? I18n.t("media.cancelled")
+                            : (failedCount > 0 ? I18n.t("media.doneWithFailures", String.valueOf(failedCount))
+                                               : I18n.t("media.thumbDone")));
+                    if (!cancelled && failedCount > 0) {
+                        StyledDialog.show(SwingUtilities.windowForComponent(this),
+                                I18n.t("media.doneWithFailures", String.valueOf(failedCount)));
+                    }
+                    setBusy(false);
+                    AppLogger.info(cancelled ? "Thumbnail download cancelled." : "All thumbnails downloaded.");
                 });
             } catch (Exception ex) {
                 AppLogger.error("Thumbnail download error: " + ex.getMessage());
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setString(I18n.t("common.error") + ": " + ex.getMessage());
-                    thumbnailButton.setEnabled(true);
+                    setBusy(false);
                     StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("media.errOccurred", ex.getMessage()));
                 });
             }
