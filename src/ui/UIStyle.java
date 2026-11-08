@@ -24,6 +24,18 @@ public class UIStyle {
     public static Color XP_LABEL_COLOR = new Color(180, 255, 180);
     public static Color TEXT_COLOR = Color.WHITE;
 
+    /** Decorative pastel palette for search tag badges (theme-independent, like XP_LABEL_COLOR). */
+    public static final Color[] SEARCH_TAG_COLORS = {
+            new Color(173, 92, 168),   // pink-purple
+            new Color(88, 130, 197),   // blue
+            new Color(190, 160, 65),   // gold
+            new Color(96, 160, 96),    // green
+            new Color(184, 100, 100),  // red-brown
+            new Color(120, 110, 190),  // violet
+            new Color(90, 160, 170),   // teal
+            new Color(160, 120, 70)    // orange-brown
+    };
+
     /**
      * Scrollbar thumb color, recomputed per theme in {@link #applyTheme}:
      * a bit darker than BUTTON_BG, but still lighter than the track (BG_COLOR).

@@ -13,6 +13,7 @@ import ui.settings.SettingsPanel;
 
 import ui.components.ExpandableSection;
 import ui.components.ProgressBarFooter;
+import ui.StyledDialog;
 import ui.utils.*;
 import util.AchievementCallback;
 
@@ -78,10 +79,27 @@ public class MainFrame extends JFrame implements AchievementCallback {
                 FRAME_SIZE_HEIGHT
         );
 
-        headerPanel = new HeaderPanel(login, services.levelService(), services.achievementService(), services.authService(), this::openAchievements, this::openNotifications, this::openSettings, this::openWelcome);
+        java.util.function.Consumer<String> searchRouter = key -> {
+            switch (key) {
+                case "Welcome" -> openWelcome();
+                case "Achievements" -> openAchievements();
+                default -> openTab(key); // also covers "Settings"
+            }
+        };
+        headerPanel = new HeaderPanel(login, services.levelService(), services.achievementService(), services.authService(), this::openAchievements, this::openNotifications, this::openSettings, this::openWelcome, searchRouter);
         add(headerPanel, BorderLayout.NORTH);
         add(createMainContent(), BorderLayout.CENTER);
         add(createFooter(), BorderLayout.SOUTH);
+
+        // global search shortcut: Ctrl+K focuses the header search box
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_K, java.awt.event.InputEvent.CTRL_DOWN_MASK), "openSearch");
+        getRootPane().getActionMap().put("openSearch", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                headerPanel.focusSearch();
+            }
+        });
 
         if ("dev".equals(VersionInfo.getVersion())) {
             new Timer(1000, e -> {
@@ -281,8 +299,22 @@ public class MainFrame extends JFrame implements AchievementCallback {
         openTab("sidebar.notifications");
     }
 
+    /** Tabs the openTab switch handles; anything else is not implemented yet. */
+    private static final java.util.Set<String> KNOWN_TABS = java.util.Set.of(
+            "sidebar.mediaDownloader", "sidebar.birthdayTracker", "sidebar.dailyTracker",
+            "sidebar.workflow", "sidebar.adminCmd", "Settings", "sidebar.imageTools",
+            "sidebar.colorPicker", "sidebar.passwordGenerator", "sidebar.qrGenerator",
+            "sidebar.networkTools", "sidebar.notifications");
+
     public void openTab(String itemName) {
         if (itemName.equals(currentTab)) return;
+        if (!KNOWN_TABS.contains(itemName)) {
+            // placeholder sidebar/search entries (File Organizer, Unit Converter,
+            // Find & Replace...) - show a hint instead of silently blanking the pane
+            AppLogger.info("openTab: not implemented yet: " + itemName);
+            StyledDialog.show(this, I18n.t("tab.comingSoon"));
+            return;
+        }
         AppLogger.info("openTab called with: " + itemName);
         contentPanel.removeAll();
 

@@ -4,6 +4,7 @@ import db.DatabaseProvider;
 import service.AchievementService;
 import service.AuthService;
 import service.LevelService;
+import ui.search.SearchBoxPanel;
 import util.AppLogger;
 import util.AppPaths;
 import util.I18n;
@@ -13,6 +14,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.Objects;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 public class HeaderPanel extends JPanel {
     private static final int HEADER_HEIGHT = 70;
@@ -27,9 +29,10 @@ public class HeaderPanel extends JPanel {
     private final AchievementService achievementService;
     private final AuthService authService;
     private NotificationPanel notificationPanel;
+    private final SearchBoxPanel searchBox;
     private final JLabel achievementsLabel;
 
-    public HeaderPanel(String login, LevelService levelService, AchievementService achievementService, AuthService authService, Runnable onOpenAchievements, Runnable onOpenNotifications, Runnable onOpenSettings, Runnable onOpenWelcome) {
+    public HeaderPanel(String login, LevelService levelService, AchievementService achievementService, AuthService authService, Runnable onOpenAchievements, Runnable onOpenNotifications, Runnable onOpenSettings, Runnable onOpenWelcome, Consumer<String> onOpenSearchResult) {
         this.login = login;
         this.levelService = levelService;
         this.achievementService = achievementService;
@@ -141,7 +144,10 @@ public class HeaderPanel extends JPanel {
         rightBox.add(createPlate(notificationPanel));
         rightBox.add(createPlate(settingsBtn));
 
+        searchBox = new SearchBoxPanel(authService.isTester(), onOpenSearchResult);
+
         add(profileBox, BorderLayout.WEST);
+        add(searchBox, BorderLayout.CENTER);
         add(rightBox, BorderLayout.EAST);
     }
 
@@ -169,6 +175,10 @@ public class HeaderPanel extends JPanel {
 
     public void updateNickName(String nickname) {
         updateLoginLabel(nickname);
+    }
+
+    public void focusSearch() {
+        searchBox.focusSearch();
     }
 
     public void setNotificationBadge(int count) {
