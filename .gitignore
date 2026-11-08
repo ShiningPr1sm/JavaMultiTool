@@ -9,7 +9,6 @@ build/
 
 .github/workflows/qodana_code_quality.yml
 qodana.yaml
-inst.md
 AGENTS.md
 docs/i18n-plan.md
 
