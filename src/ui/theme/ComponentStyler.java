@@ -105,6 +105,9 @@ public class ComponentStyler {
     }
 
     public static void styleComboBox(JComboBox<?> cb) {
+        // BasicComboBoxUI paints the whole box with ComboBox.disabledBackground
+        // when disabled - the Windows L&F default for that key is white
+        UIManager.put("ComboBox.disabledBackground", UIStyle.SIDE_BOX);
         cb.setBackground(UIStyle.BUTTON_BG);
         cb.setForeground(UIStyle.TEXT_COLOR);
         cb.setFocusable(false);
