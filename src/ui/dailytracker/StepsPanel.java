@@ -41,7 +41,6 @@ public class StepsPanel extends JPanel {
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(5, 5, 5, 5);
 
-        // Row 0: Date, Steps, Add (one row)
         c.gridx = 0;
         c.gridy = 0;
         form.add(label(I18n.t("daily.date")), c);
@@ -66,7 +65,6 @@ public class StepsPanel extends JPanel {
         addBtn.addActionListener(e -> addSteps());
         form.add(addBtn, c);
 
-        // Row 1: Calories calculation group
         c.gridx = 0;
         c.gridy = 1;
         c.anchor = GridBagConstraints.NORTHWEST;

@@ -35,8 +35,7 @@ public class Launcher {
         AppPaths.init();
         AppLogger.init();
 
-        // Single instance: a second launch (jar or IDE) exits here before any
-        // service/DB is created; the running instance shows the error dialog.
+        // single-instance guard: a duplicate launch never creates services/DB
         if (!SingleInstanceGuard.acquire(() -> {
             Window parent = null;
             for (Window w : Window.getWindows()) {

@@ -68,8 +68,7 @@ public class SearchBoxPanel extends JPanel {
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        // magnifier glyph inside an outlined field: the outline smoothly fades
-        // between dark (inactive) and accent (focused) in borderFadeTimer
+        // outlined field: the border fades between dark (inactive) and accent (focused)
         fieldWrap = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -94,8 +93,7 @@ public class SearchBoxPanel extends JPanel {
         field.setForeground(UIStyle.TEXT_COLOR);
         field.setCaretColor(UIStyle.TEXT_COLOR);
         field.setFont(field.getFont().deriveFont(15f));
-        // the field must not grab focus at startup (Swing auto-focuses the first
-        // focusable component); it is activated explicitly by click or Ctrl+K
+        // the field must not steal focus at startup; activated by click or Ctrl+K
         field.setFocusable(false);
 
         JLabel hintLabel = new JLabel("Ctrl+K");
@@ -106,22 +104,20 @@ public class SearchBoxPanel extends JPanel {
         fieldWrap.add(magnifier, BorderLayout.WEST);
         fieldWrap.add(field, BorderLayout.CENTER);
         fieldWrap.add(hintLabel, BorderLayout.EAST);
-        // fixed width, about half of the header bar - the box must not stretch
+        // fixed width (~half of the header bar), anchored WEST so it never stretches
         fieldWrap.setPreferredSize(new Dimension(SEARCH_FIELD_WIDTH, SEARCH_FIELD_HEIGHT));
 
         JPanel outer = new JPanel(new GridBagLayout());
         outer.setOpaque(false);
         GridBagConstraints gc = new GridBagConstraints();
         gc.insets = new Insets(14, 24, 14, 24);
-        // anchor west without grow: the box keeps its ~half-header width
         gc.anchor = GridBagConstraints.WEST;
         outer.add(fieldWrap, gc);
 
         add(outer, BorderLayout.CENTER);
         setPreferredSize(new Dimension(0, 70));
 
-        // clicks anywhere in the box (magnifier, empty space, the field itself)
-        // activate the caret: the field was made non-focusable at startup
+        // clicks anywhere in the box activate the caret (field starts non-focusable)
         MouseAdapter activate = new MouseAdapter() {
             @Override public void mousePressed(MouseEvent e) {
                 field.setFocusable(true);
@@ -189,8 +185,7 @@ public class SearchBoxPanel extends JPanel {
             if (insideSearch || insidePopup) return;
             SwingUtilities.invokeLater(() -> {
                 if (field.isFocusOwner()) {
-                    // dropping focusability removes the caret AND deactivates
-                    // the field; re-activation happens on the next click/Ctrl+K
+                    // dropping focusability removes the caret; re-activated by click/Ctrl+K
                     field.setFocusable(false);
                 }
                 if (popup != null && popup.isVisible()) hidePopup();

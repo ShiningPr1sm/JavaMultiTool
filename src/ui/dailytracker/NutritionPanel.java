@@ -19,6 +19,12 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Calories tab of the daily tracker: an input form (manual entry or product
+ * selected from the catalog), the day's food table and a total. Notifies
+ * {@code onDataChanged} after every data mutation so the overview and other
+ * tabs refresh.
+ */
 public class NutritionPanel extends JPanel {
     private final NutritionRepository repo;
     private final ProductRepository productsRepo;
@@ -42,27 +48,23 @@ public class NutritionPanel extends JPanel {
         setBackground(UIStyle.BG_COLOR);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // ---------- Form components (all created up front) ----------
+        // ---------- Form components ----------
         dateField = field(10);
         dateField.setText(DateUtils.todayDisplay());
-        // Column widths: Date = Calories (10), Meal = Weight (12).
-        // Fields stacked in the same grid column now have identical widths.
+        // column widths pair up where fields share a grid column (Date=Calories, Meal=Weight)
         mealField = field(12);
         caloriesField = field(10);
         weightField = field(12);
 
         caloriesLabel = label(I18n.t("nutrition.calories"));
-        // Fixed width so the column doesn't jump when the text changes
-        // between "Calories:" and "Calories per 100g:"
+        // fixed width so the column doesn't jump when the label text switches
         Dimension calLabelSize = new Dimension(140, caloriesLabel.getPreferredSize().height);
         caloriesLabel.setPreferredSize(calLabelSize);
         caloriesLabel.setMinimumSize(calLabelSize);
 
         weightLabel = label(I18n.t("nutrition.weight"));
 
-        // "Meal:" and "Weight (g):" share column 2. Give both labels the same
-        // fixed width so the column doesn't grow when Weight becomes visible
-        // (that growth was pushing the Meal field and Add button to the right).
+        // both labels share one fixed width so the shared column doesn't grow when Weight becomes visible
         JLabel mealLabel = label(I18n.t("nutrition.meal"));
         int sharedLabelWidth = Math.max(mealLabel.getPreferredSize().width, weightLabel.getPreferredSize().width);
         Dimension sharedLabelSize = new Dimension(sharedLabelWidth, mealLabel.getPreferredSize().height);
@@ -121,7 +123,6 @@ public class NutritionPanel extends JPanel {
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(4, 5, 4, 5);
 
-        // Row 0: Date, Meal, Add
         c.gridy = 0;
         c.gridx = 0; form.add(label(I18n.t("daily.date")), c);
         c.gridx = 1; form.add(dateField, c);
@@ -129,23 +130,20 @@ public class NutritionPanel extends JPanel {
         c.gridx = 3; form.add(mealField, c);
         c.gridx = 4; form.add(addBtn, c);
 
-        // Row 1: Calories, Weight (Weight is hidden in manual mode).
-        // Columns 2-3 keep their width because "Meal:" and the meal field
-        // in row 0 occupy them, so hiding Weight doesn't shrink the form.
+        // Weight is hidden in manual mode; columns 2-3 keep their width
+        // because row 0's Meal widgets occupy them
         c.gridy = 1;
         c.gridx = 0; form.add(caloriesLabel, c);
         c.gridx = 1; form.add(caloriesField, c);
         c.gridx = 2; form.add(weightLabel, c);
         c.gridx = 3; form.add(weightField, c);
 
-        // Row 2: mode toggle
         c.gridy = 2;
         c.gridx = 0;
         c.gridwidth = 2;
         form.add(manualModeBox, c);
         c.gridwidth = 1;
 
-        // Row 3: catalog selection
         c.gridy = 3;
         c.gridx = 0;
         form.add(label(I18n.t("nutrition.fromCatalog")), c);
@@ -154,8 +152,7 @@ public class NutritionPanel extends JPanel {
         form.add(catalogBox, c);
         c.gridwidth = 1;
 
-        // Filler column: absorbs extra width so the form stays left-aligned
-        // and doesn't get re-centered when the window is resized
+        // filler absorbs extra width so the form stays left-aligned on resize
         JPanel filler = new JPanel();
         filler.setOpaque(false);
         c.gridy = 0;
@@ -274,13 +271,13 @@ public class NutritionPanel extends JPanel {
     private void updateMode() {
         boolean manual = manualModeBox.isSelected();
         caloriesLabel.setText(manual ? I18n.t("nutrition.calories") : I18n.t("nutrition.per100"));
-        // Hiding is safe here: the columns holding Weight are still sized
-        // by the Meal label/field in the row above
+        // hiding is safe here: the --weight: columns are sized by row 0's Meal widgets
         weightLabel.setVisible(!manual);
         weightField.setVisible(!manual);
         if (manual) weightField.setText("");
     }
 
+    /** Reloads the product catalog sorted by localized name, keeping the previous selection. */
     public void reloadCatalog() {
         ProductEntry selected = (ProductEntry) catalogBox.getSelectedItem();
         reloadingCatalog = true;

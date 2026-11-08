@@ -5,12 +5,18 @@ import java.awt.*;
 
 import util.I18n;
 
+/**
+ * Factory for undecorated modal dialogs styled with the app palette
+ * (a plain message box, a confirm-with-custom-content box, a yes/no box).
+ */
 public class StyledDialog {
 
+    /** Shows a modal message box with a single OK button. */
     public static void show(Window parent, String message) {
         show(parent, message, null);
     }
 
+    /** Shows a modal message box with a single OK button and an optional title. */
     public static void show(Window parent, String message, String title) {
         JDialog dialog = new JDialog(parent, title != null ? title : "", Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
@@ -62,6 +68,7 @@ public class StyledDialog {
         dialog.setVisible(true);
     }
 
+    /** Shows a modal OK/Cancel dialog around caller-supplied content; returns true when OK was pressed. */
     public static boolean confirm(Window parent, JPanel content, String title) {
         JDialog dialog = new JDialog(parent, title != null ? title : "", Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
@@ -120,6 +127,13 @@ public class StyledDialog {
         return result[0];
     }
 
+    /**
+     * Shows a modal yes/no dialog; returns true when Yes was pressed.
+     * The message is rendered as centered HTML rather than a wrapping
+     * JTextArea, because pack() mis-measures wrapping text areas (cut-off
+     * text at the fixed dialog width) and a focused text area paints a
+     * stray caret bar before the first letter.
+     */
     public static boolean confirmYesNo(Window parent, String message, String title) {
         JDialog dialog = new JDialog(parent, title != null ? title : "", Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
@@ -133,10 +147,7 @@ public class StyledDialog {
 
         final boolean[] result = {false};
 
-        // HTML label, not a line-wrapping JTextArea: pack() computes the wrong
-        // preferred height for a wrapping JTextArea (messages get cut at 360px
-        // width), and a focused JTextArea paints a caret at position 0
-        // (a dark bar before the first letter).
+        // HTML label instead of a wrapping JTextArea (see confirmYesNo javadoc)
         String escaped = message
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")

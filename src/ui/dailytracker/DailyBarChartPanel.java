@@ -87,8 +87,7 @@ public class DailyBarChartPanel extends JPanel {
 
             if (bh > 8) {
                 String valStr = formatter.apply(v);
-                // Draw the value only when it actually fits into its own slot,
-                // otherwise it collides with neighboring bars' labels.
+                // draw the value only when it fits into its own slot (neighbors' labels)
                 if (fm.stringWidth(valStr) <= (int) barW - 4) {
                     g2.setColor(new Color(230, 230, 230));
                     int vx = x + (int) (barW / 2) - fm.stringWidth(valStr) / 2;

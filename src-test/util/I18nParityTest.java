@@ -15,8 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class I18nParityTest {
 
     private static ResourceBundle bundle(Locale locale) {
-        // Locale.ROOT-based control avoids host-locale interference; bundles are
-        // UTF-8 natively since Java 9+ property encoding.
+        // Locale.ROOT-based control avoids host-locale interference
         return ResourceBundle.getBundle("i18n.messages", locale, new ResourceBundle.Control() {
             @Override
             public Locale getFallbackLocale(String baseName, Locale locale) {

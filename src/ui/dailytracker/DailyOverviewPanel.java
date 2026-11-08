@@ -285,7 +285,6 @@ public class DailyOverviewPanel extends JPanel {
                 }
                 Map<String, Double> sortedCurs = sortByValueDesc(curMap);
 
-                // Per-day totals for every day of the selected month.
                 YearMonth month = YearMonth.from(date);
                 int days = month.lengthOfMonth();
                 double[] stepVals = new double[days];

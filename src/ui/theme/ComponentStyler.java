@@ -6,6 +6,13 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
 
+/**
+ * Applies the shared visual style to Swing widgets (buttons, text fields,
+ * combo boxes, scroll bars, spinners, sliders, checkboxes, tabbed panes,
+ * progress bars) and provides the sidebar button variants. All styling reads
+ * colors and fonts from {@link UIStyle}, so theme switches take effect on the
+ * next component creation.
+ */
 public class ComponentStyler {
 
     public static void styleButton(AbstractButton btn) {

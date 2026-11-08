@@ -81,8 +81,7 @@ public final class SingleInstanceGuard {
             }
         }
 
-        // Still locked after the grace period -> a real duplicate launch:
-        // poke the running instance, then exit without touching anything else.
+        // still locked after the grace period -> a real duplicate launch: poke and exit
         File signal = new File(AppPaths.appDir(), SIGNAL_FILE);
         try {
             if (signal.exists()) Files.delete(signal.toPath());

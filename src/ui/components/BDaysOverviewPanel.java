@@ -100,8 +100,7 @@ public class BDaysOverviewPanel extends JPanel {
                 lastSeason = currentSeason;
             }
 
-            // Stand-alone month name (LLLL): "НОЯБРЬ" - the full/TEXT style above returns
-            // the genitive format form ("НОЯБРЯ") for ru/uk.
+            // stand-alone month name (LLLL): the TEXT style would give the genitive form ("НОЯБРЯ") in ru/uk
             String mn = LocalDate.of(2004, monthNum, 1)
                     .format(DateTimeFormatter.ofPattern("LLLL", I18n.locale()))
                     .toUpperCase(I18n.locale());

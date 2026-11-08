@@ -8,10 +8,16 @@ import java.awt.*;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Reusable pie chart with a scrollable legend to the right. Each legend entry
+ * shows the wrapped name plus percentage and formatted value; colors are
+ * deterministic per name via {@link ColorGenerator}.
+ */
 public class PieChartPanel extends JPanel {
 
     private static final int WRAP_CHARS = 35;
 
+    /** Formats seconds as {@code HH:MM:SS} (rounding to the nearest second). */
     public static String formatFullTime(double totalSec) {
         int ss = (int) Math.round(totalSec);
         int h = ss / 3600;
@@ -91,8 +97,7 @@ public class PieChartPanel extends JPanel {
                 marker.setFont(new Font("Arial", Font.BOLD, 16));
                 marker.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-                // The name is split every WRAP_CHARS characters; the stats part
-                // always stays on its own line so "kcal" can never be cut off.
+                // stats always on their own line so "kcal" never wraps off
                 String nameHtml = wrapByChars(entry.getKey(), WRAP_CHARS);
                 JLabel label = new JLabel(String.format(
                         "<html><div style='text-align:left'>%s<br>%.1f%% / %s</div></html>",

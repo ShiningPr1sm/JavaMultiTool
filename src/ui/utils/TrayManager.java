@@ -13,6 +13,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * System tray icon + popup menu built from custom JPanel rows (the Windows L&F
+ * reserves a fixed checkmark column before JMenuItem icons, so plain menu items
+ * misalign icons). Menu rows trigger the matching sidebar buttons on MainFrame.
+ */
 public class TrayManager {
     private final MainFrame frame;
     private TrayIcon trayIcon;
@@ -86,8 +91,7 @@ public class TrayManager {
         iconLabel.addMouseListener(mouse);
         textLabel.addMouseListener(mouse);
 
-        // The popup uses a vertical BoxLayout: rows with unbounded maximum width
-        // are stretched to the full menu width, content aligned to the left edge.
+        // vertical BoxLayout stretches rows (unbounded max width) to the full menu width
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
         swingMenu.add(row);

@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import util.I18n;
 
+/**
+ * Simple bar chart panel: draws bars for {@code values}, optional per-bar
+ * labels, a trend line through the bar tops and a tooltip on hover.
+ * Supports month view (28+ bars, sparse day labels) and 24h view.
+ */
 public class BarChartPanel extends JPanel {
     private int[] values;
     private String[] labels;
@@ -25,6 +30,7 @@ public class BarChartPanel extends JPanel {
         });
     }
 
+    /** Sets the chart data and repaints. Labels are matched to bars by index; missing labels fall back to column numbers. */
     public void setData(String title, int[] values, String[] labels) {
         this.title = title;
         this.values = values;
@@ -70,7 +76,6 @@ public class BarChartPanel extends JPanel {
         int max = 1;
         for (int v : values) if (v > max) max = v;
 
-        // Рисуем оси
         g2.setColor(new Color(70, 70, 70));
         g2.drawLine(PADDING_LEFT, PADDING_TOP, PADDING_LEFT, PADDING_TOP + height);
         g2.drawLine(PADDING_LEFT, PADDING_TOP + height, PADDING_LEFT + width, PADDING_TOP + height);
@@ -83,7 +88,6 @@ public class BarChartPanel extends JPanel {
         double barWidth = (double) width / values.length;
         FontMetrics fm = g2.getFontMetrics(new Font("Segoe UI", Font.PLAIN, 10));
 
-        // Список точек для линии тренда
         List<Point> trendPoints = new ArrayList<>();
 
         for (int i = 0; i < values.length; i++) {
@@ -92,17 +96,15 @@ public class BarChartPanel extends JPanel {
             int y = PADDING_TOP + height - barHeight;
 
             if (values[i] > 0) {
-                // Запоминаем точку центра верхушки столбика
                 trendPoints.add(new Point(x + (int)(barWidth / 2), y));
 
-                // Рисуем столбик (сделал чуть прозрачнее - 130 вместо 180, чтобы линия выделялась)
+                // semi-transparent fill so the overlaid trend line stands out
                 g2.setColor(new Color(100, 200, 100, 130));
                 g2.fillRect(x + 2, y, (int) barWidth - 4, barHeight);
                 g2.setColor(new Color(100, 200, 100, 200));
                 g2.drawRect(x + 2, y, (int) barWidth - 4, barHeight);
             }
 
-            // Логика подписей
             g2.setColor(new Color(180, 180, 180));
             String label = "";
             if (values.length >= 28) {
@@ -112,34 +114,27 @@ public class BarChartPanel extends JPanel {
                 if (labels != null && i < labels.length) label = labels[i];
             }
 
-            // Рисуем подпись (центрированно)
             if (values.length != 24 && !label.isEmpty()) {
                 int textX = x + (int) (barWidth / 2) - (fm.stringWidth(label) / 2);
                 g2.drawString(label, textX, PADDING_TOP + height + 18);
             }
         }
 
-        // --- НОВОЕ: РИСУЕМ ЛИНИЮ ТРЕНДА ---
         if (trendPoints.size() > 1) {
-            g2.setColor(new Color(73, 180, 204)); // Красный/Коралловый цвет
+            g2.setColor(new Color(73, 180, 204));
             g2.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
             for (int i = 0; i < trendPoints.size() - 1; i++) {
                 Point p1 = trendPoints.get(i);
                 Point p2 = trendPoints.get(i + 1);
 
-                // Линия между пиками
                 g2.drawLine(p1.x, p1.y, p2.x, p2.y);
-
-                // Точка на пике
                 g2.fillOval(p1.x - 3, p1.y - 3, 6, 6);
             }
-            // Последняя точка
             Point lastP = trendPoints.get(trendPoints.size() - 1);
             g2.fillOval(lastP.x - 3, lastP.y - 3, 6, 6);
         }
 
-        // Шкала 24ч
         if (values.length == 24) {
             g2.setColor(new Color(180, 180, 180));
             int[] hoursToShow = {0, 6, 12, 18, 24};

@@ -71,8 +71,7 @@ public class AdvancedSettingsDialog extends JDialog {
             c.anchor = GridBagConstraints.CENTER;
             c.fill = GridBagConstraints.NONE;
             boolean value = switch (def.key()) {
-                // Real state comes from the Windows Run key, not the saved preference,
-                // so the checkbox always reflects what actually happens on boot.
+                // startup state comes from the registry Run key, not the saved preference
                 case "launchAtStartup" -> ConfigManager.isStartupEnabled();
                 case "minToTray" -> userRepo.isCloseToTrayEnabled(login);
                 default -> Boolean.parseBoolean(ConfigManager.loadProperty(

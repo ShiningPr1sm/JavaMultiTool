@@ -20,9 +20,8 @@ public class DailyTrackerPanel extends JPanel {
                 DatabaseProvider.getPurchasesRepository()
         );
 
-        // Purchases (and Steps) can change what the Calories tab shows, so the
-        // shared data-changed callback refreshes both the overview and the
-        // nutrition table; the nutrition panel is created below, hence the holder.
+        // shared data-changed callback refreshes both the overview and the nutrition table;
+        // nutritionRef is a holder because the panel is created after this callback
         NutritionPanel[] nutritionRef = new NutritionPanel[1];
         Runnable refreshData = () -> SwingUtilities.invokeLater(() -> {
             overviewPanel.refresh();
