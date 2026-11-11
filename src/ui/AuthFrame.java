@@ -2,10 +2,14 @@ package ui;
 
 import db.DatabaseProvider;
 import service.Services;
+import util.AppLogger;
 import util.I18n;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.net.URI;
 
 public class AuthFrame extends JFrame {
     private static final int FRAME_SIZE_WIDTH = 700;
@@ -141,7 +145,41 @@ public class AuthFrame extends JFrame {
         formPanel.add(toggleButton, gbc);
 
         outerPanel.add(formPanel);
-        setContentPane(outerPanel);
+
+        JLabel faqLink = new JLabel(I18n.t("auth.faqLink"));
+        faqLink.setForeground(UIStyle.ACCENT_COLOR);
+        faqLink.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        faqLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        faqLink.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                faqLink.setText("<html><u>" + I18n.t("auth.faqLink") + "</u></html>");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                faqLink.setText(I18n.t("auth.faqLink"));
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    Desktop.getDesktop().browse(new URI("https://github.com/ShiningPr1sm/JavaMultiTool/wiki/FAQ"));
+                } catch (Exception ex) {
+                    AppLogger.error("Failed to open FAQ page: " + ex.getMessage());
+                }
+            }
+        });
+
+        JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 6));
+        bottomBar.setBackground(UIStyle.HEADER_COLOR);
+        bottomBar.add(faqLink);
+
+        JPanel content = new JPanel(new BorderLayout());
+        content.setBackground(UIStyle.HEADER_COLOR);
+        content.add(outerPanel, BorderLayout.CENTER);
+        content.add(bottomBar, BorderLayout.SOUTH);
+        setContentPane(content);
         setVisible(true);
     }
 }
