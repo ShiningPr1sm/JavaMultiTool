@@ -37,43 +37,33 @@ public class AuthFrame extends JFrame {
         subtitleLabel.setForeground(UIStyle.TEXT_COLOR);
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        JPanel formPanel = new JPanel();
+        JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(UIStyle.SIDE_BOX);
-        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setPreferredSize(new Dimension(320, 340));
         formPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
         JLabel loginLabel = new JLabel(I18n.t("auth.login"));
         loginLabel.setForeground(UIStyle.TEXT_COLOR);
         loginLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        loginLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JTextField loginField = new JTextField(20);
-        loginField.setMaximumSize(new Dimension(300, 35));
         UIStyle.styleTextField(loginField);
 
         JLabel passwordLabel = new JLabel(I18n.t("auth.password"));
         passwordLabel.setForeground(UIStyle.TEXT_COLOR);
         passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JPasswordField passwordField = new JPasswordField(20);
-        passwordField.setMaximumSize(new Dimension(300, 35));
         UIStyle.styleTextField(passwordField);
 
         JButton loginButton = new JButton(I18n.t("auth.loginBtn"));
-        loginButton.setMaximumSize(new Dimension(300, 38));
+        loginButton.setPreferredSize(new Dimension(300, 38));
         loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         UIStyle.styleButton(loginButton);
 
         JButton toggleButton = new JButton(I18n.t("auth.noAccount"));
-        toggleButton.setMaximumSize(new Dimension(300, 38));
+        toggleButton.setPreferredSize(new Dimension(300, 38));
         toggleButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
         UIStyle.styleButton(toggleButton);
-
-        for (JComponent comp : new JComponent[]{loginField, passwordField, loginButton, toggleButton}) {
-            comp.setAlignmentX(Component.CENTER_ALIGNMENT);
-        }
 
         Runnable doLogin = () -> {
             String login = loginField.getText().trim();
@@ -124,24 +114,31 @@ public class AuthFrame extends JFrame {
             toggleButton.setText(registerMode[0] ? I18n.t("auth.haveAccount") : I18n.t("auth.noAccount"));
         });
 
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.NONE;
 
-        formPanel.add(titleLabel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        formPanel.add(subtitleLabel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        formPanel.add(loginLabel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        formPanel.add(loginField);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        formPanel.add(passwordLabel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        formPanel.add(passwordField);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-        formPanel.add(loginButton);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        formPanel.add(toggleButton);
+        gbc.insets = new Insets(0, 0, 0, 0);
+        formPanel.add(titleLabel, gbc);
+        gbc.insets = new Insets(5, 0, 0, 0);
+        formPanel.add(subtitleLabel, gbc);
+        gbc.insets = new Insets(20, 0, 0, 0);
+        formPanel.add(loginLabel, gbc);
+
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(5, 0, 0, 0);
+        formPanel.add(loginField, gbc);
+        gbc.insets = new Insets(10, 0, 0, 0);
+        formPanel.add(passwordLabel, gbc);
+        gbc.insets = new Insets(5, 0, 0, 0);
+        formPanel.add(passwordField, gbc);
+        gbc.insets = new Insets(15, 0, 0, 0);
+        formPanel.add(loginButton, gbc);
+        gbc.insets = new Insets(8, 0, 0, 0);
+        formPanel.add(toggleButton, gbc);
 
         outerPanel.add(formPanel);
         setContentPane(outerPanel);

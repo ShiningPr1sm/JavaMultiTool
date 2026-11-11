@@ -3,6 +3,8 @@ package ui.theme;
 import ui.UIStyle;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
@@ -106,6 +108,14 @@ public class ComponentStyler {
         sp.getViewport().setBackground(UIStyle.BG_COLOR);
     }
 
+    private static void repaintArrow(JComboBox<?> cb) {
+        for (Component c : cb.getComponents()) {
+            if (c instanceof JButton) {
+                c.repaint();
+            }
+        }
+    }
+
     public static void styleComboBox(JComboBox<?> cb) {
         UIManager.put("ComboBox.disabledBackground", UIStyle.SIDE_BOX);
         cb.setBackground(UIStyle.BUTTON_BG);
@@ -130,7 +140,20 @@ public class ComponentStyler {
 
             @Override
             protected JButton createArrowButton() {
-                JButton btn = new JButton("\u25BC");
+                JButton btn = new JButton() {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        super.paintComponent(g);
+                        String arrow = isPopupVisible(comboBox) ? "\u25B2" : "\u25BC";
+                        g.setColor(getForeground());
+                        g.setFont(getFont());
+                        FontMetrics fm = g.getFontMetrics(getFont());
+                        int x = (getWidth() - fm.stringWidth(arrow)) / 2;
+                        int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                        g.drawString(arrow, x, y);
+                    }
+                };
+                btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                 btn.setBorder(BorderFactory.createEmptyBorder());
                 btn.setContentAreaFilled(false);
                 btn.setFocusPainted(false);
@@ -154,6 +177,23 @@ public class ComponentStyler {
                 bounds.width -= 6;
                 super.paintCurrentValue(g, bounds, hasFocus);
                 comboBox.setBackground(oldBg);
+            }
+        });
+
+        cb.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                repaintArrow(cb);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                repaintArrow(cb);
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+                repaintArrow(cb);
             }
         });
 
@@ -406,6 +446,7 @@ public class ComponentStyler {
         button.setForeground(UIStyle.TEXT_COLOR);
         button.setBackground(UIStyle.BUTTON_BG);
         button.setBorderPainted(false);
+        button.setHorizontalAlignment(SwingConstants.CENTER);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setFont(new Font("Segoe UI", Font.BOLD, 13));
         button.getModel().addChangeListener(e -> {
@@ -428,6 +469,7 @@ public class ComponentStyler {
         button.setForeground(UIStyle.TEXT_COLOR);
         button.setBackground(UIStyle.BUTTON_BG);
         button.setBorderPainted(false);
+        button.setHorizontalAlignment(SwingConstants.CENTER);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         button.getModel().addChangeListener(e -> {

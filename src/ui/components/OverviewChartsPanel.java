@@ -43,7 +43,6 @@ public class OverviewChartsPanel extends JPanel {
         filterPanel.setBackground(UIStyle.BG_COLOR);
 
         UIStyle.styleComboBox(dateSelector);
-        refreshDateSelector();
         dateSelector.setPreferredSize(new Dimension(120, 30));
         dateSelector.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -120,6 +119,8 @@ public class OverviewChartsPanel extends JPanel {
 
         add(top, BorderLayout.NORTH);
         add(chartsPanel, BorderLayout.CENTER);
+
+        refresh();
     }
 
     private static final String[][] IMG_FORMATS = {

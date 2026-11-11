@@ -24,7 +24,19 @@ public class ExpandableSection extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(UIStyle.SIDE_BOX);
 
-        mainButton = new JButton(I18n.t(title) + "  \u25BC");
+        mainButton = new JButton(I18n.t(title)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                String arrow = expanded.get() ? "\u25B2" : "\u25BC";
+                g.setColor(getForeground());
+                g.setFont(getFont());
+                FontMetrics fm = g.getFontMetrics(getFont());
+                int x = getWidth() - fm.stringWidth(arrow) - 12;
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g.drawString(arrow, x, y);
+            }
+        };
         UIStyle.styleSidebarMainButton(mainButton, sidebarWidth);
         mainButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainButton.setMaximumSize(new Dimension(sidebarWidth - 20, 40));
@@ -56,7 +68,7 @@ public class ExpandableSection extends JPanel {
     private void toggle(int itemCount) {
         boolean isExpanding = !expanded.get();
         expanded.set(isExpanding);
-        mainButton.setText(I18n.t(sectionTitle) + "  " + (isExpanding ? "\u25B2" : "\u25BC"));
+        mainButton.repaint();
 
         subPanel.setVisible(true);
         int targetHeight = isExpanding ? (itemCount * 35) : 0;
