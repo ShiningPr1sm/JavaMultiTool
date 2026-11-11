@@ -304,13 +304,13 @@ public class MainFrame extends JFrame implements AchievementCallback {
             "sidebar.mediaDownloader", "sidebar.birthdayTracker", "sidebar.dailyTracker",
             "sidebar.workflow", "sidebar.adminCmd", "Settings", "sidebar.imageTools",
             "sidebar.colorPicker", "sidebar.passwordGenerator", "sidebar.qrGenerator",
-            "sidebar.networkTools", "sidebar.notifications");
+            "sidebar.networkTools", "sidebar.notifications", "sidebar.findReplace");
 
     /** Opens the given sidebar tab; "Welcome" and "Achievements" are routed to their dedicated pages. */
     public void openTab(String itemName) {
         if (itemName.equals(currentTab)) return;
         if (!KNOWN_TABS.contains(itemName)) {
-            // placeholder entries (File Organizer, Unit Converter, Find & Replace...)
+            // placeholder entries (File Organizer, Unit Converter...)
             AppLogger.info("openTab: not implemented yet: " + itemName);
             StyledDialog.show(this, I18n.t("tab.comingSoon"));
             return;
@@ -349,6 +349,8 @@ public class MainFrame extends JFrame implements AchievementCallback {
                     contentPanel.add(new ui.utilstab.NetworkToolsPanel(), BorderLayout.CENTER);
             case "sidebar.notifications" ->
                     contentPanel.add(new ui.notifications.NotificationsPanel(services.notificationService(), headerPanel), BorderLayout.CENTER);
+            case "sidebar.findReplace" ->
+                    contentPanel.add(new ui.texttab.FindReplacePanel(), BorderLayout.CENTER);
             default ->
                     AppLogger.error("Attempted to open unknown tab: " + itemName);
         }

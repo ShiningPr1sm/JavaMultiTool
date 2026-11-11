@@ -1,0 +1,23 @@
+Welcome to JavaMultiTool Test Suite!   
+   
+1. Testing Emails:
+   - Contact support at info@example.com for help.
+   - Send reports to admin.test_99@dev-domain.co.uk immediately.
+
+2. Testing IPv4 Addresses:
+   - Server local IP: 192.168.1.105
+   - External gateway: 10.0.0.1 (active)
+   - Invalid IP skip test: 999.999.999.999
+
+3. Testing URLs & Links:
+   - Official site: https://github.com/ShiningPr1sm/JavaMultiTool
+   - Subdomain link: http://wiki.project-tools.org/docs/find-replace?user=admin#section2
+
+4. Testing HTML/XML Tags:
+   - <div class="container"><p>This is <b>bold</b> text inside <i>HTML tags</i>.</p></div>
+   - <a href="https://example.com">Click here</a> to verify parsing.
+
+5. Testing Empty Lines & Trailing Whitespace:
+   Line with 5 spaces at the end:     
+   
+   Line after double blank line.

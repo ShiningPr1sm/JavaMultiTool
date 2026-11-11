@@ -219,6 +219,10 @@ public class UIStyle {
         ComponentStyler.styleSlider(slider);
     }
 
+    public static void styleTable(JTable table) {
+        ComponentStyler.styleTable(table);
+    }
+
     public static void styleSidebarMainButton(JButton button, int sidebarWidth) {
         ComponentStyler.styleSidebarMainButton(button, sidebarWidth);
     }

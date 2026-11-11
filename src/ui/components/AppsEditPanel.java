@@ -6,9 +6,7 @@ import util.AppLogger;
 import util.I18n;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.util.List;
 
@@ -37,24 +35,9 @@ public class AppsEditPanel extends JPanel {
         JTable editTable = new JTable(model);
         editTable.setBackground(UIStyle.SECONDARY_BG);
         editTable.setForeground(Color.WHITE);
-        editTable.setGridColor(UIStyle.BORDER_COLOR);
         editTable.setRowHeight(30);
         editTable.setToolTipText(I18n.t("apps.tip.rename"));
-
-        JTableHeader header = editTable.getTableHeader();
-        header.setBackground(UIStyle.BG_COLOR);
-        header.setForeground(Color.GRAY);
-        header.setDefaultRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
-                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
-                lbl.setBackground(UIStyle.BG_COLOR);
-                lbl.setForeground(Color.GRAY);
-                lbl.setHorizontalAlignment(SwingConstants.CENTER);
-                lbl.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, UIStyle.BORDER_COLOR));
-                return lbl;
-            }
-        });
+        UIStyle.styleTable(editTable);
 
         editTable.removeColumn(editTable.getColumnModel().getColumn(2));
 

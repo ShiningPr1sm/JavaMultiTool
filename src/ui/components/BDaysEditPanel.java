@@ -10,7 +10,6 @@ import util.I18n;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
 import java.awt.*;
 
 public class BDaysEditPanel extends JPanel {
@@ -66,9 +65,9 @@ public class BDaysEditPanel extends JPanel {
         table = new JTable(model);
         table.setBackground(UIStyle.SECONDARY_BG);
         table.setForeground(Color.WHITE);
-        table.setGridColor(UIStyle.BORDER_COLOR);
         table.setRowHeight(30);
         table.setFillsViewportHeight(true);
+        UIStyle.styleTable(table);
 
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
         table.getColumnModel().getColumn(0).setMaxWidth(80);
@@ -83,21 +82,6 @@ public class BDaysEditPanel extends JPanel {
         });
         table.getColumnModel().getColumn(1).setPreferredWidth(250);
         table.getColumnModel().getColumn(2).setPreferredWidth(150);
-
-        JTableHeader header = table.getTableHeader();
-        header.setBackground(UIStyle.BG_COLOR);
-        header.setForeground(Color.GRAY);
-        header.setDefaultRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
-                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
-                lbl.setBackground(UIStyle.BG_COLOR);
-                lbl.setForeground(Color.GRAY);
-                lbl.setHorizontalAlignment(SwingConstants.CENTER);
-                lbl.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, UIStyle.BORDER_COLOR));
-                return lbl;
-            }
-        });
 
         JScrollPane scroll = new JScrollPane(table);
         UIStyle.styleScrollBar(scroll);

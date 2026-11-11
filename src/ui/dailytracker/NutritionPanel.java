@@ -10,9 +10,7 @@ import util.DateUtils;
 import util.I18n;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.time.LocalDate;
 import java.text.Collator;
@@ -180,7 +178,7 @@ public class NutritionPanel extends JPanel {
         table.setFillsViewportHeight(true);
         table.getColumnModel().getColumn(0).setPreferredWidth(280);
         table.getColumnModel().getColumn(1).setPreferredWidth(100);
-        styleTable(table);
+        UIStyle.styleTable(table);
 
         JScrollPane scroll = new JScrollPane(table);
         UIStyle.styleScrollBar(scroll);
@@ -367,36 +365,5 @@ public class NutritionPanel extends JPanel {
         JLabel l = new JLabel(text);
         l.setForeground(UIStyle.TEXT_COLOR);
         return l;
-    }
-
-    static void styleTable(JTable table) {
-        JTableHeader header = table.getTableHeader();
-        header.setBackground(UIStyle.BG_COLOR);
-        header.setForeground(Color.GRAY);
-        header.setDefaultRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
-                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
-                lbl.setBackground(UIStyle.BG_COLOR);
-                lbl.setForeground(Color.GRAY);
-                lbl.setHorizontalAlignment(SwingConstants.CENTER);
-                return lbl;
-            }
-        });
-        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
-                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
-                if (s) {
-                    lbl.setBackground(UIStyle.BUTTON_HOVER);
-                    lbl.setForeground(UIStyle.ACCENT_COLOR);
-                } else {
-                    lbl.setBackground(UIStyle.SECONDARY_BG);
-                    lbl.setForeground(Color.WHITE);
-                }
-                lbl.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
-                return lbl;
-            }
-        });
     }
 }

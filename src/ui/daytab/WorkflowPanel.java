@@ -39,12 +39,12 @@ public class WorkflowPanel extends JPanel {
         JTabbedPane tabs = new JTabbedPane();
         UIStyle.styleTabbedPane(tabs);
 
+        tabs.addTab(" " + I18n.t("wf.tab.overview") + " ", createOverviewUI());
         tabs.addTab(" " + I18n.t("wf.tab.worklog") + " ", createWorklogUI(taskTrackerPanel, pomodoroPanel));
         tabs.addTab(" " + I18n.t("wf.tab.appTracker") + " ", createAppTrackerUI(appTrackerPanel));
-        tabs.addTab(" " + I18n.t("wf.tab.overview") + " ", createOverviewUI());
 
         tabs.addChangeListener(e -> {
-            if (tabs.getSelectedIndex() == 2 && overviewCharts != null) {
+            if (tabs.getSelectedIndex() == 0 && overviewCharts != null) {
                 overviewCharts.refresh();
             }
         });

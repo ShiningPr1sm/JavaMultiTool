@@ -91,7 +91,7 @@ public class StepsPanel extends JPanel {
         table.getColumnModel().getColumn(0).setPreferredWidth(120);
         table.getColumnModel().getColumn(1).setPreferredWidth(120);
         table.getColumnModel().getColumn(2).setPreferredWidth(140);
-        NutritionPanel.styleTable(table);
+        UIStyle.styleTable(table);
 
         JScrollPane scroll = new JScrollPane(table);
         UIStyle.styleScrollBar(scroll);

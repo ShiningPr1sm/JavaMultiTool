@@ -4,12 +4,14 @@ import ui.UIStyle;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 
 /**
  * Applies the shared visual style to Swing widgets (buttons, text fields,
  * combo boxes, scroll bars, spinners, sliders, checkboxes, tabbed panes,
- * progress bars) and provides the sidebar button variants. All styling reads
+ * progress bars, tables) and provides the sidebar button variants. All styling reads
  * colors and fonts from {@link UIStyle}, so theme switches take effect on the
  * next component creation.
  */
@@ -361,6 +363,40 @@ public class ComponentStyler {
     public static void styleSlider(JSlider slider) {
         slider.setFocusable(false);
         slider.setOpaque(false);
+    }
+
+    public static void styleTable(JTable table) {
+        table.setShowGrid(true);
+        table.setGridColor(UIStyle.BORDER_COLOR);
+        JTableHeader header = table.getTableHeader();
+        header.setBackground(UIStyle.BG_COLOR);
+        header.setForeground(Color.GRAY);
+        header.setDefaultRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
+                lbl.setBackground(UIStyle.BG_COLOR);
+                lbl.setForeground(Color.GRAY);
+                lbl.setHorizontalAlignment(SwingConstants.CENTER);
+                lbl.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, UIStyle.BORDER_COLOR));
+                return lbl;
+            }
+        });
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
+                if (s) {
+                    lbl.setBackground(UIStyle.BUTTON_HOVER);
+                    lbl.setForeground(UIStyle.ACCENT_COLOR);
+                } else {
+                    lbl.setBackground(UIStyle.SECONDARY_BG);
+                    lbl.setForeground(Color.WHITE);
+                }
+                lbl.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+                return lbl;
+            }
+        });
     }
 
     public static void styleSidebarMainButton(JButton button, int sidebarWidth) {

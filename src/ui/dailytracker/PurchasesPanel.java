@@ -144,7 +144,7 @@ public class PurchasesPanel extends JPanel {
         table.getColumnModel().getColumn(0).setPreferredWidth(260);
         table.getColumnModel().getColumn(1).setPreferredWidth(100);
         table.getColumnModel().getColumn(2).setPreferredWidth(90);
-        NutritionPanel.styleTable(table);
+        UIStyle.styleTable(table);
 
         JScrollPane scroll = new JScrollPane(table);
         UIStyle.styleScrollBar(scroll);
