@@ -72,12 +72,6 @@ public class AppsEditPanel extends JPanel {
         JScrollPane sp = new JScrollPane(editTable);
         UIStyle.styleScrollBar(sp);
         sp.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
-        JPanel corner = new JPanel();
-        corner.setBackground(UIStyle.BG_COLOR);
-        sp.setCorner(JScrollPane.UPPER_RIGHT_CORNER, corner);
-        JPanel corner2 = new JPanel();
-        corner2.setBackground(UIStyle.BG_COLOR);
-        sp.setCorner(JScrollPane.LOWER_RIGHT_CORNER, corner2);
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         btnPanel.setBackground(UIStyle.BG_COLOR);

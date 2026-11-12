@@ -87,12 +87,6 @@ public class BDaysEditPanel extends JPanel {
         UIStyle.styleScrollBar(scroll);
         scroll.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
         scroll.getViewport().setBackground(UIStyle.BG_COLOR);
-        JPanel corner = new JPanel();
-        corner.setBackground(UIStyle.BG_COLOR);
-        scroll.setCorner(JScrollPane.UPPER_RIGHT_CORNER, corner);
-        JPanel corner2 = new JPanel();
-        corner2.setBackground(UIStyle.BG_COLOR);
-        scroll.setCorner(JScrollPane.LOWER_RIGHT_CORNER, corner2);
 
         JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         form.setBackground(UIStyle.BG_COLOR);

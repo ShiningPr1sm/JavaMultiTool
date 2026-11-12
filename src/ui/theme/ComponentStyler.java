@@ -106,6 +106,14 @@ public class ComponentStyler {
         });
         sp.setBorder(null);
         sp.getViewport().setBackground(UIStyle.BG_COLOR);
+
+        for (String cornerKey : new String[]{
+                JScrollPane.UPPER_RIGHT_CORNER, JScrollPane.LOWER_RIGHT_CORNER,
+                JScrollPane.UPPER_LEFT_CORNER, JScrollPane.LOWER_LEFT_CORNER}) {
+            JPanel corner = new JPanel();
+            corner.setBackground(UIStyle.BG_COLOR);
+            sp.setCorner(cornerKey, corner);
+        }
     }
 
     private static void repaintArrow(JComboBox<?> cb) {
