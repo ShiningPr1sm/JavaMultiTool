@@ -20,6 +20,8 @@ public class Main {
             AppLogger.error("UIManager initialization: " + e.getMessage());
         }
 
+        ui.theme.RepaintThrottle.install();
+
         try {
             DatabaseProvider.getUserRepository().initializeDatabase();
             services.authService().initializeRights();

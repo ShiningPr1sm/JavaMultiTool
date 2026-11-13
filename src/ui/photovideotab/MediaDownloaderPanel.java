@@ -253,6 +253,7 @@ public class MediaDownloaderPanel extends JPanel {
         new Thread(() -> {
             int failures = 0;
             try {
+                downloadService.resetCancel();
                 downloadService.ensureToolsAvailable();
                 String format = (String) formatBox.getSelectedItem();
                 AppLogger.info("Selected format: " + format + ", browser: " + browser + ", emergency referer: " + emergency);
@@ -329,6 +330,7 @@ public class MediaDownloaderPanel extends JPanel {
         new Thread(() -> {
             int failures = 0;
             try {
+                downloadService.resetCancel();
                 downloadService.ensureYTDLPAvailable();
 
                 for (int i = 0; i < videoUrls.size(); i++) {

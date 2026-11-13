@@ -77,6 +77,11 @@ public class MediaDownloadService {
     /** @return true after {@link #cancelAll()} until the next download task starts. */
     public boolean isCancelled() { return cancelRequested; }
 
+    /** Clears the cancellation flag when a new batch is starting. */
+    public void resetCancel() {
+        cancelRequested = false;
+    }
+
     /**
      * @param emergencyReferer last-resort workaround for yt-dlp breakage:
      *                         adds {@code --referer https://example.com} to the command
@@ -305,14 +310,7 @@ public class MediaDownloadService {
 
         AppLogger.info("Downloading ffmpeg...");
         File zip = new File(FFMPEG_DIR, "ffmpeg.zip");
-        try {
-            downloadWithProgress(new URL(FFMPEG_ZIP_URL), zip, "FFmpeg");
-        } catch (IOException e) {
-            if (downloadCallback != null) {
-                downloadCallback.onProgress("FFmpeg", 100);
-            }
-            throw e;
-        }
+        downloadWithProgress(new URL(FFMPEG_ZIP_URL), zip, "FFmpeg");
 
         extractFfmpegFromZip(zip);
         zip.delete();
@@ -442,6 +440,9 @@ public class MediaDownloadService {
             }
         }
 
+        if (downloadCallback != null) {
+            downloadCallback.onProgress(stage, 100);
+        }
         target.delete();
         throw lastException != null ? lastException : new IOException("Failed to download " + stage);
     }

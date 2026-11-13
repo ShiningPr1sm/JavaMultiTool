@@ -131,6 +131,8 @@ public class ComponentStyler {
         cb.setFocusable(false);
         cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cb.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR));
+        cb.addPropertyChangeListener("enabled", e -> cb.setBackground(
+                Boolean.TRUE.equals(e.getNewValue()) ? UIStyle.BUTTON_BG : UIStyle.SIDE_BOX));
 
         cb.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
             @Override
@@ -177,14 +179,9 @@ public class ComponentStyler {
 
             @Override
             public void paintCurrentValue(Graphics g, Rectangle bounds, boolean hasFocus) {
-                Color oldBg = comboBox.getBackground();
-                if (!comboBox.isEnabled()) {
-                    comboBox.setBackground(UIStyle.SIDE_BOX);
-                }
                 bounds.x += 6;
                 bounds.width -= 6;
                 super.paintCurrentValue(g, bounds, hasFocus);
-                comboBox.setBackground(oldBg);
             }
         });
 
