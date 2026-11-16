@@ -3,6 +3,7 @@ package ui.dailytracker;
 import db.NutritionRepository;
 import db.ProductEntry;
 import db.ProductRepository;
+import db.PurchasesRepository;
 import ui.StyledDialog;
 import ui.UIStyle;
 import util.AppLogger;
@@ -26,6 +27,7 @@ import java.util.List;
 public class NutritionPanel extends JPanel {
     private final NutritionRepository repo;
     private final ProductRepository productsRepo;
+    private final PurchasesRepository purchasesRepo;
     private final JTextField dateField, mealField, caloriesField, weightField;
     private final JCheckBox manualModeBox;
     private final JComboBox<ProductEntry> catalogBox;
@@ -37,9 +39,11 @@ public class NutritionPanel extends JPanel {
     private final Runnable onDataChanged;
     private boolean reloadingCatalog;
 
-    public NutritionPanel(NutritionRepository repo, ProductRepository productsRepo, Runnable onDataChanged) {
+    public NutritionPanel(NutritionRepository repo, ProductRepository productsRepo,
+                          PurchasesRepository purchasesRepo, Runnable onDataChanged) {
         this.repo = repo;
         this.productsRepo = productsRepo;
+        this.purchasesRepo = purchasesRepo;
         this.onDataChanged = onDataChanged;
 
         setLayout(new BorderLayout(0, 10));
@@ -149,6 +153,12 @@ public class NutritionPanel extends JPanel {
         c.gridwidth = 4;
         form.add(catalogBox, c);
         c.gridwidth = 1;
+
+        JButton weightedBtn = new JButton(I18n.t("nutrition.weightedButton"));
+        UIStyle.styleButton(weightedBtn);
+        weightedBtn.addActionListener(e -> openWeightedDialog());
+        c.gridx = 5;
+        form.add(weightedBtn, c);
 
         // filler absorbs extra width so the form stays left-aligned on resize
         JPanel filler = new JPanel();
@@ -273,6 +283,39 @@ public class NutritionPanel extends JPanel {
         weightLabel.setVisible(!manual);
         weightField.setVisible(!manual);
         if (manual) weightField.setText("");
+    }
+
+    /** Opens the weighed-goods dialog for the catalog selection and records the entry. */
+    private void openWeightedDialog() {
+        ProductEntry p = (ProductEntry) catalogBox.getSelectedItem();
+        if (p == null) {
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("nutrition.weighted.errProduct"));
+            return;
+        }
+        if (p.calories() == null) {
+            StyledDialog.show(SwingUtilities.windowForComponent(this), I18n.t("nutrition.weighted.errNoCalories"));
+            return;
+        }
+        LocalDate date = parseDateField();
+        if (date == null) return;
+        String dateISO = DateUtils.toISO(date);
+
+        WeightedEntryDialog.Result r = WeightedEntryDialog.show(SwingUtilities.windowForComponent(this), p);
+        if (r == null) return;
+
+        if (r.price() != null) {
+            String currency = p.currency() != null ? p.currency() : "";
+            int purchaseId = purchasesRepo.addPurchase(dateISO, p.name(), r.price(), currency);
+            repo.addFoodLinked(dateISO, p.name(), r.calories(), purchaseId);
+            AppLogger.info("Nutrition: weighed '" + p.name() + "' " + r.weight()
+                    + "g = " + r.calories() + " kcal, purchase " + r.price() + " " + currency + " for " + dateISO);
+        } else {
+            repo.addFood(dateISO, p.name(), r.calories());
+            AppLogger.info("Nutrition: weighed '" + p.name() + "' " + r.weight()
+                    + "g = " + r.calories() + " kcal for " + dateISO);
+        }
+        refreshTable();
+        notifyChanged();
     }
 
     /** Reloads the product catalog sorted by localized name, keeping the previous selection. */

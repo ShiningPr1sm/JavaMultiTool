@@ -23,14 +23,17 @@ public class DailyTrackerPanel extends JPanel {
         // shared data-changed callback refreshes both the overview and the nutrition table;
         // nutritionRef is a holder because the panel is created after this callback
         NutritionPanel[] nutritionRef = new NutritionPanel[1];
+        PurchasesPanel[] purchasesRef = new PurchasesPanel[1];
         Runnable refreshData = () -> SwingUtilities.invokeLater(() -> {
             overviewPanel.refresh();
             if (nutritionRef[0] != null) nutritionRef[0].refresh();
+            if (purchasesRef[0] != null) purchasesRef[0].refresh();
         });
 
         NutritionPanel nutritionPanel = new NutritionPanel(
                 DatabaseProvider.getNutritionRepository(),
                 DatabaseProvider.getProductRepository(),
+                DatabaseProvider.getPurchasesRepository(),
                 refreshData);
         nutritionRef[0] = nutritionPanel;
         StepsPanel stepsPanel = new StepsPanel(
@@ -40,6 +43,7 @@ public class DailyTrackerPanel extends JPanel {
                 DatabaseProvider.getProductRepository(),
                 DatabaseProvider.getNutritionRepository(),
                 refreshData);
+        purchasesRef[0] = purchasesPanel;
         ProductCatalogPanel catalogPanel = new ProductCatalogPanel(
                 DatabaseProvider.getProductRepository(),
                 () -> {

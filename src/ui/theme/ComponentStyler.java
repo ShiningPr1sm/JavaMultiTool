@@ -405,6 +405,13 @@ public class ComponentStyler {
         cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     }
 
+    public static void styleRadioButton(JRadioButton rb) {
+        rb.setFocusPainted(false);
+        rb.setOpaque(false);
+        rb.setForeground(UIStyle.TEXT_COLOR);
+        rb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    }
+
     public static void styleSlider(JSlider slider) {
         slider.setFocusable(false);
         slider.setOpaque(false);

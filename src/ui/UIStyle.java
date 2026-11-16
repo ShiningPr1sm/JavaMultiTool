@@ -215,6 +215,10 @@ public class UIStyle {
         ComponentStyler.styleCheckbox(cb);
     }
 
+    public static void styleRadioButton(JRadioButton rb) {
+        ComponentStyler.styleRadioButton(rb);
+    }
+
     public static void styleSlider(JSlider slider) {
         ComponentStyler.styleSlider(slider);
     }

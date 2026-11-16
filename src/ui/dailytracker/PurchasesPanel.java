@@ -255,6 +255,11 @@ public class PurchasesPanel extends JPanel {
         totalLabel.setText(sb.toString().trim());
     }
 
+    /** Reloads the purchase table for the date shown in the date field. */
+    public void refresh() {
+        refreshTable();
+    }
+
     private void notifyChanged() {
         if (onDataChanged != null) onDataChanged.run();
     }

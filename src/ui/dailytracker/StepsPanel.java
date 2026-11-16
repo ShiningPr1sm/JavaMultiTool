@@ -60,7 +60,7 @@ public class StepsPanel extends JPanel {
         form.add(stepsField, c);
 
         c.gridx = 5;
-        JButton addBtn = new JButton(I18n.t("steps.addEntry"));
+        JButton addBtn = new JButton(I18n.t("common.add"));
         UIStyle.styleButton(addBtn);
         addBtn.addActionListener(e -> addSteps());
         form.add(addBtn, c);
