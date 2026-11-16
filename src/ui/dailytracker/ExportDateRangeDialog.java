@@ -65,6 +65,7 @@ public class ExportDateRangeDialog extends JDialog {
         JButton cancelBtn = new JButton(I18n.t("common.cancel"));
         UIStyle.styleButton(cancelBtn);
         cancelBtn.setPreferredSize(new Dimension(100, 32));
+        cancelBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
 
         okBtn.addActionListener(e -> {
             LocalDate from = fromCal.getSelected();

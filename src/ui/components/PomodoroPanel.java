@@ -83,6 +83,7 @@ public class PomodoroPanel extends JPanel {
         btnRow.setBackground(UIStyle.BG_COLOR);
         UIStyle.styleButton(startBtn);
         UIStyle.styleButton(resetBtn);
+        resetBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
         btnRow.add(startBtn);
         btnRow.add(resetBtn);
         center.add(btnRow, c);

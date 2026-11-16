@@ -44,6 +44,7 @@ public class AdminLogPanel extends JPanel {
         JButton clearBtn = new JButton(I18n.t("admin.clearConsole"));
         UIStyle.styleButton(clearBtn);
         clearBtn.addActionListener(e -> textPane.setText(""));
+        clearBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
         add(clearBtn, BorderLayout.SOUTH);
     }
 

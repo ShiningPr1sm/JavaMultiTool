@@ -156,6 +156,7 @@ public class PurchasesPanel extends JPanel {
         JButton deleteBtn = new JButton(I18n.t("common.deleteSelected"));
         UIStyle.styleButton(deleteBtn);
         deleteBtn.addActionListener(e -> deleteSelected());
+        deleteBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
         totalLabel = new JLabel(I18n.t("purchases.totalDash"));
         totalLabel.setForeground(UIStyle.ACCENT_COLOR);
         totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));

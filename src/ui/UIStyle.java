@@ -22,6 +22,7 @@ public class UIStyle {
     public static Color COMPLETED_ACH = new Color(60, 120, 60);
     public static Color ACCENT_COLOR = new Color(100, 200, 100);
     public static Color XP_LABEL_COLOR = new Color(180, 255, 180);
+    public static Color DEL_BUTTON_COLOR = new Color(255, 100, 100);
     public static Color TEXT_COLOR = Color.WHITE;
 
     /** Decorative pastel palette for search tag badges (theme-independent, like XP_LABEL_COLOR). */

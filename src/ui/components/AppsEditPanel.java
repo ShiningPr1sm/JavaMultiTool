@@ -53,7 +53,7 @@ public class AppsEditPanel extends JPanel {
 
         JButton deleteBtn = new JButton(I18n.t("common.deleteSelected"));
         UIStyle.styleButton(deleteBtn);
-        deleteBtn.setForeground(new Color(255, 100, 100));
+        deleteBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
         deleteBtn.addActionListener(e -> {
             int row = editTable.getSelectedRow();
             if (row != -1) {

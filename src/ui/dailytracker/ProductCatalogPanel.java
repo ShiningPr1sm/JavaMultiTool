@@ -79,6 +79,7 @@ public class ProductCatalogPanel extends JPanel {
         UIStyle.styleButton(cancelEditBtn);
         cancelEditBtn.setVisible(false);
         cancelEditBtn.addActionListener(e -> clearForm());
+        cancelEditBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
         c.gridx = 10; form.add(cancelEditBtn, c);
 
         JPanel filler = new JPanel();
@@ -133,9 +134,11 @@ public class ProductCatalogPanel extends JPanel {
 
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setOpaque(false);
-        JButton deleteBtn = new JButton("Delete Selected");
+        JButton deleteBtn = new JButton(I18n.t("common.deleteSelected"));
         UIStyle.styleButton(deleteBtn);
         deleteBtn.addActionListener(e -> deleteSelected());
+        deleteBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
+
         JLabel hint = new JLabel(I18n.t("catalog.hint"));
         hint.setForeground(UIStyle.TEXT_COLOR);
         bottom.add(deleteBtn, BorderLayout.WEST);

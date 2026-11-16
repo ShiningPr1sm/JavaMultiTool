@@ -91,6 +91,7 @@ public class WeightedEntryDialog extends JDialog {
         okBtn.setPreferredSize(new Dimension(100, 32));
         JButton cancelBtn = new JButton(I18n.t("common.cancel"));
         UIStyle.styleButton(cancelBtn);
+        cancelBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
         cancelBtn.setPreferredSize(new Dimension(100, 32));
 
         okBtn.addActionListener(e -> {
@@ -126,10 +127,10 @@ public class WeightedEntryDialog extends JDialog {
         });
         cancelBtn.addActionListener(e -> dispose());
 
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        JPanel btnPanel = new JPanel(new BorderLayout(0, 0));
         btnPanel.setOpaque(false);
-        btnPanel.add(okBtn);
-        btnPanel.add(cancelBtn);
+        btnPanel.add(cancelBtn, BorderLayout.WEST);
+        btnPanel.add(okBtn, BorderLayout.EAST);
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(UIStyle.SIDE_BOX);
@@ -168,8 +169,10 @@ public class WeightedEntryDialog extends JDialog {
         c.gridwidth = 1;
 
         c.gridy = 5; c.gridx = 0; c.gridwidth = 2;
+        c.fill = GridBagConstraints.HORIZONTAL;
         panel.add(btnPanel, c);
         c.gridwidth = 1;
+        c.fill = GridBagConstraints.NONE;
 
         setContentPane(panel);
         getRootPane().setDefaultButton(okBtn);

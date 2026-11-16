@@ -77,6 +77,7 @@ public class SettingsPanel extends JPanel {
         JButton deleteAvatarBtn = new JButton(I18n.t("settings.deleteAvatar"));
         deleteAvatarBtn.addActionListener(e -> deleteAvatar(mainFrame, avatarLabel));
         UIStyle.styleButton(deleteAvatarBtn);
+        deleteAvatarBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
         deleteAvatarBtn.setPreferredSize(new Dimension(avatarLabel.getPreferredSize().width, deleteAvatarBtn.getPreferredSize().height));
         deleteAvatarBtn.setMaximumSize(new Dimension(avatarLabel.getPreferredSize().width, deleteAvatarBtn.getPreferredSize().height));
 
@@ -219,6 +220,7 @@ public class SettingsPanel extends JPanel {
         logoutBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         logoutBtn.addActionListener(e -> logout());
         UIStyle.styleButton(logoutBtn);
+        logoutBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));

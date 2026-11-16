@@ -143,6 +143,7 @@ public class MediaDownloaderPanel extends JPanel {
         UIStyle.styleButton(cancelButton);
         cancelButton.setPreferredSize(new Dimension(90, 30));
         cancelButton.setEnabled(false);
+        cancelButton.setForeground(UIStyle.DEL_BUTTON_COLOR);
         cancelButton.addActionListener(e -> {
             cancelButton.setEnabled(false);
             downloadService.cancelAll();

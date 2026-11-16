@@ -291,6 +291,7 @@ public class FindReplacePanel extends JPanel {
         JButton emptyBtn = new JButton(I18n.t("frp.preset.emptyLines"));
         UIStyle.styleButton(emptyBtn);
         emptyBtn.addActionListener(e -> quickClean("^\\s*[\\r\\n]", ""));
+        emptyBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
         quickRow.add(trimBtn);
         quickRow.add(emptyBtn);
         right.add(quickRow);
@@ -359,10 +360,12 @@ public class FindReplacePanel extends JPanel {
             int sel = rulesTable.getSelectedRow();
             if (sel >= 0) rulesModel.removeRow(rulesTable.convertRowIndexToModel(sel));
         });
+        delBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
 
         JButton clearBtn = new JButton(I18n.t("frp.clearRules"));
         UIStyle.styleButton(clearBtn);
         clearBtn.addActionListener(e -> rulesModel.setRowCount(0));
+        clearBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
 
         JButton rulesRun = new JButton(I18n.t("frp.rulesRun"));
         UIStyle.styleButton(rulesRun);

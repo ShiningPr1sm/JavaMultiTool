@@ -96,6 +96,7 @@ public class StyledDialog {
         cancelButton.setPreferredSize(new Dimension(100, 35));
         UIStyle.styleButton(cancelButton);
         cancelButton.addActionListener(e -> dialog.dispose());
+        cancelButton.setForeground(UIStyle.DEL_BUTTON_COLOR);
 
         dialog.getRootPane().setDefaultButton(okButton);
 

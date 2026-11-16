@@ -95,6 +95,7 @@ public class NotificationsPanel extends JPanel {
             notificationService.dismissNotification(rec.getId());
             refreshList();
         });
+        dismissBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
 
         card.add(textLabel, BorderLayout.CENTER);
         card.add(dismissBtn, BorderLayout.EAST);
