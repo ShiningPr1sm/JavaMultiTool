@@ -24,10 +24,13 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Properties;
 import java.util.function.Supplier;
 
 public class SettingsPanel extends JPanel {
@@ -40,6 +43,9 @@ public class SettingsPanel extends JPanel {
     /** Translated at class-load (Launcher applies language before UI). */
     private static final String LOADING_LABEL = I18n.t("status.loading");
     private static final int ROW_INSET = 4;
+    private static final String AUTHOR_SITE = "https://shiningpr1sm.dev";
+    private static final String GITHUB_URL = AppLogger.ISSUES_URL.replace("/issues", "");
+    private static final String CONTACT_URL = "mailto:info@shiningpr1sm.dev";
     private final JLabel appUptimeLabel = new JLabel(I18n.t("settings.appUptime", LOADING_LABEL));
     private final JLabel sysUptimeLabel = new JLabel(I18n.t("settings.sysUptime", LOADING_LABEL));
     private final Timer uptimeTimer;
@@ -222,6 +228,10 @@ public class SettingsPanel extends JPanel {
         UIStyle.styleButton(logoutBtn);
         logoutBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
 
+        JButton infoBtn = new JButton(I18n.t("settings.info.button"));
+        UIStyle.styleButton(infoBtn);
+        infoBtn.addActionListener(e -> openInfoDialog((Frame) SwingUtilities.getWindowAncestor(this)));
+
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBackground(UIStyle.BG_COLOR);
@@ -244,8 +254,6 @@ public class SettingsPanel extends JPanel {
         infoPanel.add(appUptimeLabel);
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(sysUptimeLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(logoutBtn);
 
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -258,13 +266,24 @@ public class SettingsPanel extends JPanel {
         scrollPane.getViewport().setBackground(UIStyle.BG_COLOR);
         UIStyle.styleScrollBar(scrollPane);
 
-        JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        bottomBar.setBackground(UIStyle.BG_COLOR);
         JButton advancedBtn = new JButton(I18n.t("settings.advanced"));
         UIStyle.styleButton(advancedBtn);
         advancedBtn.addActionListener(e ->
                 new AdvancedSettingsDialog((Frame) SwingUtilities.getWindowAncestor(this), login).setVisible(true));
-        bottomBar.add(advancedBtn);
+
+        JPanel advancedRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        advancedRow.setBackground(UIStyle.BG_COLOR);
+        advancedRow.add(advancedBtn);
+
+        JPanel logoutRow = new JPanel(new BorderLayout());
+        logoutRow.setBackground(UIStyle.BG_COLOR);
+        logoutRow.add(logoutBtn, BorderLayout.WEST);
+        logoutRow.add(infoBtn, BorderLayout.EAST);
+
+        JPanel bottomBar = new JPanel(new GridLayout(2, 1, 0, 6));
+        bottomBar.setBackground(UIStyle.BG_COLOR);
+        bottomBar.add(advancedRow);
+        bottomBar.add(logoutRow);
 
         add(scrollPane, BorderLayout.CENTER);
         add(bottomBar, BorderLayout.SOUTH);
@@ -274,6 +293,122 @@ public class SettingsPanel extends JPanel {
             sysUptimeLabel.setText(I18n.t("settings.sysUptime", systemInfoService.getSystemUptime()));
         });
         uptimeTimer.start();
+    }
+
+    private void openInfoDialog(Frame parent) {
+        JDialog dialog = new JDialog(parent, I18n.t("settings.info.title"), Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setUndecorated(true);
+        dialog.setBackground(UIStyle.BG_COLOR);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(UIStyle.SIDE_BOX);
+        panel.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER_COLOR, 1));
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(UIStyle.HEADER_COLOR);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, UIStyle.BORDER_COLOR),
+                BorderFactory.createEmptyBorder(16, 24, 16, 24)));
+
+        JLabel titleLabel = new JLabel("<html><div style='font-size: 18px; font-weight: bold;'>"
+                + htmlText(I18n.t("settings.info.title")) + "</div></html>");
+        titleLabel.setForeground(UIStyle.ACCENT_COLOR);
+        header.add(titleLabel, BorderLayout.CENTER);
+
+        JPanel body = new JPanel(new BorderLayout(0, 20));
+        body.setBackground(UIStyle.SIDE_BOX);
+        body.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+        content.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        content.add(infoHeading(I18n.t("settings.info.version", appVersion())));
+        content.add(Box.createVerticalStrut(12));
+        content.add(infoHeading(I18n.t("settings.info.author")));
+        content.add(Box.createVerticalStrut(8));
+        content.add(infoText(I18n.t("settings.info.free")));
+        content.add(Box.createVerticalStrut(6));
+        content.add(infoText(I18n.t("settings.info.privacy")));
+        content.add(Box.createVerticalStrut(6));
+        content.add(infoText(I18n.t("settings.info.opensource")));
+        content.add(Box.createVerticalStrut(14));
+        content.add(infoLink(dialog, I18n.t("settings.info.site"), AUTHOR_SITE));
+        content.add(Box.createVerticalStrut(4));
+        content.add(infoLink(dialog, I18n.t("settings.info.github"), GITHUB_URL));
+        content.add(Box.createVerticalStrut(4));
+        content.add(infoLink(dialog, I18n.t("settings.info.contact"), CONTACT_URL));
+
+        JButton closeBtn = new JButton(I18n.t("settings.info.close"));
+        UIStyle.styleButton(closeBtn);
+        closeBtn.setPreferredSize(new Dimension(100, 35));
+        closeBtn.addActionListener(e -> dialog.dispose());
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        btnPanel.setOpaque(false);
+        btnPanel.add(closeBtn);
+        dialog.getRootPane().setDefaultButton(closeBtn);
+
+        body.add(content, BorderLayout.CENTER);
+        body.add(btnPanel, BorderLayout.SOUTH);
+        panel.add(header, BorderLayout.NORTH);
+        panel.add(body, BorderLayout.CENTER);
+        dialog.setContentPane(panel);
+        dialog.pack();
+        Dimension size = dialog.getSize();
+        size.width = Math.max(size.width, 480);
+        dialog.setSize(size);
+        dialog.setLocationRelativeTo(parent);
+        dialog.setVisible(true);
+    }
+
+    private static JLabel infoHeading(String text) {
+        JLabel label = new JLabel("<html><b>" + htmlText(text) + "</b></html>");
+        label.setForeground(UIStyle.ACCENT_COLOR);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return label;
+    }
+
+    private static JLabel infoText(String text) {
+        JLabel label = new JLabel("<html><div style='width: 400px;'>" + htmlText(text) + "</div></html>");
+        label.setForeground(UIStyle.TEXT_COLOR);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return label;
+    }
+
+    private static JButton infoLink(Window parent, String text, String url) {
+        JButton btn = new JButton(text);
+        UIStyle.styleButton(btn);
+        btn.setForeground(UIStyle.ACCENT_COLOR);
+        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btn.addActionListener(e -> openLink(parent, url));
+        return btn;
+    }
+
+    private static void openLink(Window parent, String url) {
+        try {
+            Desktop.getDesktop().browse(new URI(url));
+        } catch (Exception e) {
+            AppLogger.error("Settings: failed to open " + url + " - " + e.getMessage());
+            StyledDialog.show(parent, I18n.t("settings.info.browserError"), I18n.t("settings.info.title"));
+        }
+    }
+
+    private static String htmlText(String text) {
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private static String appVersion() {
+        try (InputStream in = SettingsPanel.class.getResourceAsStream("/META-INF/MANIFEST.MF")) {
+            if (in == null) return "dev";
+            Properties props = new Properties();
+            props.load(in);
+            String version = props.getProperty("Implementation-Version");
+            return version != null && !version.isBlank() ? version.trim() : "dev";
+        } catch (IOException e) {
+            return "dev";
+        }
     }
 
     private static String valueOrLoading(String value) {
