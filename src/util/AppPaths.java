@@ -3,78 +3,84 @@ package util;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public class AppPaths {
-    private static final String ROAMING = System.getenv("APPDATA");
-    private static final String SHINING_PR1SM = ROAMING + "/ShiningPr1sm";
-    private static final String APP_DIR = SHINING_PR1SM + "/JavaMultiTool";
+    private static final String ROAMING = System.getenv("APPDATA") != null
+            ? System.getenv("APPDATA")
+            : System.getProperty("user.home");
+    private static final Path COMMON_PATH = Path.of(ROAMING, "ShiningPr1sm");
+    private static final Path APP_PATH = COMMON_PATH.resolve("JavaMultiTool");
 
     /** App data folder (read-only use by e.g. SingleInstanceGuard). */
     public static String appDir() {
-        return APP_DIR;
+        return APP_PATH.toString();
     }
 
-    public static final String COMMON_DIR = SHINING_PR1SM;
-    public static final String LOGS_DIR = APP_DIR + "/logs";
-    public static final String RIGHTS_FILE = APP_DIR + "/rights.ini";
-    public static final String CONFIG_FILE = APP_DIR + "/update.properties";
+    public static final String COMMON_DIR = COMMON_PATH.toString();
+    public static final String LOGS_DIR = APP_PATH.resolve("logs").toString();
+    public static final String RIGHTS_FILE = APP_PATH.resolve("rights.ini").toString();
+    public static final String CONFIG_FILE = APP_PATH.resolve("update.properties").toString();
 
-    private static String currentUserRoot;
+    private static Path currentUserRoot;
 
-    public static String DB_USER = APP_DIR + "/user_data.db";
-    public static String DB_WORKFLOW = APP_DIR + "/Databases/workflow.db";
-    public static String DB_ACHIEVEMENTS = APP_DIR + "/Databases/achievements.db";
-    public static String DB_BDAYS = APP_DIR + "/Databases/bdays.db";
-    public static String DB_LEVELS = APP_DIR + "/Databases/levels.db";
-    public static String DB_DAILY = APP_DIR + "/Databases/daily.db";
+    public static String DB_USER = APP_PATH.resolve("user_data.db").toString();
+    public static String DB_WORKFLOW = APP_PATH.resolve("Databases").resolve("workflow.db").toString();
+    public static String DB_ACHIEVEMENTS = APP_PATH.resolve("Databases").resolve("achievements.db").toString();
+    public static String DB_BDAYS = APP_PATH.resolve("Databases").resolve("bdays.db").toString();
+    public static String DB_LEVELS = APP_PATH.resolve("Databases").resolve("levels.db").toString();
+    public static String DB_DAILY = APP_PATH.resolve("Databases").resolve("daily.db").toString();
 
     public static void init() {
-        new File(APP_DIR + "/Databases").mkdirs();
-        DB_USER = new File(APP_DIR + "/user_data.db").exists()
-            ? APP_DIR + "/user_data.db"
-            : APP_DIR + "/Databases/user_data.db";
+        Path databaseDir = APP_PATH.resolve("Databases");
+        databaseDir.toFile().mkdirs();
+        Path legacyUserDb = APP_PATH.resolve("user_data.db");
+        DB_USER = legacyUserDb.toFile().exists()
+                ? legacyUserDb.toString()
+                : databaseDir.resolve("user_data.db").toString();
     }
 
     public static String avatarFile(String login) {
-        return currentUserRoot != null ? currentUserRoot + "/" + login + ".png" : null;
+        return currentUserRoot != null ? currentUserRoot.resolve(login + ".png").toString() : null;
     }
 
     public static void setUserRoot(String nickname) {
-        currentUserRoot = APP_DIR + "/" + nickname;
-        new File(currentUserRoot + "/Databases").mkdirs();
-        String userDbDir = currentUserRoot + "/Databases";
-        DB_WORKFLOW = userDbDir + "/workflow.db";
-        DB_ACHIEVEMENTS = userDbDir + "/achievements.db";
-        DB_BDAYS = userDbDir + "/bdays.db";
-        DB_LEVELS = userDbDir + "/levels.db";
-        DB_DAILY = userDbDir + "/daily.db";
+        currentUserRoot = APP_PATH.resolve(nickname);
+        Path userDbDir = currentUserRoot.resolve("Databases");
+        userDbDir.toFile().mkdirs();
+        DB_WORKFLOW = userDbDir.resolve("workflow.db").toString();
+        DB_ACHIEVEMENTS = userDbDir.resolve("achievements.db").toString();
+        DB_BDAYS = userDbDir.resolve("bdays.db").toString();
+        DB_LEVELS = userDbDir.resolve("levels.db").toString();
+        DB_DAILY = userDbDir.resolve("daily.db").toString();
     }
 
     public static void migrateUserData(String login, String nickname) {
-        String oldDbDir = APP_DIR + "/Databases";
-        String oldAvatarsDir = APP_DIR + "/avatars";
-        String userRoot = APP_DIR + "/" + nickname;
-        boolean needsMigration = !new File(userRoot).exists();
+        Path oldDbDir = APP_PATH.resolve("Databases");
+        Path oldAvatarsDir = APP_PATH.resolve("avatars");
+        Path userRoot = APP_PATH.resolve(nickname);
+        boolean needsMigration = !userRoot.toFile().exists();
 
         setUserRoot(nickname);
         if (!needsMigration) return;
 
         try {
-            File oldUserDb = new File(oldDbDir + "/user_data.db");
-            if (oldUserDb.exists()) {
-                Files.move(oldUserDb.toPath(), new File(APP_DIR + "/user_data.db").toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Path oldUserDb = oldDbDir.resolve("user_data.db");
+            if (oldUserDb.toFile().exists()) {
+                Files.move(oldUserDb, APP_PATH.resolve("user_data.db"), StandardCopyOption.REPLACE_EXISTING);
             }
-            DB_USER = APP_DIR + "/user_data.db";
+            DB_USER = APP_PATH.resolve("user_data.db").toString();
 
-            copyIfExists(oldDbDir + "/workflow.db", userRoot + "/Databases/workflow.db");
-            copyIfExists(oldDbDir + "/achievements.db", userRoot + "/Databases/achievements.db");
-            copyIfExists(oldDbDir + "/bdays.db", userRoot + "/Databases/bdays.db");
-            copyIfExists(oldDbDir + "/levels.db", userRoot + "/Databases/levels.db");
+            Path userDbDir = userRoot.resolve("Databases");
+            copyIfExists(oldDbDir.resolve("workflow.db"), userDbDir.resolve("workflow.db"));
+            copyIfExists(oldDbDir.resolve("achievements.db"), userDbDir.resolve("achievements.db"));
+            copyIfExists(oldDbDir.resolve("bdays.db"), userDbDir.resolve("bdays.db"));
+            copyIfExists(oldDbDir.resolve("levels.db"), userDbDir.resolve("levels.db"));
 
-            File sharedAvatar = new File(oldAvatarsDir + "/" + login + ".png");
-            if (sharedAvatar.exists()) {
-                Files.move(sharedAvatar.toPath(), new File(userRoot + "/" + login + ".png").toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Path sharedAvatar = oldAvatarsDir.resolve(login + ".png");
+            if (sharedAvatar.toFile().exists()) {
+                Files.move(sharedAvatar, userRoot.resolve(login + ".png"), StandardCopyOption.REPLACE_EXISTING);
             }
 
             deleteDir(oldDbDir);
@@ -84,15 +90,14 @@ public class AppPaths {
         }
     }
 
-    private static void copyIfExists(String from, String to) throws IOException {
-        File src = new File(from);
-        if (src.exists()) {
-            Files.copy(src.toPath(), new File(to).toPath(), StandardCopyOption.REPLACE_EXISTING);
+    private static void copyIfExists(Path from, Path to) throws IOException {
+        if (from.toFile().exists()) {
+            Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
-    private static void deleteDir(String path) {
-        File dir = new File(path);
+    private static void deleteDir(Path path) {
+        File dir = path.toFile();
         if (!dir.exists()) return;
         File[] files = dir.listFiles();
         if (files != null) {

@@ -21,7 +21,7 @@ public final class I18n {
 
     /** Display names per language code (native spelling - these are never translated). */
     private static final String[] CODES = {"en", "ru", "uk"};
-    private static final String[] DISPLAY = {"English", "Русский", "Українська"};
+    private static final String[] DISPLAY = {"English language", "Русский язык", "Українська мова"};
 
     private static volatile ResourceBundle bundle =
             ResourceBundle.getBundle(BASE_NAME, Locale.ENGLISH);
@@ -83,14 +83,14 @@ public final class I18n {
         if (code == null || code.isBlank()) return "en";
         String c = code.trim().toLowerCase(Locale.ROOT);
         return switch (c) {
-            case "english", "en" -> "en";
-            case "русский", "ru" -> "ru";
-            case "українська", "uk" -> "uk";
+            case "english language", "en" -> "en";
+            case "русский язык", "ru" -> "ru";
+            case "українська мова", "uk" -> "uk";
             default -> c;
         };
     }
 
-    /** Display name ("English" / "Русский" / "Українська") for a language code. */
+    /** Display name ("English language" / "Русский язык" / "Українська мова") for a language code. */
     public static String displayName(String code) {
         String norm = normalize(code);
         for (int i = 0; i < CODES.length; i++) {
