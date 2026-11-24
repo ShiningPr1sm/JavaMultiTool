@@ -81,6 +81,7 @@ public class PurchasesPanel extends JPanel {
         currencyBox = new JComboBox<>(CURRENCIES);
         UIStyle.styleComboBox(currencyBox);
         currencyBox.setSelectedItem("EUR");
+        currencyBox.setPreferredSize(new Dimension(100, 32));
         form.add(currencyBox, c);
 
         c.gridx = 8;

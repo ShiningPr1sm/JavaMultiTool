@@ -62,8 +62,8 @@ public class SettingsPanel extends JPanel {
         userInfoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel avatarLabel = new JLabel();
-        avatarLabel.setPreferredSize(new Dimension(121, 121));
-        avatarLabel.setMaximumSize(new Dimension(121, 121));
+        avatarLabel.setPreferredSize(new Dimension(150, 150));
+        avatarLabel.setMaximumSize(new Dimension(150, 150));
         avatarLabel.setOpaque(true);
         avatarLabel.setBackground(Color.GRAY);
         updateAvatarImage(avatarLabel);
@@ -330,9 +330,9 @@ public class SettingsPanel extends JPanel {
             if (img != null) {
                 BufferedImage cropped = AvatarCropperDialog.showCropDialog(this, img);
                 if (cropped != null) {
-                    BufferedImage resized = new BufferedImage(121, 121, BufferedImage.TYPE_INT_ARGB);
+                    BufferedImage resized = new BufferedImage(150, 150, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2d = resized.createGraphics();
-                    g2d.drawImage(cropped.getScaledInstance(121, 121, Image.SCALE_SMOOTH), 0, 0, null);
+                    g2d.drawImage(cropped.getScaledInstance(150, 150, Image.SCALE_SMOOTH), 0, 0, null);
                     g2d.dispose();
                     String avatarPath = util.AppPaths.avatarFile(login);
                     if (avatarPath == null) return;
@@ -451,7 +451,7 @@ public class SettingsPanel extends JPanel {
             if (avatarFile.exists()) {
                 try {
                     BufferedImage img = ImageIO.read(avatarFile);
-                    ImageIcon icon = new ImageIcon(img.getScaledInstance(121, 121, Image.SCALE_SMOOTH));
+                    ImageIcon icon = new ImageIcon(img.getScaledInstance(150, 150, Image.SCALE_SMOOTH));
                     label.setIcon(icon);
                     label.setText("");
                 } catch (IOException e) {
@@ -463,7 +463,7 @@ public class SettingsPanel extends JPanel {
         java.net.URL defaultUrl = getClass().getResource("/icons/settings/default_avatar.png");
         if (defaultUrl != null) {
             ImageIcon defaultIcon = new ImageIcon(defaultUrl);
-            Image scaled = defaultIcon.getImage().getScaledInstance(121, 121, Image.SCALE_SMOOTH);
+            Image scaled = defaultIcon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
             label.setIcon(new ImageIcon(scaled));
             label.setText("");
         }

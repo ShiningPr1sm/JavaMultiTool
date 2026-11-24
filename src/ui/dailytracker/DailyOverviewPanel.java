@@ -68,7 +68,7 @@ public class DailyOverviewPanel extends JPanel {
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         filterPanel.setBackground(UIStyle.BG_COLOR);
 
-        JLabel dateLabel = new JLabel("<html><b style='color:white'>Date:</b></html>");
+        JLabel dateLabel = new JLabel("<html><b style='color:white'> " + I18n.t("charts.date") + "</b></html>");
         filterPanel.add(dateLabel);
 
         dateSelector = new JComboBox<>();

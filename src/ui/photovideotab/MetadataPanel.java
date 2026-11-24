@@ -83,12 +83,12 @@ public class MetadataPanel extends JPanel {
 
         JButton copyBtn = new JButton(I18n.t("common.copy"));
         UIStyle.styleButton(copyBtn);
-        copyBtn.setPreferredSize(new Dimension(80, 24));
+//        copyBtn.setPreferredSize(new Dimension(80, 24));
         copyBtn.addActionListener(e -> copyMetadata());
 
         JButton exportBtn = new JButton(I18n.t("meta.export"));
         UIStyle.styleButton(exportBtn);
-        exportBtn.setPreferredSize(new Dimension(85, 24));
+//        exportBtn.setPreferredSize(new Dimension(85, 24));
         exportBtn.addActionListener(e -> exportMetadata());
 
         actionBtns.add(copyBtn);

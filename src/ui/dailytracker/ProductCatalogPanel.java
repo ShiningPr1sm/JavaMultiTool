@@ -51,6 +51,7 @@ public class ProductCatalogPanel extends JPanel {
         c.gridx = 4; currencyBox = new JComboBox<>(CURRENCIES);
         UIStyle.styleComboBox(currencyBox);
         currencyBox.setSelectedItem("EUR");
+        currencyBox.setPreferredSize(new Dimension(100, 32));
         form.add(currencyBox, c);
 
         caloriesLabel = label(I18n.t("nutrition.calories"));
