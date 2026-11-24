@@ -87,7 +87,7 @@ public class NutritionPanel extends JPanel {
 
         catalogBox = new JComboBox<>();
         UIStyle.styleComboBox(catalogBox);
-        catalogBox.setPreferredSize(new Dimension(260, 30));
+        catalogBox.setPreferredSize(new Dimension(460, 30));
         catalogBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,

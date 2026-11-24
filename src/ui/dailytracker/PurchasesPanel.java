@@ -94,7 +94,7 @@ public class PurchasesPanel extends JPanel {
         form.add(label(I18n.t("nutrition.fromCatalog")), c);
         catalogBox = new JComboBox<>();
         UIStyle.styleComboBox(catalogBox);
-        catalogBox.setPreferredSize(new Dimension(240, 30));
+        catalogBox.setPreferredSize(new Dimension(460, 30));
         catalogBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,

@@ -58,7 +58,7 @@ public class DailyOverviewPanel extends JPanel {
         this.purchasesRepo = purchasesRepo;
         this.exportService = new DailyExportService(nutritionRepo, stepsRepo, purchasesRepo);
 
-        setLayout(new BorderLayout(0, 10));
+        setLayout(new BorderLayout());
         setBackground(UIStyle.BG_COLOR);
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -73,7 +73,7 @@ public class DailyOverviewPanel extends JPanel {
 
         dateSelector = new JComboBox<>();
         UIStyle.styleComboBox(dateSelector);
-        dateSelector.setPreferredSize(new Dimension(140, 30));
+        dateSelector.setPreferredSize(new Dimension(120, 30));
         dateSelector.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
@@ -110,8 +110,8 @@ public class DailyOverviewPanel extends JPanel {
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         btnPanel.setBackground(UIStyle.BG_COLOR);
-        btnPanel.add(exportBtn);
         btnPanel.add(refreshBtn);
+        btnPanel.add(exportBtn);
 
         top.add(filterPanel, BorderLayout.WEST);
         top.add(btnPanel, BorderLayout.EAST);

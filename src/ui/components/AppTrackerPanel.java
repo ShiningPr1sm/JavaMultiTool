@@ -5,9 +5,11 @@ import service.RunningProcessService;
 import ui.UIStyle;
 import util.AppLogger;
 import util.I18n;
+import util.JavaFxFileChooser;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -47,13 +49,10 @@ public class AppTrackerPanel extends JPanel {
         JButton addManualBtn = new JButton(I18n.t("apps.browseExe"));
         UIStyle.styleButton(addManualBtn);
         addManualBtn.addActionListener(e -> {
-            FileDialog fd = new FileDialog(
-                    (Frame) SwingUtilities.getWindowAncestor(parent),
-                    I18n.t("apps.selectExe"), FileDialog.LOAD);
-            fd.setFile("*.exe");
-            fd.setVisible(true);
-            if (fd.getFile() != null) {
-                String name = fd.getFile();
+            File file = JavaFxFileChooser.openFile(I18n.t("apps.selectExe"),
+                    new javafx.stage.FileChooser.ExtensionFilter(I18n.t("apps.exeFiles"), "*.exe"));
+            if (file != null) {
+                String name = file.getName();
                 workflowRepo.addTrackedApp(runningProcessService.prettifyExeName(name), name);
                 AppLogger.info("Tracked app added manually: " + name);
                 onDataChanged.run();

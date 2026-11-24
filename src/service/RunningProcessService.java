@@ -1,6 +1,7 @@
 package service;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -20,5 +21,15 @@ public class RunningProcessService {
         String pretty = exeName.replace(".exe", "");
         pretty = pretty.substring(0, 1).toUpperCase() + pretty.substring(1).toLowerCase();
         return pretty;
+    }
+
+    public Map<String, String> getRunningExePaths() {
+        Map<String, String> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        ProcessHandle.allProcesses().forEach(ph ->
+                ph.info().command().ifPresent(cmd -> {
+                    String name = Path.of(cmd).getFileName().toString();
+                    result.putIfAbsent(name, cmd);
+                }));
+        return result;
     }
 }
