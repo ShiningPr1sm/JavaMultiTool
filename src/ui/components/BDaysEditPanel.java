@@ -105,9 +105,9 @@ public class BDaysEditPanel extends JPanel {
         JButton addBtn = new JButton(I18n.t("common.add"));
         addBtn.setForeground(new Color(150, 255, 150));
         JButton removeBtn = new JButton(I18n.t("bday.remove"));
-        removeBtn.setForeground(new Color(255, 150, 150));
         UIStyle.styleButton(addBtn);
         UIStyle.styleButton(removeBtn);
+        removeBtn.setForeground(UIStyle.DEL_BUTTON_COLOR);
 
         addBtn.addActionListener(e -> {
             try {

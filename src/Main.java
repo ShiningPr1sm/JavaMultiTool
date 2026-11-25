@@ -47,7 +47,7 @@ public class Main {
 
                 new MainFrame(savedLogin, services);
                 DatabaseProvider.getUserRepository().updateLastLoginDate(savedLogin);
-                AppLogger.info("Auto-login: User '" + savedLogin + "' entered the system.");
+                AppLogger.info("Auto-login: User \"" + savedLogin + "\" entered the system.");
             } else {
                 new AuthFrame(services);
                 AppLogger.info("Waiting for manual login...");

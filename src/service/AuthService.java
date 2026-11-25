@@ -31,10 +31,10 @@ public class AuthService {
 
             if (HASH_ADMIN.equals(inputHash)) {
                 currentRole = Role.ADMIN;
-                AppLogger.admin("System: Login as Admin.");
+                AppLogger.admin("System: Login as role Admin.");
             } else if (HASH_TESTER.equals(inputHash)) {
                 currentRole = Role.TESTER;
-                AppLogger.admin("System: Login as Tester.");
+                AppLogger.admin("System: Login as role Tester.");
             } else {
                 currentRole = Role.USER;
             }

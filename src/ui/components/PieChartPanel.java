@@ -5,6 +5,8 @@ import util.ColorGenerator;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -139,6 +141,29 @@ public class PieChartPanel extends JPanel {
         return Color.getHSBColor((index * 0.61803398875f) % 1.0f, 0.65f, 0.85f);
     }
 
+    private static List<String> wrapTitle(FontMetrics fm, String text, int maxWidth) {
+        List<String> lines = new ArrayList<>();
+        if (text == null || text.isBlank()) return lines;
+        if (fm.stringWidth(text) <= maxWidth) {
+            lines.add(text);
+            return lines;
+        }
+        StringBuilder current = new StringBuilder();
+        for (String word : text.trim().split("\\s+")) {
+            String candidate = current.isEmpty() ? word : current + " " + word;
+            if (!current.isEmpty() && fm.stringWidth(candidate) > maxWidth) {
+                lines.add(current.toString());
+                current.setLength(0);
+                current.append(word);
+            } else {
+                current.setLength(0);
+                current.append(candidate);
+            }
+        }
+        if (!current.isEmpty()) lines.add(current.toString());
+        return lines;
+    }
+
     private class PieCanvas extends JComponent {
         @Override
         protected void paintComponent(Graphics g) {
@@ -149,13 +174,20 @@ public class PieChartPanel extends JPanel {
 
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Segoe UI", Font.BOLD, 15));
-            g2.drawString(title, 20, 30);
+            FontMetrics fm = g2.getFontMetrics();
+            List<String> titleLines = wrapTitle(fm, title, Math.max(60, getWidth() - 40));
+            int titleY = 22;
+            for (String line : titleLines) {
+                g2.drawString(line, 20, titleY);
+                titleY += 18;
+            }
+            int titleSpace = titleLines.size() * 18 + 20;
 
             if (data == null || data.isEmpty()) {
                 g2.setColor(Color.GRAY);
                 g2.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(emptyMessage, (getWidth() - fm.stringWidth(emptyMessage)) / 2, getHeight() / 2);
+                FontMetrics emptyFm = g2.getFontMetrics();
+                g2.drawString(emptyMessage, (getWidth() - emptyFm.stringWidth(emptyMessage)) / 2, getHeight() / 2);
                 return;
             }
 
@@ -163,7 +195,6 @@ public class PieChartPanel extends JPanel {
             if (total <= 0) return;
 
             int margin = 30;
-            int titleSpace = 40;
             int size = Math.min(getWidth() - margin * 2, getHeight() - titleSpace - margin);
             if (size <= 0) return;
 
